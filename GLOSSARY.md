@@ -49,3 +49,31 @@ toward the parent, and a recipe that needs the parent can consume any
 sub-product.
 _Avoid_: product group (a product group is a Grocy category, not a parent),
 variant, generic product
+
+## Grocy Next terms
+
+**Review queue**:
+The list of pending scans that wait for the user's decision. The user accepts
+or rejects them in bulk or one by one. An ordinary edit does not pass through
+the review queue.
+_Avoid_: approval queue, inbox, staging area
+
+**Pending scan**:
+One scanned item, or one item that an assistant read from a receipt, that
+waits in the review queue. An accepted pending scan becomes a booking.
+_Avoid_: pending item, draft, proposal
+
+**Legacy API**:
+The Grocy v4.7.1 API, served by Grocy Next at the same paths, for third-party
+tools that were built for Grocy.
+_Avoid_: compatibility API, Grocy API (when you mean the one Grocy Next serves)
+
+**Next API**:
+The API that Grocy Next designs for its own clients. It never mixes with the
+legacy API.
+_Avoid_: v2 API, new API, native API
+
+**Parity**:
+The state in which Grocy Next does every function that Grocy v4.7.1 exposes in
+its OpenAPI spec and its UI, and Grocy can be switched off.
+_Avoid_: feature complete, 1.0
