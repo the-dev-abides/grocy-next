@@ -73,7 +73,34 @@ The API that Grocy Next designs for its own clients. It never mixes with the
 legacy API.
 _Avoid_: v2 API, new API, native API
 
+**Companion app**:
+The first milestone. Grocy Next runs beside Grocy. Grocy stays the source of
+truth. Grocy Next adds the functions that Grocy lacks.
+_Avoid_: sidecar, add-on, plugin, phase one
+
+**Milestone**:
+One step of the roadmap, with a scope and an exit condition. Each milestone
+gets its own wayfinder map.
+_Avoid_: phase, stage, release, version
+
+**Implied requirement**:
+A function that Grocy Next must have, that no requirements document lists.
+Parity, the data migration from a running Grocy instance, and the legacy API
+are implied requirements.
+_Avoid_: hidden requirement, assumption, non-functional requirement
+
+**UI parity**:
+The state in which Grocy Next does every function of the Grocy v4.7.1 UI. A
+state, not a milestone. The roadmap reaches it across several milestones.
+_Avoid_: UI complete, frontend parity
+
+**API parity**:
+The state in which Grocy Next serves every operation of the Grocy v4.7.1 API
+as the legacy API. Data ownership moves from Grocy to Grocy Next at API parity.
+A state, not a milestone.
+_Avoid_: backend parity, API complete
+
 **Parity**:
-The state in which Grocy Next does every function that Grocy v4.7.1 exposes in
-its OpenAPI spec and its UI, and Grocy can be switched off.
+The state in which Grocy Next has reached UI parity and API parity, and Grocy
+can be switched off.
 _Avoid_: feature complete, 1.0
