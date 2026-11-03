@@ -8,17 +8,7 @@ rule set. Code identifiers, syntax, and quoted text are exempt.
 
 ## Decisions
 
-Agents do not make decisions. A decision is any choice that another option
-could replace: a tool, a library, a setting, a merge method, a naming scheme,
-a schema shape. When a task contains a decision, stop and give the human:
-
-- The options.
-- The cost and the benefit of each option.
-- One recommendation, with the reason.
-
-Then wait for the answer. Do not apply a recommendation on your own. Do not
-hide a decision inside a config value, a default, or a flag. When a checklist
-or a plan names a choice, confirm it before you apply it.
+Agents do not MAKE any NEW decisions on your own. A decision is any choice between any two or more meaningfully different and objectively relevant options.
 
 ## Questions
 
