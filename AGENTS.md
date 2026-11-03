@@ -20,6 +20,30 @@ Then wait for the answer. Do not apply a recommendation on your own. Do not
 hide a decision inside a config value, a default, or a flag. When a checklist
 or a plan names a choice, confirm it before you apply it.
 
+## Questions
+
+Before you ask, check the roadmap, the ADRs, the glossary, the requirements,
+Jeff's instructions, and the answers in this session. A settled decision is
+done. Do not ask it again.
+
+A question has two or more options with value. If one option has value, apply
+it and list it as a default that Jeff can reject. Do not dress a choice you
+have made as a question.
+
+The scope of a session is the scope of the milestone.
+
+## Research
+
+Research records facts. Its recommendation is a proposal, not a decision.
+Read every proposal against the roadmap destination: Grocy Next replaces
+Grocy, so work that serves only Grocy is temporary.
+
+## Jeff's environment
+
+Jeff's cluster and instances test the exit condition. They do not shape the
+design. The design serves any self-hosting user. Never name Jeff's
+environment in this repo.
+
 ## Names
 
 Use plain names. A name says what a thing is. Do not give a part of the
