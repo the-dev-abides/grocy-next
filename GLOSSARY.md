@@ -49,3 +49,87 @@ toward the parent, and a recipe that needs the parent can consume any
 sub-product.
 _Avoid_: product group (a product group is a Grocy category, not a parent),
 variant, generic product
+
+## Grocy Next terms
+
+**Domain**:
+One area of the household that Grocy Next builds, with the subdomains that
+belong to it. The architecture overview lists the domains.
+_Avoid_: module, bounded context, area (an area is a Grocy menu group), part
+
+**Subdomain**:
+One cluster of data and rules inside a domain. Other subdomains point at it
+by id only.
+_Avoid_: module, service, component, cluster (a cluster is the Grocy table
+grouping in the research)
+
+**Review queue**:
+The list of pending scans that wait for the user's decision. The user accepts
+or rejects them in bulk or one by one. An ordinary edit does not pass through
+the review queue.
+_Avoid_: approval queue, inbox, staging area
+
+**Pending scan**:
+One scanned item, or one item that an assistant read from a receipt, that
+waits in the review queue. An accepted pending scan becomes a booking.
+_Avoid_: pending item, draft, proposal
+
+**Legacy API**:
+The Grocy v4.7.1 API, served by Grocy Next at the same paths, for third-party
+tools that were built for Grocy.
+_Avoid_: compatibility API, Grocy API (when you mean the one Grocy Next serves)
+
+**Next API**:
+The API that Grocy Next designs for its own clients. It never mixes with the
+legacy API.
+_Avoid_: v2 API, new API, native API
+
+**Companion app**:
+The first milestone. Grocy Next runs beside Grocy. Grocy stays the source of
+truth. Grocy Next adds the functions that Grocy lacks.
+_Avoid_: sidecar, add-on, plugin, phase one
+
+**Milestone**:
+One step of the roadmap, with a scope and an exit condition.
+_Avoid_: phase, stage, release, version
+
+**Implied requirement**:
+A function that Grocy Next must have, that no requirements document lists.
+Parity, the data migration from a running Grocy instance, and the legacy API
+are implied requirements.
+_Avoid_: hidden requirement, assumption, non-functional requirement
+
+**UI parity**:
+The state in which Grocy Next does every function of the Grocy v4.7.1 UI. A
+state, not a milestone. The roadmap reaches it across several milestones.
+_Avoid_: UI complete, frontend parity
+
+**API parity**:
+The state in which Grocy Next serves every operation of the Grocy v4.7.1 API
+as the legacy API. Data ownership moves from Grocy to Grocy Next at API parity.
+A state, not a milestone.
+_Avoid_: backend parity, API complete
+
+**Parity**:
+The state in which Grocy Next has reached UI parity and API parity, and Grocy
+can be switched off.
+_Avoid_: feature complete, 1.0
+
+**Mealie link**:
+The opt-in connection between Grocy Next and a Mealie instance. It holds the
+links between products and foods and between quantity units. Mealie is the
+source of truth for recipes. Grocy Next is the source of truth for products,
+quantity units, and stock.
+_Avoid_: sync, integration, Grocy Mealie Sync (that is the third-party tool
+that the Mealie link replaces)
+
+**Stretch**:
+A group of consecutive milestones with one shared outcome. The roadmap has a
+companion stretch, a UI parity stretch, and an API parity stretch.
+_Avoid_: phase, epic, theme
+
+**Shared service**:
+A function that more than one domain uses and that no domain owns: Calendar,
+Files, Print, Userfields, and System. A shared service is built in the first
+milestone whose screens need it.
+_Avoid_: cross-cutting concern, utility, infrastructure
