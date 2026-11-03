@@ -1,9 +1,11 @@
 # Roadmap
 
-This roadmap orders the work on Grocy Next into milestones. A milestone has
-one paragraph of scope and one exit condition. Each milestone gets its own
-wayfinder map, and that map designs the milestone. The roadmap has no end.
-It lists the milestones known on 2026-11-03. A later effort appends more.
+This roadmap is a living document. It is a starting point for the planning of
+the work, not a plan that is settled. It orders the work on Grocy Next into
+milestones. A milestone has one paragraph of scope and one exit condition.
+Each milestone gets its own wayfinder map, and that map designs the milestone
+and can change the milestone. The roadmap has no end. It lists the milestones
+known on 2026-11-03. A later effort appends more.
 
 ## Rules
 
@@ -35,13 +37,11 @@ It lists the milestones known on 2026-11-03. A later effort appends more.
 
 ## Domains
 
-The architecture overview defines the domains. The roadmap orders the work by
-domain. The domains are Inventory (Products, Stock, Shopping list, Review
-queue), Recipes (Recipes, Meal plan), Household (Chores, Tasks, Batteries,
-Equipment), Users, and the Mealie link. Recipes is its own domain because
-cooking is a different household activity from stocking: a recipe points at
-Products by id, reads Stock for fulfillment, and nothing in Inventory points
-at a recipe.
+The roadmap groups the work by domain. The domain list is a working list, not
+a decision. The milestone maps settle the domains and the subdomains when
+they design the work. The working list is: Inventory (Products, Stock,
+Shopping list, Review queue), Recipes (Recipes, Meal plan), Household (Chores,
+Tasks, Batteries, Equipment), Users, and the Mealie link.
 
 ## Companion stretch
 
