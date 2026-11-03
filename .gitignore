@@ -29,3 +29,14 @@ npm-debug.log*
 
 # Claude Code worktrees
 .claude/worktrees/
+
+# NX
+.nx/cache/
+.nx/workspace-data/
+.nx/polygraph/
+.nx/self-healing/
+.nx/migrate-runs/
+out-tsc/
+test-output/
+vitest.config.*.timestamp*
+.vitest/
