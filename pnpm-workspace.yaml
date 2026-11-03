@@ -1,0 +1,22 @@
+packages:
+  - 'apps/*'
+  - 'libs/**'
+
+catalog:
+  # TypeScript stays on 6.0.x. TypeScript 7.0 ships no JavaScript compiler
+  # API. typescript-eslint, the NestJS swagger plugin, and the NestJS CLI do
+  # not load it. Move to TypeScript 7 when those tools accept it.
+  typescript: ~6.0.3
+
+# pnpm installs no version that is less than one day old. This is the pnpm
+# default (minimumReleaseAge 1440 minutes). This file does not change it.
+# When the newest version of a package is less than one day old, pnpm
+# installs the newest version that is at least one day old.
+
+# Packages that can run their install scripts. pnpm blocks every other one.
+allowBuilds:
+  nx: true
+  '@swc/core': true
+  '@parcel/watcher': true
+  # @scarf/scarf sends install telemetry. Its script stays blocked.
+  '@scarf/scarf': false

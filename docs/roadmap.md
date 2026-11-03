@@ -273,37 +273,37 @@ no typed amount.
 
 ## Where each requirement lands
 
-| Requirement                                                                                             | Milestone                               |
-| ------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Human: fewer clicks, responsive, large screen                                                           | Rule, every milestone                   |
-| Human: bulk edit, inline edit                                                                           | 6                                       |
-| Human: full MCP server                                                                                  | Rule, every milestone; complete at 13   |
-| Human: SQLite or PostgreSQL                                                                             | Rule, from 1                            |
-| Human: Docker, Compose, Portainer, k3s                                                                  | Rule, from 1                            |
-| Human: barcode scanning, four workflows, review queue, unknown-barcode alert, AI reads the review queue | 2 and 3                                 |
-| Human: hardware scanner                                                                                 | 3, best effort                          |
-| Human: smart scale                                                                                      | 16                                      |
+| Requirement                                                                                             | Milestone                                |
+| ------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Human: fewer clicks, responsive, large screen                                                           | Rule, every milestone                    |
+| Human: bulk edit, inline edit                                                                           | 6                                        |
+| Human: full MCP server                                                                                  | Rule, every milestone; complete at 13    |
+| Human: SQLite or PostgreSQL                                                                             | Rule, from 1                             |
+| Human: Docker, Compose, Portainer, k3s                                                                  | Rule, from 1                             |
+| Human: barcode scanning, four workflows, review queue, unknown-barcode alert, AI reads the review queue | 2 and 3                                  |
+| Human: hardware scanner                                                                                 | 3, best effort                           |
+| Human: smart scale                                                                                      | 16                                       |
 | Human: tare weight on consume                                                                           | 3 through Grocy; 10 as a Grocy Next rule |
-| Human: Grocy is the primary source of truth                                                             | Companion stretch, until 13             |
-| Human: Mealie is the secondary source of truth, "I made this"                                           | 5                                       |
-| Human: the four stock service defects                                                                   | 10                                      |
-| Assistant 3.1 general behaviour                                                                         | Rule, from 4                            |
-| Assistant 3.2 bulk operations                                                                           | 4                                       |
-| Assistant 3.3 reading and searching                                                                     | 4                                       |
-| Assistant 3.4 Grocy products, alternate names included                                                  | 4                                       |
-| Assistant 3.5 Mealie foods                                                                              | 5                                       |
-| Assistant 3.6 links                                                                                     | 5                                       |
-| Assistant 3.7 units and conversions                                                                     | 4                                       |
-| Assistant 3.8 catalogue                                                                                 | 4                                       |
-| Assistant 3.9 stock                                                                                     | 4                                       |
-| Assistant 3.10 shopping list                                                                            | 4                                       |
-| Assistant 3.11 undo a stock transaction                                                                 | 4                                       |
-| Assistant 3.11 undo any change, log of every change                                                     | 14                                      |
-| Assistant 3.11 sync conflicts                                                                           | 5                                       |
-| Assistant section 5                                                                                     | Not planned                             |
-| Implied: parity                                                                                         | 6 to 13                                 |
-| Implied: data migration                                                                                 | 13                                      |
-| Implied: legacy API                                                                                     | 10 to 13                                |
-| Grocy Recipes and Meal plan areas                                                                       | 7 and 11                                |
-| Localization                                                                                            | 6, mechanism and the Grocy translations |
-| Authentication and multi-user                                                                           | 15                                      |
+| Human: Grocy is the primary source of truth                                                             | Companion stretch, until 13              |
+| Human: Mealie is the secondary source of truth, "I made this"                                           | 5                                        |
+| Human: the four stock service defects                                                                   | 10                                       |
+| Assistant 3.1 general behaviour                                                                         | Rule, from 4                             |
+| Assistant 3.2 bulk operations                                                                           | 4                                        |
+| Assistant 3.3 reading and searching                                                                     | 4                                        |
+| Assistant 3.4 Grocy products, alternate names included                                                  | 4                                        |
+| Assistant 3.5 Mealie foods                                                                              | 5                                        |
+| Assistant 3.6 links                                                                                     | 5                                        |
+| Assistant 3.7 units and conversions                                                                     | 4                                        |
+| Assistant 3.8 catalogue                                                                                 | 4                                        |
+| Assistant 3.9 stock                                                                                     | 4                                        |
+| Assistant 3.10 shopping list                                                                            | 4                                        |
+| Assistant 3.11 undo a stock transaction                                                                 | 4                                        |
+| Assistant 3.11 undo any change, log of every change                                                     | 14                                       |
+| Assistant 3.11 sync conflicts                                                                           | 5                                        |
+| Assistant section 5                                                                                     | Not planned                              |
+| Implied: parity                                                                                         | 6 to 13                                  |
+| Implied: data migration                                                                                 | 13                                       |
+| Implied: legacy API                                                                                     | 10 to 13                                 |
+| Grocy Recipes and Meal plan areas                                                                       | 7 and 11                                 |
+| Localization                                                                                            | 6, mechanism and the Grocy translations  |
+| Authentication and multi-user                                                                           | 15                                       |
