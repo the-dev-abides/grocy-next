@@ -8,13 +8,7 @@ import { API_PREFIX } from './app/configure-app.ts';
 // under `apps`, so one relative path finds the web app build from the source
 // and from the bundle. rspack keeps `import.meta.dirname` as a run-time
 // value.
-export const WEB_APP_PATH = join(
-  import.meta.dirname,
-  '..',
-  '..',
-  'web',
-  'dist',
-);
+const WEB_APP_PATH = join(import.meta.dirname, '..', '..', 'web', 'dist');
 
 // The API serves the web app as static files from the same process. The
 // root path returns `index.html`, and so does every path that is not a file

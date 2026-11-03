@@ -15,8 +15,8 @@ export default defineConfig({
     // Playwright records a trace when it retries a failed test.
     trace: 'on-first-retry',
   },
-  // The tests run against the web dev server. A server that already runs
-  // is reused.
+  // The tests run against the web dev server. Playwright reuses a server
+  // that already runs.
   webServer: {
     command: 'pnpm exec nx run web:dev',
     url: webServerAddress,
