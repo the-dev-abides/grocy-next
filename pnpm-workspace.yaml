@@ -17,3 +17,5 @@ allowBuilds:
   nx: true
   '@swc/core': true
   '@parcel/watcher': true
+  # @scarf/scarf sends install telemetry. Its script stays blocked.
+  '@scarf/scarf': false
