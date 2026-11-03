@@ -26,4 +26,16 @@ describe('the API at its HTTP boundary', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ status: 'ok' });
   });
+
+  it('serves the OpenAPI document of the Next API', async () => {
+    const response = await fetch(`${baseUrl}/api/openapi.json`);
+
+    expect(response.status).toBe(200);
+    const document = (await response.json()) as {
+      openapi: string;
+      paths: Record<string, unknown>;
+    };
+    expect(document.openapi).toMatch(/^3\./);
+    expect(Object.keys(document.paths)).toContain('/api/health/live');
+  });
 });
