@@ -119,7 +119,8 @@ _Avoid_: feature complete, 1.0
 **Mealie link**:
 The opt-in connection between Grocy Next and a Mealie instance. It holds the
 links between products and foods and between quantity units. Mealie is the
-source of truth for everything that the Mealie link covers.
+source of truth for recipes. Grocy Next is the source of truth for products,
+quantity units, and stock.
 _Avoid_: sync, integration, Grocy Mealie Sync (that is the third-party tool
 that the Mealie link replaces)
 

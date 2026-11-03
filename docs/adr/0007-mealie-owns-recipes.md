@@ -6,13 +6,15 @@ status: accepted
 
 Grocy Next is a drop-in replacement for Grocy, so it builds the Grocy Recipes
 area and the Meal plan area. The household also keeps its recipes in Mealie
-and cooks from Mealie. The two sets of recipes need one rule. We decided that
-Mealie is the source of truth for everything that the Mealie link covers:
-recipes, and the Mealie side of each food link and each unit link. The Mealie
-link is opt-in. A household that does not turn it on has the Grocy Next
-recipes and nothing else. A household that turns it on gets the Mealie recipes
-in Grocy Next through the link, and Grocy Next does not write a recipe back to
-Mealie. We chose this because the household already trusts Mealie with its
-recipes, and because a two-way recipe sync would need a conflict rule that no
-requirement asks for. The Mealie link milestone settles what the link covers
-beyond recipes, foods, and units.
+and cooks from Mealie. The two systems need one ownership rule. We decided
+that Mealie is the source of truth for recipes, and that Grocy Next is the
+source of truth for products, quantity units, and stock. The Mealie link is
+opt-in. It maps a product to a food and a quantity unit to a Mealie unit, and
+it reads the Mealie recipes for the functions that need both sides, such as
+which recipes the household can cook from stock. A link does not rename
+either side. Grocy Next does not write a recipe to Mealie, and Mealie does not
+write a product or a stock change to Grocy Next except through the link
+actions that the household turns on, such as the "I made this" consume. We
+chose this because Mealie does recipes well and the household already trusts
+it with them, and because Grocy does products and inventory well. A household
+that does not turn the link on has the Grocy Next recipes and nothing else.
