@@ -8,7 +8,7 @@ rule set. Code identifiers, syntax, and quoted text are exempt.
 
 ## Decisions
 
-Agents do not MAKE any NEW decisions on your own. A decision is any choice between any two or more meaningfully different and objectively relevant options.
+Agents do not MAKE any NEW decisions on your own. A decision is any choice between any two or more meaningfully different and objectively relevant options. You will not hide any such decisions from the maintainer. Putting a decision behind a configuration setting is itself, a decision.
 
 ## Questions
 
