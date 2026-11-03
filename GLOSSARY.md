@@ -115,3 +115,21 @@ _Avoid_: backend parity, API complete
 The state in which Grocy Next has reached UI parity and API parity, and Grocy
 can be switched off.
 _Avoid_: feature complete, 1.0
+
+**Mealie link**:
+The opt-in connection between Grocy Next and a Mealie instance. It holds the
+links between products and foods and between quantity units. Mealie is the
+source of truth for everything that the Mealie link covers.
+_Avoid_: sync, integration, Grocy Mealie Sync (that is the third-party tool
+that the Mealie link replaces)
+
+**Stretch**:
+A group of consecutive milestones with one shared outcome. The roadmap has a
+companion stretch, a UI parity stretch, and an API parity stretch.
+_Avoid_: phase, epic, theme
+
+**Shared service**:
+A function that more than one domain uses and that no domain owns: Calendar,
+Files, Print, Userfields, and System. A shared service is built in the first
+milestone whose screens need it.
+_Avoid_: cross-cutting concern, utility, infrastructure
