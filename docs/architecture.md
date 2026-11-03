@@ -73,13 +73,13 @@ one cluster of data and rules inside a domain. Other subdomains point at a
 subdomain by id only. The domain list is a working list. The build of each
 milestone settles its domains and subdomains.
 
-| Domain      | Subdomains                                      | Boundary fact                                                                                                                    |
-| ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Inventory   | Products, Stock, Shopping list, Review queue    | Stock, Shopping list, and Review queue point at Products and at nothing else. Nothing outside Stock points at a stock entry or a booking. |
-| Recipes     | Recipes, Meal plan                              | Points at Products by id. Built for parity. See "The Mealie link" for the ownership rule.                                         |
-| Household   | Chores, Tasks, Batteries, Equipment             | No reference between any two of them. Each points at Users or at nothing.                                                        |
-| Users       | Users                                           | A leaf. Stock, Chores, and Tasks point at it.                                                                                     |
-| Mealie link | Mealie link                                     | Talks to Mealie. Points at Products and Stock by id.                                                                              |
+| Domain      | Subdomains                                   | Boundary fact                                                                                                                             |
+| ----------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Inventory   | Products, Stock, Shopping list, Review queue | Stock, Shopping list, and Review queue point at Products and at nothing else. Nothing outside Stock points at a stock entry or a booking. |
+| Recipes     | Recipes, Meal plan                           | Points at Products by id. Built for parity. See "The Mealie link" for the ownership rule.                                                 |
+| Household   | Chores, Tasks, Batteries, Equipment          | No reference between any two of them. Each points at Users or at nothing.                                                                 |
+| Users       | Users                                        | A leaf. Stock, Chores, and Tasks point at it.                                                                                             |
+| Mealie link | Mealie link                                  | Talks to Mealie. Points at Products and Stock by id.                                                                                      |
 
 Products holds the dimensions: products, product barcodes, quantity units,
 conversions, locations, stores, and product groups. A dimension is a table of
@@ -113,17 +113,17 @@ through the Grocy API. At API parity, data ownership moves from Grocy to
 Grocy Next through an API-based import. Mealie owns recipes when the Mealie
 link is on (ADR 7, tentative).
 
-| Data                                                        | Companion stretch and UI parity stretch, milestones 1 to 9 | API parity stretch, milestones 10 to 13 | After parity, milestone 14 on |
-| ----------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | ----------------------------- |
-| Products, Stock, Shopping list                              | Grocy                                                      | Grocy Next from milestone 10            | Grocy Next                    |
-| Recipes, Meal plan                                          | Grocy                                                      | Grocy Next from milestone 11            | Grocy Next                    |
-| Chores, Tasks, Batteries, Equipment                         | Grocy                                                      | Grocy Next from milestone 12            | Grocy Next                    |
-| Users, permissions, user settings, shared services          | Grocy                                                      | Grocy Next from milestone 13            | Grocy Next                    |
-| Review queue                                                | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
-| Alternate names for products and stores                     | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
-| Mealie link: product to food links, unit links, conflicts   | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
-| Recipes in Mealie, when the link is on                      | Mealie                                                     | Mealie                                  | Mealie                        |
-| Change log                                                  | None                                                       | None                                    | Grocy Next from milestone 14  |
+| Data                                                      | Companion stretch and UI parity stretch, milestones 1 to 9 | API parity stretch, milestones 10 to 13 | After parity, milestone 14 on |
+| --------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | ----------------------------- |
+| Products, Stock, Shopping list                            | Grocy                                                      | Grocy Next from milestone 10            | Grocy Next                    |
+| Recipes, Meal plan                                        | Grocy                                                      | Grocy Next from milestone 11            | Grocy Next                    |
+| Chores, Tasks, Batteries, Equipment                       | Grocy                                                      | Grocy Next from milestone 12            | Grocy Next                    |
+| Users, permissions, user settings, shared services        | Grocy                                                      | Grocy Next from milestone 13            | Grocy Next                    |
+| Review queue                                              | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
+| Alternate names for products and stores                   | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
+| Mealie link: product to food links, unit links, conflicts | Grocy Next                                                 | Grocy Next                              | Grocy Next                    |
+| Recipes in Mealie, when the link is on                    | Mealie                                                     | Mealie                                  | Mealie                        |
+| Change log                                                | None                                                       | None                                    | Grocy Next from milestone 14  |
 
 In the API parity stretch, Grocy stays the data owner through milestone 12.
 Each of milestones 10 to 12 tests its legacy API against an imported copy of
@@ -240,18 +240,18 @@ It is split when the design settles.
 
 Each item is decided in the milestone named next to it.
 
-| Item                                                     | Milestone             |
-| -------------------------------------------------------- | --------------------- |
-| Image layout, default database, k3s manifests            | Milestone 1           |
-| What one accepted pending scan becomes in each workflow  | Milestones 2 and 3    |
-| Where Grocy Next stores the alternate names              | Milestone 4           |
-| Bulk operations and the all-or-nothing option            | Milestone 4           |
-| The MCP transport and the authorization                  | Milestone 4 or later  |
-| The full scope of the Mealie link, the ADR 7 refinement  | Milestone 5           |
-| Localization                                             | Milestone 6           |
-| The change log and undo of every change                  | Milestone 14          |
-| Authentication and multi-user                            | Milestone 15          |
-| The smart scale over Bluetooth and Wi-Fi from a web app  | Milestone 16          |
+| Item                                                    | Milestone            |
+| ------------------------------------------------------- | -------------------- |
+| Image layout, default database, k3s manifests           | Milestone 1          |
+| What one accepted pending scan becomes in each workflow | Milestones 2 and 3   |
+| Where Grocy Next stores the alternate names             | Milestone 4          |
+| Bulk operations and the all-or-nothing option           | Milestone 4          |
+| The MCP transport and the authorization                 | Milestone 4 or later |
+| The full scope of the Mealie link, the ADR 7 refinement | Milestone 5          |
+| Localization                                            | Milestone 6          |
+| The change log and undo of every change                 | Milestone 14         |
+| Authentication and multi-user                           | Milestone 15         |
+| The smart scale over Bluetooth and Wi-Fi from a web app | Milestone 16         |
 
 ## Sources
 
