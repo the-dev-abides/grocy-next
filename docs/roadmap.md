@@ -22,7 +22,8 @@ later effort appends more.
   function that the team could not test on a real device or a real path.
 - Every milestone ships as one container image for Docker, Compose,
   Portainer, and k3s, with SQLite or PostgreSQL as the storage for the data
-  that Grocy Next owns.
+  that Grocy Next owns. The deployment files are examples for any
+  self-hosting user. They favour no one setup.
 - Every screen is responsive and works on a phone, on a tablet, and on a
   large screen. Fewer clicks is the design goal of every screen.
 - Every operation that a milestone adds to the Next API is also an MCP tool
