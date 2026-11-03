@@ -4,8 +4,8 @@ This document ties the architecture decision records (ADRs) and the parts of
 Grocy Next together. It covers the parts and their boundaries, who owns which
 data before and after API parity, the legacy API and the Next API, storage,
 the MCP server, the Mealie link, the deployment shape, and the stack. It does
-not cover module design, schemas, or UI design. Those belong to the milestone
-maps.
+not cover module design, schemas, or UI design. Those belong to the
+milestones.
 
 Every decision in this document is tentative until Jeff says otherwise. A
 decision lives in its ADR. This document points at the ADR and does not
@@ -70,8 +70,8 @@ Outside the process are four external systems:
 
 A domain is one area of the household that Grocy Next builds. A subdomain is
 one cluster of data and rules inside a domain. Other subdomains point at a
-subdomain by id only. The domain list is a working list. The milestone maps
-settle the domains and the subdomains when they design the work.
+subdomain by id only. The domain list is a working list. The build of each
+milestone settles its domains and subdomains.
 
 | Domain      | Subdomains                                      | Boundary fact                                                                                                                    |
 | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -130,7 +130,7 @@ Each of milestones 10 to 12 tests its legacy API against an imported copy of
 the household data. Milestone 13 does the import and the switch.
 
 The data that Grocy Next owns in the companion stretch has no Grocy field. The
-milestone 4 map decides where Grocy Next stores the alternate names.
+decision on where Grocy Next stores the alternate names belongs to milestone 4.
 
 ## The Next API and the legacy API
 
@@ -203,7 +203,7 @@ everything else. In the API parity stretch, each domain gets its Grocy Next
 storage and its entity model, one domain at a time.
 
 The default database for a new installation and the image layout are not
-decided. The milestone 1 map decides them.
+decided. Milestone 1 decides them.
 
 ## Deployment shape
 
@@ -217,8 +217,8 @@ In the companion stretch and the UI parity stretch, a deployment has Grocy
 Next, Grocy, and the database. After the switch, a deployment has Grocy Next
 and the database. Mealie is a separate deployment in both cases.
 
-The detail of the image layout and the k3s manifests is not decided. The
-milestone 1 map decides it.
+The detail of the image layout and the k3s manifests is not decided.
+Milestone 1 decides it.
 
 ## The stack
 
@@ -234,14 +234,13 @@ ADR 8 holds the stack and the reasons. In short:
 
 The NX library layout follows the domain list. A domain imports only itself
 and `shared`. The two apps never import each other. A library starts coarse.
-A milestone map splits it when the design settles.
+It is split when the design settles.
 
 ## Not decided
 
-These items belong to a milestone map. The map decides each one when its
-milestone starts.
+Each item is decided in the milestone named next to it.
 
-| Item                                                     | Map                   |
+| Item                                                     | Milestone             |
 | -------------------------------------------------------- | --------------------- |
 | Image layout, default database, k3s manifests            | Milestone 1           |
 | What one accepted pending scan becomes in each workflow  | Milestones 2 and 3    |

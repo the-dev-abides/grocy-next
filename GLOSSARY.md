@@ -59,7 +59,7 @@ _Avoid_: module, bounded context, area (an area is a Grocy menu group), part
 
 **Subdomain**:
 One cluster of data and rules inside a domain. Other subdomains point at it
-by id only. A milestone map designs a subdomain.
+by id only.
 _Avoid_: module, service, component, cluster (a cluster is the Grocy table
 grouping in the research)
 
@@ -90,8 +90,7 @@ truth. Grocy Next adds the functions that Grocy lacks.
 _Avoid_: sidecar, add-on, plugin, phase one
 
 **Milestone**:
-One step of the roadmap, with a scope and an exit condition. Each milestone
-gets its own wayfinder map.
+One step of the roadmap, with a scope and an exit condition.
 _Avoid_: phase, stage, release, version
 
 **Implied requirement**:

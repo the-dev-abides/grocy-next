@@ -4,9 +4,9 @@ status: accepted
 
 # The stack
 
-Grocy Next needs one stack before any milestone map can design a subdomain.
-The map proposed NestJS, TypeORM, React, Redux, shadcn/ui, Tailwind, and NX.
-The stack research checked each part against the current releases. We decided
+Grocy Next needs one stack before any milestone can design a subdomain.
+The architecture map proposed NestJS, TypeORM, React, Redux, shadcn/ui,
+Tailwind, and NX. The stack research checked each part against the current releases. We decided
 to keep every proposed part and to add the parts that the proposal left open.
 
 ## The decision
@@ -21,8 +21,7 @@ to keep every proposed part and to add the parts that the proposal left open.
   (`feature`, `ui`, `data-access`, `util`). Each library carries a `scope:`
   tag and a `type:` tag. The NX module boundary lint rule enforces that the
   two apps never import each other, and that a domain imports only itself and
-  `shared`. A library starts coarse. A milestone map splits it when the design
-  settles.
+  `shared`. A library starts coarse. It is split when the design settles.
 - Tools: Node 26, TypeScript 6, Vitest for the unit and integration tests on
   both sides, Playwright for the web end-to-end tests, ESLint with the NX
   plugin.

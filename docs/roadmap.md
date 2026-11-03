@@ -3,9 +3,9 @@
 This roadmap is a living document. It is a starting point for the planning of
 the work, not a plan that is settled. It orders the work on Grocy Next into
 milestones. A milestone has one paragraph of scope and one exit condition.
-Each milestone gets its own wayfinder map, and that map designs the milestone
-and can change the milestone. The roadmap has no end. It lists the milestones
-known on 2026-11-03. A later effort appends more.
+The roadmap sets no process. Jeff decides how each milestone is designed and
+built. The roadmap has no end. It lists the milestones known on 2026-11-03. A
+later effort appends more.
 
 ## Rules
 
@@ -38,8 +38,8 @@ known on 2026-11-03. A later effort appends more.
 ## Domains
 
 The roadmap groups the work by domain. The domain list is a working list, not
-a decision. The milestone maps settle the domains and the subdomains when
-they design the work. The working list is: Inventory (Products, Stock,
+a decision. The build of each milestone settles its domains and subdomains.
+The working list is: Inventory (Products, Stock,
 Shopping list, Review queue), Recipes (Recipes, Meal plan), Household (Chores,
 Tasks, Batteries, Equipment), Users, and the Mealie link.
 
@@ -74,7 +74,7 @@ The NX workspace with the empty NestJS app and the empty React app, on the
 stack of ADR 8. The container image, the Compose file, the Portainer stack,
 and the k3s manifests. SQLite and PostgreSQL for the data that Grocy Next
 owns. The Grocy API client. The CI pipeline: lint, unit tests, image build.
-This milestone makes the stack decisions real, so it gets its own map.
+This milestone makes the stack decisions real.
 
 Exit condition: the empty app runs on Jeff's k3s cluster and lists the
 products of his Grocy instance.
@@ -113,8 +113,8 @@ search by name, alias, alternate name, and barcode, every product field,
 product merge, safe delete with the reason, bulk operations with a result for
 each item, the all-or-nothing option, the preview, and bulk purchases.
 Alternate names for each product and each store are a Grocy Next attribute,
-because Grocy has no field for them. The milestone map decides where Grocy
-Next stores them.
+because Grocy has no field for them. Where Grocy Next stores them is decided
+in this milestone.
 
 Exit condition: Jeff removes grocy-mcp from the assistant's configuration.
 
@@ -127,7 +127,7 @@ of the assistant requirements, the sync conflict view, and the "I made this"
 consume. The open candidates are: which Mealie recipes the household can cook
 from the current stock, what is missing for one recipe, recipe costing, and
 the Mealie meal plan to the shopping list. Jeff settles the full scope at the
-start of this milestone, and the milestone map records it.
+start of this milestone.
 
 Exit condition: Jeff switches off Grocy Mealie Sync.
 
@@ -247,10 +247,10 @@ type from the log.
 ### 15. Authentication and multi-user
 
 Grocy Next reaches API parity with the Grocy user model and the Grocy
-permission set. This milestone decides what multi-user means beyond that. The
-milestone map settles the scope.
+permission set. This milestone decides what multi-user means beyond that.
+Jeff settles the scope at its start.
 
-Exit condition: open. The milestone map sets it.
+Exit condition: open. Jeff sets it at the start of the milestone.
 
 ### 16. Smart scale
 
