@@ -45,20 +45,22 @@ Tasks, Batteries, Equipment), Users, and the Mealie link.
 
 ## Milestones
 
-1. Companion app
-2. Assistant tools
-3. Mealie link
-4. Inventory UI
-5. Recipes UI
-6. Household UI
-7. Users and System UI
-8. Inventory storage and legacy API
-9. Recipes storage and legacy API
-10. Household storage and legacy API
-11. Users and System storage, legacy API, and the switch
-12. Change log and undo
-13. Authentication and multi-user
-14. Smart scale
+1. Scaffold and deployment
+2. Scan to stock
+3. Shop, consume, audit
+4. Assistant tools
+5. Mealie link
+6. Inventory UI
+7. Recipes UI
+8. Household UI
+9. Users and System UI
+10. Inventory storage and legacy API
+11. Recipes storage and legacy API
+12. Household storage and legacy API
+13. Users and System storage, legacy API, and the switch
+14. Change log and undo
+15. Authentication and multi-user
+16. Smart scale
 
 ## Companion stretch
 
@@ -66,23 +68,41 @@ Grocy Next runs beside Grocy. Grocy is the source of truth for units,
 products, locations, and stock. Grocy Next adds what Grocy lacks and replaces
 the two assistant tools, grocy-mcp and Grocy Mealie Sync.
 
-### 1. Companion app
+### 1. Scaffold and deployment
 
-Bulk scanning for the four inventory workflows: stock, shop, consume, and
-audit. The user scans one product after another with no stop. Each scan
-becomes a pending scan in the review queue, and the user accepts or rejects
-pending scans in bulk or one by one. An accepted pending scan becomes a
-booking in Grocy. The phone camera is the tested scanner. The hardware scanner
-is built as best effort, with no device to test. An unknown barcode alerts
-the user at once with a sound, a vibration, and an onscreen alert, and the
-user types a name and continues. Consume follows the Grocy tare setting of the
-product. An assistant reads the review queue and creates pending scans through
-the MCP server.
+The NX workspace with the empty NestJS app and the empty React app, on the
+stack of ADR 8. The container image, the Compose file, the Portainer stack,
+and the k3s manifests. SQLite and PostgreSQL for the data that Grocy Next
+owns. The Grocy API client. The CI pipeline: lint, unit tests, image build.
+This milestone makes the stack decisions real, so it gets its own map.
+
+Exit condition: the empty app runs on Jeff's k3s cluster and lists the
+products of his Grocy instance.
+
+### 2. Scan to stock
+
+The stock workflow only. The user scans one product after another with the
+phone camera, with no stop. Each scan becomes a pending scan in the review
+queue, and the user accepts or rejects pending scans in bulk or one by one. An
+accepted pending scan becomes a purchase booking in Grocy. An unknown barcode
+alerts the user at once with a sound, a vibration, and an onscreen alert, and
+the user types a name and continues.
 
 Exit condition: Jeff enters one weekly shop with the phone camera, with no
 stop, and accepts the pending scans in Grocy Next.
 
-### 2. Assistant tools
+### 3. Shop, consume, audit
+
+The three other inventory workflows through the same scanner and the same
+review queue. Consume follows the Grocy tare setting of the product. The
+hardware scanner is built as best effort, with no device to test. An
+assistant reads the review queue and creates pending scans through the MCP
+server.
+
+Exit condition: Jeff consumes by scan, and the assistant reads the review
+queue through the MCP server.
+
+### 4. Assistant tools
 
 The Next API and the MCP server cover Products, Stock, Shopping list, quantity
 units, conversions, locations, stores, and product groups. Every call passes
@@ -98,7 +118,7 @@ Next stores them.
 
 Exit condition: Jeff removes grocy-mcp from the assistant's configuration.
 
-### 3. Mealie link
+### 5. Mealie link
 
 The opt-in link to a Mealie instance. The scope floor is: the links between
 products and foods and between units, the unlinked lists and the link
@@ -116,9 +136,9 @@ Exit condition: Jeff switches off Grocy Mealie Sync.
 Grocy Next replaces the Grocy screens, one domain at a time. Grocy stays the
 data owner. Each milestone builds the screens of one domain and the shared
 services that those screens need. UI parity is reached at the end of
-milestone 7.
+milestone 9.
 
-### 4. Inventory UI
+### 6. Inventory UI
 
 Every function of the Grocy Stock, Shopping list, and master data screens:
 products, barcodes, quantity units, conversions, locations, stores, and
@@ -131,7 +151,7 @@ as the source, so that every later screen uses it from the start.
 Exit condition: every function of the Grocy Stock, Shopping list, and master
 data screens is in Grocy Next, and Jeff's household uses Grocy Next for them.
 
-### 5. Recipes UI
+### 7. Recipes UI
 
 Every function of the Grocy Recipes and Meal plan screens: recipes,
 ingredients, nested recipes, fulfillment against stock, consume a recipe, add
@@ -142,7 +162,7 @@ recipe labels, Calendar for the meal plan.
 Exit condition: every function of the Grocy Recipes and Meal plan screens is
 in Grocy Next.
 
-### 6. Household UI
+### 8. Household UI
 
 Every function of the Grocy Chores, Tasks, Batteries, Equipment, and Calendar
 screens. Shared services as needed: Files for equipment documents, Print for
@@ -151,7 +171,7 @@ chore and battery labels.
 Exit condition: every function of the Grocy Chores, Tasks, Batteries,
 Equipment, and Calendar screens is in Grocy Next.
 
-### 7. Users and System UI
+### 9. Users and System UI
 
 Every function of the Grocy Users, permissions, user settings, and System
 screens, and the generic entity screens that no earlier milestone built. This
@@ -163,12 +183,12 @@ in Grocy Next and opens the Grocy UI for nothing.
 ## API parity stretch
 
 Grocy Next builds its own storage and serves the legacy API, one domain at a
-time. Grocy stays the data owner through milestones 8 to 10, and each of
+time. Grocy stays the data owner through milestones 10 to 12, and each of
 those milestones tests its legacy API against an imported copy of the
-household data. Milestone 11 does the import and the switch. API parity is
-reached at the end of milestone 11.
+household data. Milestone 13 does the import and the switch. API parity is
+reached at the end of milestone 13.
 
-### 8. Inventory storage and legacy API
+### 10. Inventory storage and legacy API
 
 The Grocy Next storage and the Next API for Products, Stock, Shopping list,
 and Review queue, on the Grocy Next entity model, and every Inventory
@@ -182,7 +202,7 @@ consume. Tare weight is a Grocy Next rule from this milestone on.
 Exit condition: every Inventory operation of the legacy API responds from
 Grocy Next storage on an imported copy of the household data.
 
-### 9. Recipes storage and legacy API
+### 11. Recipes storage and legacy API
 
 The Grocy Next storage and the Next API for Recipes and Meal plan, and every
 Recipes and Meal plan operation of the legacy API.
@@ -190,7 +210,7 @@ Recipes and Meal plan operation of the legacy API.
 Exit condition: every Recipes and Meal plan operation of the legacy API
 responds from Grocy Next storage on an imported copy of the household data.
 
-### 10. Household storage and legacy API
+### 12. Household storage and legacy API
 
 The Grocy Next storage and the Next API for Chores, Tasks, Batteries, and
 Equipment, and every Household operation of the legacy API.
@@ -198,7 +218,7 @@ Equipment, and every Household operation of the legacy API.
 Exit condition: every Household operation of the legacy API responds from
 Grocy Next storage on an imported copy of the household data.
 
-### 11. Users and System storage, legacy API, and the switch
+### 13. Users and System storage, legacy API, and the switch
 
 The Grocy Next storage and the Next API for Users, permissions, user settings,
 and the shared services that still read Grocy. The remaining legacy API
@@ -214,7 +234,7 @@ switched off.
 
 These milestones need data and logic that Grocy Next owns.
 
-### 12. Change log and undo
+### 14. Change log and undo
 
 A log of every change made through the Next API or the MCP server: what
 changed, the old value, the new value, who, and when. Undo of any change, not
@@ -224,7 +244,7 @@ Exit condition: every change through the Next API or the MCP server appears
 in the log with its old and new values, and Jeff undoes one of each change
 type from the log.
 
-### 13. Authentication and multi-user
+### 15. Authentication and multi-user
 
 Grocy Next reaches API parity with the Grocy user model and the Grocy
 permission set. This milestone decides what multi-user means beyond that. The
@@ -232,7 +252,7 @@ milestone map settles the scope.
 
 Exit condition: open. The milestone map sets it.
 
-### 14. Smart scale
+### 16. Smart scale
 
 Smart scale support over Bluetooth and Wi-Fi from the web app. The tool
 records stock by gross weight and subtracts the tare of the product.
@@ -248,41 +268,41 @@ no typed amount.
 - Native mobile apps. The third-party Grocy mobile app works through the
   legacy API after API parity.
 - Upstream fixes to Grocy. The four stock service defects are Grocy Next
-  requirements in milestone 8.
+  requirements in milestone 10.
 
 ## Where each requirement lands
 
 | Requirement                                                                                             | Milestone                               |
 | ------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | Human: fewer clicks, responsive, large screen                                                           | Rule, every milestone                   |
-| Human: bulk edit, inline edit                                                                           | 4                                       |
-| Human: full MCP server                                                                                  | Rule, every milestone; complete at 11   |
+| Human: bulk edit, inline edit                                                                           | 6                                       |
+| Human: full MCP server                                                                                  | Rule, every milestone; complete at 13   |
 | Human: SQLite or PostgreSQL                                                                             | Rule, from 1                            |
 | Human: Docker, Compose, Portainer, k3s                                                                  | Rule, from 1                            |
-| Human: barcode scanning, four workflows, review queue, unknown-barcode alert, AI reads the review queue | 1                                       |
-| Human: hardware scanner                                                                                 | 1, best effort                          |
-| Human: smart scale                                                                                      | 14                                      |
-| Human: tare weight on consume                                                                           | 1 through Grocy; 8 as a Grocy Next rule |
-| Human: Grocy is the primary source of truth                                                             | Companion stretch, until 11             |
-| Human: Mealie is the secondary source of truth, "I made this"                                           | 3                                       |
-| Human: the four stock service defects                                                                   | 8                                       |
-| Assistant 3.1 general behaviour                                                                         | Rule, from 2                            |
-| Assistant 3.2 bulk operations                                                                           | 2                                       |
-| Assistant 3.3 reading and searching                                                                     | 2                                       |
-| Assistant 3.4 Grocy products, alternate names included                                                  | 2                                       |
-| Assistant 3.5 Mealie foods                                                                              | 3                                       |
-| Assistant 3.6 links                                                                                     | 3                                       |
-| Assistant 3.7 units and conversions                                                                     | 2                                       |
-| Assistant 3.8 catalogue                                                                                 | 2                                       |
-| Assistant 3.9 stock                                                                                     | 2                                       |
-| Assistant 3.10 shopping list                                                                            | 2                                       |
-| Assistant 3.11 undo a stock transaction                                                                 | 2                                       |
-| Assistant 3.11 undo any change, log of every change                                                     | 12                                      |
-| Assistant 3.11 sync conflicts                                                                           | 3                                       |
+| Human: barcode scanning, four workflows, review queue, unknown-barcode alert, AI reads the review queue | 2 and 3                                 |
+| Human: hardware scanner                                                                                 | 3, best effort                          |
+| Human: smart scale                                                                                      | 16                                      |
+| Human: tare weight on consume                                                                           | 3 through Grocy; 10 as a Grocy Next rule |
+| Human: Grocy is the primary source of truth                                                             | Companion stretch, until 13             |
+| Human: Mealie is the secondary source of truth, "I made this"                                           | 5                                       |
+| Human: the four stock service defects                                                                   | 10                                      |
+| Assistant 3.1 general behaviour                                                                         | Rule, from 4                            |
+| Assistant 3.2 bulk operations                                                                           | 4                                       |
+| Assistant 3.3 reading and searching                                                                     | 4                                       |
+| Assistant 3.4 Grocy products, alternate names included                                                  | 4                                       |
+| Assistant 3.5 Mealie foods                                                                              | 5                                       |
+| Assistant 3.6 links                                                                                     | 5                                       |
+| Assistant 3.7 units and conversions                                                                     | 4                                       |
+| Assistant 3.8 catalogue                                                                                 | 4                                       |
+| Assistant 3.9 stock                                                                                     | 4                                       |
+| Assistant 3.10 shopping list                                                                            | 4                                       |
+| Assistant 3.11 undo a stock transaction                                                                 | 4                                       |
+| Assistant 3.11 undo any change, log of every change                                                     | 14                                      |
+| Assistant 3.11 sync conflicts                                                                           | 5                                       |
 | Assistant section 5                                                                                     | Not planned                             |
-| Implied: parity                                                                                         | 4 to 11                                 |
-| Implied: data migration                                                                                 | 11                                      |
-| Implied: legacy API                                                                                     | 8 to 11                                 |
-| Grocy Recipes and Meal plan areas                                                                       | 5 and 9                                 |
-| Localization                                                                                            | 4, mechanism and the Grocy translations |
-| Authentication and multi-user                                                                           | 13                                      |
+| Implied: parity                                                                                         | 6 to 13                                 |
+| Implied: data migration                                                                                 | 13                                      |
+| Implied: legacy API                                                                                     | 10 to 13                                |
+| Grocy Recipes and Meal plan areas                                                                       | 7 and 11                                |
+| Localization                                                                                            | 6, mechanism and the Grocy translations |
+| Authentication and multi-user                                                                           | 15                                      |
