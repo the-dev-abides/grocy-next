@@ -8,11 +8,12 @@ catalog:
   # not load it. Move to TypeScript 7 when those tools accept it.
   typescript: ~6.0.3
 
-# pnpm installs no version that is younger than one day. This is the pnpm
-# default (minimumReleaseAge 1440). A package that is newer than one day
-# resolves to its newest version that is older than one day.
+# pnpm installs no version that is less than one day old. This is the pnpm
+# default (minimumReleaseAge 1440 minutes). This file does not change it.
+# When the newest version of a package is less than one day old, pnpm
+# installs the newest version that is at least one day old.
 
-# Packages that may run their install scripts. pnpm blocks every other one.
+# Packages that can run their install scripts. pnpm blocks every other one.
 allowBuilds:
   nx: true
   '@swc/core': true
