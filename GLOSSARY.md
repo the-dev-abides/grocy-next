@@ -52,6 +52,17 @@ variant, generic product
 
 ## Grocy Next terms
 
+**Domain**:
+One area of the household that Grocy Next builds, with the subdomains that
+belong to it. The architecture overview lists the domains.
+_Avoid_: module, bounded context, area (an area is a Grocy menu group), part
+
+**Subdomain**:
+One cluster of data and rules inside a domain. Other subdomains point at it
+by id only. A milestone map designs a subdomain.
+_Avoid_: module, service, component, cluster (a cluster is the Grocy table
+grouping in the research)
+
 **Review queue**:
 The list of pending scans that wait for the user's decision. The user accepts
 or rejects them in bulk or one by one. An ordinary edit does not pass through
