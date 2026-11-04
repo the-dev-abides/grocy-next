@@ -1,0 +1,1 @@
+export { ProductsModule } from './lib/products.module.ts';

@@ -1,0 +1,23 @@
+import { Controller, Get } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { GrocyClient } from './grocy/grocy-client.ts';
+import { Product } from './product.ts';
+
+// The product list operation of the Next API.
+@Controller('products')
+export class ProductsController {
+  constructor(private readonly grocy: GrocyClient) {}
+
+  // A full list has no cut-off. The operation returns every product.
+  @Get()
+  @ApiOperation({ summary: 'List every product.' })
+  @ApiOkResponse({ type: Product, isArray: true })
+  async list(): Promise<Product[]> {
+    const products = await this.grocy.listProducts();
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+    }));
+  }
+}
