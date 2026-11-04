@@ -6,9 +6,10 @@
 # those dependencies. Both database drivers are in the image. better-sqlite3
 # has a prebuilt binary for each architecture, so no stage compiles code.
 #
-# Build:   docker build -t grocy-next .
+# Build:   docker build -t ghcr.io/the-dev-abides/grocy-next:main .
 # Run:     docker run -p 3000:3000 -v grocy-next-data:/data \
-#            -e GROCY_URL=https://grocy.example.com -e GROCY_API_KEY=... grocy-next
+#            -e GROCY_URL=https://grocy.example.com -e GROCY_API_KEY=... \
+#            ghcr.io/the-dev-abides/grocy-next:main
 
 FROM node:26-slim AS build
 
