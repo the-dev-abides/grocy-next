@@ -10,4 +10,4 @@ Next must have, that the other two documents do not list.
    instance into Grocy Next with no loss. After the migration, Grocy can be
    switched off.
 3. **Legacy API.** Grocy Next serves the Grocy v4.7.1 API at the same paths,
-   so that third-party tools built for Grocy keep working.
+   for backwards compatibility.

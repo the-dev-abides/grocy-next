@@ -76,7 +76,7 @@ _Avoid_: pending item, draft, proposal
 
 **Legacy API**:
 The Grocy v4.7.1 API, served by Grocy Next at the same paths, under `/api`,
-for third-party tools that were built for Grocy.
+for backwards compatibility.
 _Avoid_: compatibility API, Grocy API (when you mean the one Grocy Next serves)
 
 **Next API**:
