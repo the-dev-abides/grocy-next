@@ -4,13 +4,17 @@ import { DataSource } from 'typeorm';
 import { AppModule } from './app.module.ts';
 import { configureApp } from './configure-app.ts';
 
+// The test runs on SQLite in memory. The test writes no file. The storage
+// module reads the variable when the imports load, so this block runs first.
+vi.hoisted(() => {
+  process.env['DB_FILE'] = ':memory:';
+});
+
 describe('the API at its HTTP boundary', () => {
   let app: INestApplication;
   let baseUrl: string;
 
   beforeAll(async () => {
-    // The test runs on SQLite in memory. The test writes no file.
-    process.env['DB_FILE'] = ':memory:';
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

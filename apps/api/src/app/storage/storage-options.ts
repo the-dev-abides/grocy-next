@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DataSourceOptions } from 'typeorm';
 
 // The storage reads these variables. `DB_ENGINE` selects the engine. Unset
@@ -16,6 +18,8 @@ type Engine = (typeof ENGINES)[number];
 
 const DEFAULT_ENGINE: Engine = 'sqlite';
 const DEFAULT_FILE = '/data/grocy-next.db';
+// better-sqlite3 opens a database in memory for this file name.
+const IN_MEMORY_FILE = ':memory:';
 const DEFAULT_POSTGRES_PORT = '5432';
 
 const POSTGRES_REQUIRED = [DB_HOST, DB_NAME, DB_USER, DB_PASSWORD];
@@ -38,9 +42,23 @@ export function readStorageOptions(
   if (engine === 'postgres') {
     return readPostgresOptions(variables);
   }
+  return readSqliteOptions(variables);
+}
+
+// The driver retries a connection that fails. A missing folder does not
+// appear after a retry, so the check stops the process at once.
+function readSqliteOptions(variables: EnvironmentVariables): DataSourceOptions {
+  const file = variables[DB_FILE] ?? DEFAULT_FILE;
+  const folder = dirname(file);
+  if (file !== IN_MEMORY_FILE && !existsSync(folder)) {
+    throw new Error(
+      `The folder "${folder}" for the SQLite file does not exist. ` +
+        `Create the folder, or set ${DB_FILE} to a file in a folder that exists.`,
+    );
+  }
   return {
     type: 'better-sqlite3',
-    database: variables[DB_FILE] ?? DEFAULT_FILE,
+    database: file,
   };
 }
 
