@@ -11,7 +11,7 @@ export class MigrationsHealthIndicator {
     private readonly healthIndicatorService: HealthIndicatorService,
   ) {}
 
-  check<Key extends string>(key: Key) {
+  check(key: string) {
     return this.healthIndicatorService.check(key).attempt(async () => {
       const pending = await this.dataSource.showMigrations();
       if (pending) {

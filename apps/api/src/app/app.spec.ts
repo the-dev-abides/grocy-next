@@ -9,7 +9,7 @@ describe('the API at its HTTP boundary', () => {
   let baseUrl: string;
 
   beforeAll(async () => {
-    // The test runs on SQLite in memory. No file is written.
+    // The test runs on SQLite in memory. The test writes no file.
     process.env['DB_FILE'] = ':memory:';
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],

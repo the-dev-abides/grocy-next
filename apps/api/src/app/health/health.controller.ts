@@ -6,8 +6,8 @@ import {
 } from '@nestjs/terminus';
 import { MigrationsHealthIndicator } from './migrations.health.ts';
 
-// The three Kubernetes probes. Grocy reachability is not part of any probe,
-// so a Grocy outage does not take the app out of service.
+// The three Kubernetes probes. No probe calls Grocy, so a Grocy outage does
+// not stop the app.
 @Controller('health')
 export class HealthController {
   constructor(

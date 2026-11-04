@@ -1,23 +1,30 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Empty1793756181772 } from './migrations/1793756181772-empty.ts';
-import { storageOptions, validateStorageVariables } from './storage-options.ts';
+import { EnvironmentVariables, readStorageOptions } from './storage-options.ts';
 
-// The migrations are listed here. A new migration is added to this list.
+// This list holds the migrations. Add a new migration here.
 const MIGRATIONS = [Empty1793756181772];
+
+// The config module reads the `.env` file into the process environment and
+// checks the storage variables at start.
+function validateStorageVariables(
+  variables: EnvironmentVariables,
+): EnvironmentVariables {
+  readStorageOptions(variables);
+  return variables;
+}
 
 // The API owns a database through TypeORM with the Data Mapper pattern. One
 // DataSource serves SQLite and PostgreSQL. The migrations run at every
-// start, before the app listens.
+// start, before the process listens.
 @Module({
   imports: [
     ConfigModule.forRoot({ validate: validateStorageVariables }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        ...storageOptions((name) => config.get<string>(name)),
+      useFactory: () => ({
+        ...readStorageOptions(process.env),
         entities: [],
         migrations: MIGRATIONS,
         migrationsRun: true,
