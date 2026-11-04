@@ -1,0 +1,30 @@
+# Grocy Next on SQLite. One service, one volume. This is the default
+# deployment for Docker Compose and for a Portainer stack.
+#
+# Set the two Grocy variables in the shell, in a `.env` file next to this
+# file, or in the stack environment of Portainer. Then run:
+#
+#   docker compose up -d
+#
+# `GROCY_URL` is the address of your Grocy instance, as the container reaches
+# it. `GROCY_API_KEY` is a key from the Grocy "Manage API keys" page. Compose
+# stops with a message when one of the two is not set.
+#
+# The app listens on port 3000. The SQLite file is in the `data` volume.
+
+name: grocy-next
+
+services:
+  app:
+    image: ghcr.io/the-dev-abides/grocy-next:main
+    environment:
+      GROCY_URL: ${GROCY_URL:?Set GROCY_URL to the address of your Grocy instance}
+      GROCY_API_KEY: ${GROCY_API_KEY:?Set GROCY_API_KEY to an API key of your Grocy instance}
+    ports:
+      - '3000:3000'
+    volumes:
+      - data:/data
+    restart: unless-stopped
+
+volumes:
+  data:
