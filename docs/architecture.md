@@ -156,6 +156,12 @@ The two APIs never mix. The legacy API keeps the Grocy paths, field names,
 and behaviour. The Next API has its own design. Both sit over the same
 domains.
 
+Both APIs live under `/api`. The legacy API takes `/api` itself, because the
+Grocy paths start there, for example `/api/stock`. The Next API lives under
+`/api/v2`. The version number starts at 2 on purpose: the legacy API is the
+first API at `/api`, so the Next API never shares a number with it. The web
+app takes the root path and every path outside `/api`.
+
 ## The MCP server
 
 The MCP server runs in the same process as the Next API (ADR 8). It has one

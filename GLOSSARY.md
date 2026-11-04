@@ -75,13 +75,13 @@ waits in the review queue. An accepted pending scan becomes a booking.
 _Avoid_: pending item, draft, proposal
 
 **Legacy API**:
-The Grocy v4.7.1 API, served by Grocy Next at the same paths, for third-party
-tools that were built for Grocy.
+The Grocy v4.7.1 API, served by Grocy Next at the same paths, under `/api`,
+for third-party tools that were built for Grocy.
 _Avoid_: compatibility API, Grocy API (when you mean the one Grocy Next serves)
 
 **Next API**:
-The API that Grocy Next designs for its own clients. It never mixes with the
-legacy API.
+The API that Grocy Next designs for its own clients, under `/api/v2`. It never
+mixes with the legacy API.
 _Avoid_: v2 API, new API, native API
 
 **Companion app**:
