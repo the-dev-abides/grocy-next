@@ -20,8 +20,8 @@ serves four surfaces:
 - The web app. React, served as static files by the same process.
 - The Next API. REST, with an OpenAPI document that NestJS generates. The web
   app and the MCP server consume it. Third-party tools can consume it.
-- The legacy API. The Grocy v4.7.1 API at the same paths, for third-party
-  tools that were built for Grocy.
+- The legacy API. The Grocy v4.7.1 API at the same paths, for backwards
+  compatibility.
 - The MCP server. One MCP tool for each Next API operation.
 
 The four surfaces sit over the domains. A surface holds no business rules. The
@@ -148,13 +148,19 @@ API has these rules, from the roadmap:
 
 The legacy API is the Grocy v4.7.1 API, served by Grocy Next at the same
 paths. Its contract is `docs/reference/grocy-openapi.json`. It exists for
-third-party tools that were built for Grocy. Grocy Next serves it from
+backwards compatibility. Grocy Next serves it from
 milestone 10, one domain at a time, from Grocy Next storage. Before milestone
 10, Grocy serves its own API and Grocy Next does not serve the legacy API.
 
 The two APIs never mix. The legacy API keeps the Grocy paths, field names,
 and behaviour. The Next API has its own design. Both sit over the same
 domains.
+
+Both APIs live under `/api`. The legacy API takes `/api` itself, because the
+Grocy paths start there, for example `/api/stock`. The Next API lives under
+`/api/v2`. The version number starts at 2 on purpose: the legacy API is the
+first API at `/api`, so the Next API never shares a number with it. The web
+app takes the root path and every path outside `/api`.
 
 ## The MCP server
 

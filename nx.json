@@ -8,7 +8,8 @@
       "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/vitest.config.mts"
+      "!{projectRoot}/vitest.config.mts",
+      "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": []
   },
@@ -50,6 +51,25 @@
         "previewTargetName": "preview",
         "buildDepsTargetName": "build-deps",
         "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
       }
     }
   ],

@@ -20,3 +20,6 @@ allowBuilds:
   '@parcel/watcher': true
   # @scarf/scarf sends install telemetry. Its script stays blocked.
   '@scarf/scarf': false
+  # esbuild gets its binary from an optional dependency. Its install script
+  # only checks that binary, so it stays blocked.
+  esbuild: false

@@ -10,6 +10,17 @@
       "type:app"
     ],
     "targets": {
+      "build": {
+        "dependsOn": [
+          "^build",
+          {
+            "projects": [
+              "web"
+            ],
+            "target": "build"
+          }
+        ]
+      },
       "serve": {
         "executor": "@nx/js:node",
         "continuous": true,
@@ -27,6 +38,7 @@
     "@nestjs/common": "^12.3.2",
     "@nestjs/core": "^12.3.2",
     "@nestjs/platform-express": "^12.3.2",
+    "@nestjs/serve-static": "^12.1.1",
     "@nestjs/swagger": "^12.1.0",
     "@nestjs/terminus": "^12.1.0",
     "reflect-metadata": "^0.2.2",

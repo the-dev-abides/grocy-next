@@ -21,14 +21,14 @@ describe('the API at its HTTP boundary', () => {
   });
 
   it('answers the liveness check with success while the process runs', async () => {
-    const response = await fetch(`${baseUrl}/api/health/live`);
+    const response = await fetch(`${baseUrl}/api/v2/health/live`);
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ status: 'ok' });
   });
 
   it('serves the OpenAPI document of the Next API', async () => {
-    const response = await fetch(`${baseUrl}/api/openapi.json`);
+    const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
 
     expect(response.status).toBe(200);
     const document = (await response.json()) as {
@@ -36,6 +36,6 @@ describe('the API at its HTTP boundary', () => {
       paths: Record<string, unknown>;
     };
     expect(document.openapi).toMatch(/^3\./);
-    expect(Object.keys(document.paths)).toContain('/api/health/live');
+    expect(Object.keys(document.paths)).toContain('/api/v2/health/live');
   });
 });
