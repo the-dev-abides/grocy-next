@@ -1,11 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-// The Next API lives under `/api`. The web app takes the root path.
-export const API_PREFIX = 'api';
+// Both APIs live under `/api`. The legacy API takes `/api` itself, from
+// milestone 10. The Next API lives under `/api/v2`. The web app takes every
+// path outside `/api`.
+export const API_ROOT = 'api';
+export const API_PREFIX = `${API_ROOT}/v2`;
 
-// The OpenAPI document is at `/api/openapi.json`. The Swagger UI is at
-// `/api/docs`.
+// The OpenAPI document is at `/api/v2/openapi.json`. The Swagger UI is at
+// `/api/v2/docs`.
 const DOCS_PATH = 'docs';
 const OPENAPI_DOCUMENT_PATH = 'openapi.json';
 
