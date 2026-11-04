@@ -1,0 +1,20 @@
+# The image build copies the source and builds inside the container. These
+# paths stay out of the build context.
+.git
+.github
+.claude
+.nx
+.vscode
+node_modules
+**/node_modules
+**/dist
+**/out-tsc
+**/test-output
+.env
+.env.*
+!.env.example
+*.db
+docs
+compose*.yaml
+Dockerfile
+.dockerignore
