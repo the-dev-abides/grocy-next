@@ -4,7 +4,7 @@
 # workspace, builds the web app and the API, and collects the production
 # dependencies of the API. The final stage holds Node, the two builds, and
 # those dependencies. Both database drivers are in the image. better-sqlite3
-# ships a prebuilt binary for each architecture, so no stage compiles code.
+# has a prebuilt binary for each architecture, so no stage compiles code.
 #
 # Build:   docker build -t grocy-next .
 # Run:     docker run -p 3000:3000 -v grocy-next-data:/data \
@@ -53,8 +53,8 @@ COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/web/dist apps/web/dist
 
 # The process runs as the `node` user of the base image. `/data` holds the
-# SQLite file. The folder belongs to that user, so a new named volume gets
-# the same owner.
+# SQLite file. That user owns the folder, so a new named volume gets the
+# same owner.
 RUN mkdir /data && chown node:node /data
 USER node
 VOLUME /data
