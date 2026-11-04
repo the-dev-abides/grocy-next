@@ -1,0 +1,87 @@
+# The developer stack. This file runs the dependencies only: a Grocy, a
+# Mealie, and a PostgreSQL. Grocy Next runs on the host with `nx serve`.
+#
+# Each service is under a Compose profile with the same name. Start the
+# services that you need:
+#
+#   docker compose -f compose.dev.yaml --profile grocy --profile mealie --profile postgres up -d
+#   docker compose -f compose.dev.yaml --profile grocy up -d
+#
+# Each service keeps its data in a named volume. This command stops the
+# services and removes the volumes, so the next start has fresh data:
+#
+#   docker compose -f compose.dev.yaml --profile grocy --profile mealie --profile postgres down --volumes
+#
+# Compose reads `.env` in this folder. The `DB_*` values in `.env` set the
+# PostgreSQL database, user, password, and host port, so the API and the
+# database agree. The defaults below match `.env.example`.
+
+# The project name keeps the containers and the volumes of this file apart
+# from those of other Compose files in this folder.
+name: grocy-next-dev
+
+services:
+  # The bundled Grocy runs in demo mode. Demo mode creates demo data and
+  # needs no API key. The Grocy API accepts any value in `GROCY_API_KEY`.
+  #
+  # Grocy creates the demo database at the first request to a page, not at
+  # the first request to its API. The health check requests the start page
+  # inside the container. It passes when the Grocy API returns a product. So
+  # `up --wait` returns when the demo data exists.
+  grocy:
+    image: lscr.io/linuxserver/grocy:v4.7.1-ls348
+    profiles: [grocy]
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      GROCY_MODE: demo
+    ports:
+      - '9283:80'
+    volumes:
+      - grocy-config:/config
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fs -o /dev/null http://localhost/ && curl -fs http://localhost/api/objects/products | grep -q '"id"'
+      interval: 10s
+      timeout: 60s
+      start_period: 30s
+      retries: 5
+    restart: unless-stopped
+
+  # The bundled Mealie keeps its data in its own SQLite file in the volume.
+  # The first login is `changeme@example.com` with the password `MyPassword`.
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v3.30.0
+    profiles: [mealie]
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    ports:
+      - '9925:9000'
+    volumes:
+      - mealie-data:/app/data
+    restart: unless-stopped
+
+  # The bundled PostgreSQL. Grocy Next uses it when `.env` sets
+  # `DB_ENGINE=postgres`. PostgreSQL 18 keeps its data under
+  # `/var/lib/postgresql`, not under `/var/lib/postgresql/data`.
+  postgres:
+    image: postgres:18.6
+    profiles: [postgres]
+    environment:
+      POSTGRES_DB: ${DB_NAME:-grocy-next}
+      POSTGRES_USER: ${DB_USER:-grocy-next}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-grocy-next}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    restart: unless-stopped
+
+volumes:
+  grocy-config:
+  mealie-data:
+  postgres-data:
