@@ -28,16 +28,26 @@ export default [
         {
           enforceBuildableLibDependency: true,
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
-          // A project imports only its own scope and `scope:shared`. The two
-          // apps never import each other. A domain adds its own line here.
+          // A domain imports only itself and `scope:shared`. A domain adds
+          // its own line here. An app imports its own scope, `scope:shared`,
+          // and the domains that it composes. The two apps never import each
+          // other.
           depConstraints: [
             {
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },
             {
+              sourceTag: 'scope:inventory',
+              onlyDependOnLibsWithTags: ['scope:inventory', 'scope:shared'],
+            },
+            {
               sourceTag: 'scope:api',
-              onlyDependOnLibsWithTags: ['scope:api', 'scope:shared'],
+              onlyDependOnLibsWithTags: [
+                'scope:api',
+                'scope:shared',
+                'scope:inventory',
+              ],
             },
             {
               sourceTag: 'scope:web',

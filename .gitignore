@@ -41,3 +41,6 @@ test-output/
 vitest.config.*.timestamp*
 .vitest/
 vite.config.*.timestamp*
+
+# SQLite files of a developer host
+*.db

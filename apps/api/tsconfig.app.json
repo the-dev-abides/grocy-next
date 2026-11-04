@@ -17,5 +17,10 @@
     "vitest.config.mts",
     "src/**/*.spec.ts",
     "eslint.config.mjs"
+  ],
+  "references": [
+    {
+      "path": "../../libs/inventory/products/tsconfig.lib.json"
+    }
   ]
 }

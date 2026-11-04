@@ -6,8 +6,11 @@ import { configureApp } from './configure-app.ts';
 
 // The test runs on SQLite in memory. The test writes no file. The storage
 // module reads the variable when the imports load, so this block runs first.
+// The Grocy variables hold placeholder values. No test calls Grocy.
 vi.hoisted(() => {
   process.env['DB_FILE'] = ':memory:';
+  process.env['GROCY_URL'] = 'http://grocy.invalid';
+  process.env['GROCY_API_KEY'] = 'placeholder';
 });
 
 describe('the API at its HTTP boundary', () => {
@@ -54,7 +57,7 @@ describe('the API at its HTTP boundary', () => {
     });
   });
 
-  it('serves the OpenAPI document of the Next API', async () => {
+  it('serves the OpenAPI document with the product list and the health checks', async () => {
     const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
 
     expect(response.status).toBe(200);
@@ -68,6 +71,7 @@ describe('the API at its HTTP boundary', () => {
         '/api/v2/health/live',
         '/api/v2/health/startup',
         '/api/v2/health/ready',
+        '/api/v2/products',
       ]),
     );
   });

@@ -35,6 +35,8 @@
     }
   },
   "dependencies": {
+    "@grocy-next/inventory-products": "workspace:*",
+    "@nestjs/axios": "^12.0.1",
     "@nestjs/common": "^12.3.2",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.3.2",
@@ -43,6 +45,7 @@
     "@nestjs/swagger": "^12.1.0",
     "@nestjs/terminus": "^12.1.0",
     "@nestjs/typeorm": "^12.0.2",
+    "axios": "^1.21.0",
     "better-sqlite3": "^13.0.3",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
