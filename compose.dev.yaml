@@ -16,17 +16,17 @@
 # PostgreSQL database, user, password, and host port, so the API and the
 # database agree. The defaults below match `.env.example`.
 
-# The project name keeps the containers and the volumes of this stack apart
-# from the deployment Compose files in this folder.
+# The project name keeps the containers and the volumes of this file apart
+# from those of other Compose files in this folder.
 name: grocy-next-dev
 
 services:
   # The bundled Grocy runs in demo mode. Demo mode creates demo data and
-  # needs no API key. The API accepts any value in `GROCY_API_KEY`.
+  # needs no API key. The Grocy API accepts any value in `GROCY_API_KEY`.
   #
   # Grocy creates the demo database at the first request to a page, not at
   # the first request to its API. The health check requests the start page
-  # inside the container, and then passes when the API returns a product. So
+  # inside the container. It passes when the Grocy API returns a product. So
   # `up --wait` returns when the demo data exists.
   grocy:
     image: lscr.io/linuxserver/grocy:v4.7.1-ls348
@@ -65,7 +65,7 @@ services:
       - mealie-data:/app/data
     restart: unless-stopped
 
-  # The bundled PostgreSQL. The API uses it when `.env` sets
+  # The bundled PostgreSQL. Grocy Next uses it when `.env` sets
   # `DB_ENGINE=postgres`. PostgreSQL 18 keeps its data under
   # `/var/lib/postgresql`, not under `/var/lib/postgresql/data`.
   postgres:
