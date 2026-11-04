@@ -1,0 +1,102 @@
+# The CI checks. The workflow runs on every pull request and on every push to
+# `main`, on GitHub-hosted runners. Four jobs run in parallel:
+#
+# - `lint` runs the lint of every project.
+# - `test` runs the unit tests of every project.
+# - `start-sqlite` builds the API, starts it against SQLite, and calls the
+#   three health checks.
+# - `start-postgres` builds the API, starts it against a PostgreSQL service
+#   container, and calls the three health checks.
+#
+# A lint error, a failed test, or a failed start fails the workflow. The image
+# build and the image push are in a separate workflow.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  # The API exits at start when the two Grocy variables are missing. No
+  # health check calls Grocy, so the values here point at no instance. The
+  # `.invalid` domain is reserved and never resolves.
+  GROCY_URL: http://grocy.invalid
+  GROCY_API_KEY: ci
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - name: Lint every project
+        run: pnpm nx run-many -t lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - name: Run the unit tests of every project
+        run: pnpm nx run-many -t test
+
+  start-sqlite:
+    runs-on: ubuntu-latest
+    env:
+      DB_ENGINE: sqlite
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - name: Build the API
+        run: pnpm nx build api
+      - name: Start the API
+        env:
+          DB_FILE: ${{ runner.temp }}/grocy-next.db
+        run: node apps/api/dist/main.mjs > "$RUNNER_TEMP/api.log" 2>&1 &
+      - name: Call the health checks
+        run: bash .github/scripts/check-health.sh
+      - name: Show the API log
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log"
+
+  start-postgres:
+    runs-on: ubuntu-latest
+    env:
+      DB_ENGINE: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: grocy-next
+      DB_USER: grocy-next
+      DB_PASSWORD: grocy-next
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: grocy-next
+          POSTGRES_USER: grocy-next
+          POSTGRES_PASSWORD: grocy-next
+        ports:
+          - 5432:5432
+        # The job waits for this health check before the first step runs.
+        options: >-
+          --health-cmd "pg_isready -U grocy-next -d grocy-next"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/install
+      - name: Build the API
+        run: pnpm nx build api
+      - name: Start the API
+        run: node apps/api/dist/main.mjs > "$RUNNER_TEMP/api.log" 2>&1 &
+      - name: Call the health checks
+        run: bash .github/scripts/check-health.sh
+      - name: Show the API log
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log"
