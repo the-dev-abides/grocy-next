@@ -51,11 +51,7 @@ export default [
             },
             {
               sourceTag: 'scope:web',
-              onlyDependOnLibsWithTags: [
-                'scope:web',
-                'scope:shared',
-                'scope:inventory',
-              ],
+              onlyDependOnLibsWithTags: ['scope:web', 'scope:shared'],
             },
             {
               sourceTag: 'type:app',

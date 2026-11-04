@@ -3,7 +3,8 @@ import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { Product } from './product.ts';
 
-// The product list operation of the Next API.
+// The product list operation of the Next API. The controller is a surface
+// and holds no rules.
 @Controller('products')
 export class ProductsController {
   constructor(private readonly grocy: GrocyClient) {}
@@ -12,12 +13,7 @@ export class ProductsController {
   @Get()
   @ApiOperation({ summary: 'List every product.' })
   @ApiOkResponse({ type: Product, isArray: true })
-  async list(): Promise<Product[]> {
-    const products = await this.grocy.listProducts();
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-    }));
+  list(): Promise<Product[]> {
+    return this.grocy.listProducts();
   }
 }

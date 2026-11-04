@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 // One product in the Next API. A product is a thing that the household
-// stocks. The Next API has its own shape and does not copy the Grocy fields.
+// stocks. The Next API owns this shape. The fields match Grocy today and can
+// change when Grocy Next builds its own entity model.
 export class Product {
   @ApiProperty({ description: 'The id of the product.' })
   id!: number;

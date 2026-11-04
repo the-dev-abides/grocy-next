@@ -7,7 +7,6 @@ const GROCY_API_KEY = 'GROCY_API_KEY';
 export type EnvironmentVariables = Record<string, string | undefined>;
 
 export interface GrocyOptions {
-  // The Grocy address with no slash at the end.
   url: string;
   apiKey: string;
 }
@@ -34,8 +33,5 @@ export function readGrocyOptions(
       `${GROCY_API_KEY} must be set to an API key of the Grocy instance.`,
     );
   }
-  return {
-    url: url.replace(/\/+$/, ''),
-    apiKey,
-  };
+  return { url, apiKey };
 }
