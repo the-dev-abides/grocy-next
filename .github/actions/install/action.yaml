@@ -1,7 +1,7 @@
 # This action installs the workspace on a GitHub-hosted runner. Every job of
 # the CI workflow runs it first. pnpm comes from the `packageManager` field of
-# `package.json`. Node comes from `.nvmrc`. The pnpm store is cached between
-# runs, with the lockfile as the cache key.
+# `package.json`. Node comes from `.nvmrc`. The Node action caches the pnpm
+# store between runs. The lockfile is the cache key.
 name: Install the workspace
 description: Installs pnpm, Node, and the packages of the workspace.
 

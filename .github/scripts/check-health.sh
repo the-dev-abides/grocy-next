@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
-# This script calls the three health checks of a running API. It waits for the
-# liveness check for up to 60 seconds, because the API listens only after the
-# migrations have run. Then it calls the startup check and the readiness
-# check one time each. A status other than 200 fails the script.
+# This script calls the three health checks of the API on port 3000. It waits
+# for the liveness check for up to 60 seconds, because the API listens only
+# after the migrations have run. Then it calls the startup check and the
+# readiness check one time each. A status other than 200 fails the script.
 #
-# The first argument is the base address of the API. The default is the
-# address of a local start.
+# When `API_PID` holds the process id of the API, the script stops with a
+# message as soon as that process is gone. So a process that exits at start
+# fails the script at once, and not after the wait.
 set -euo pipefail
 
-base="${1:-http://localhost:3000}/api/v2/health"
+base="http://localhost:3000/api/v2/health"
 
 for _ in $(seq 1 60); do
   if curl -fs -o /dev/null "$base/live"; then
     break
+  fi
+  if [[ -n "${API_PID:-}" ]] && ! kill -0 "$API_PID" 2>/dev/null; then
+    echo "The API process $API_PID has exited." >&2
+    exit 1
   fi
   sleep 1
 done
