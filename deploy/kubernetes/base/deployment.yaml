@@ -1,15 +1,15 @@
 # One pod with one container. The container runs the image from the `main`
-# tag of the GitHub Container Registry. The `main` tag moves with every push
-# to `main`, so the pull policy is `Always`. A pod restart then pulls the
-# latest build.
+# tag of the GitHub Container Registry. The `main` tag points at the newest
+# build after every push to `main`, so the pull policy is `Always`. A pod
+# restart then pulls the newest build.
 #
 # The three probes call the three health checks of the API:
 #
 # - The startup probe calls the startup check. It passes when the migrations
-#   have run. The probe allows 60 seconds. The other two probes start after
+#   are complete. The probe allows 60 seconds. The other two probes start after
 #   it passes.
 # - The liveness probe calls the liveness check. It passes when the process
-#   answers. Three failures in a row restart the container.
+#   answers. Three consecutive failures restart the container.
 # - The readiness probe calls the readiness check. It passes when the
 #   database connection answers. The Service routes traffic to the pod only
 #   while this probe passes.
@@ -56,6 +56,7 @@ spec:
               path: /api/v2/health/startup
               port: http
             periodSeconds: 5
+            timeoutSeconds: 5
             failureThreshold: 12
           livenessProbe:
             httpGet:

@@ -107,5 +107,5 @@ configMapGenerator:
 
 The Ingress component routes every path of one host to the Service. The host
 in the repo is the placeholder `grocy-next.example.com`. The patch above sets
-your host. The Ingress names no class and has no TLS. Add `ingressClassName`
-and a `tls` section in your overlay when you need them.
+your host. The Ingress names no class and has no TLS. When you need them, add
+`ingressClassName` and a `tls` section in your overlay.

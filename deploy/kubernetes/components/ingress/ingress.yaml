@@ -1,7 +1,7 @@
 # The Ingress routes every path of the host to the Service. The Ingress names
 # no class, so the cluster uses its default Ingress controller. On k3s, that
-# is Traefik. The Ingress has no TLS. Add a `tls` section in your overlay when
-# your controller or your certificate tool needs one.
+# is Traefik. The Ingress has no TLS. When your controller or your certificate
+# tool needs TLS, add a `tls` section in your overlay.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
