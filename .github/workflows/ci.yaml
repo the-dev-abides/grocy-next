@@ -1,5 +1,5 @@
 # The CI checks. The workflow runs on every pull request and on every push to
-# `main`, on GitHub-hosted runners. Four jobs run in parallel:
+# `main`, on GitHub-hosted runners. These jobs run in parallel:
 #
 # - `lint` runs the lint of every project.
 # - `test` runs the unit tests of every project.
@@ -7,11 +7,19 @@
 #   three health checks.
 # - `start-postgres` builds the API, starts it against a PostgreSQL service
 #   container, and calls the three health checks.
+# - `image` builds the container image two times, one time for each
+#   architecture, each on a runner of that architecture. No build uses
+#   emulation. Each job starts the built image and calls the three health
+#   checks. On a push to `main`, each job then pushes its image to GHCR by
+#   digest, with no tag.
 #
-# A lint error, a failed test, or a failed start fails the workflow. Each job
-# stops after 15 minutes. The slowest job ends in about five minutes. Every
-# third-party action is pinned to a commit SHA. The tag in the comment names
-# the release. Issue 46 adds the image build and the image push.
+# On a push to `main`, the `manifest` job runs after the two `image` jobs. It
+# merges the two digests into one manifest and gives the manifest two tags:
+# the commit SHA and `main`. A pull request pushes nothing.
+#
+# A lint error, a failed test, a failed start, or a failed build fails the
+# workflow. Each job stops after 15 minutes. Every third-party action is pinned
+# to a commit SHA. The tag in the comment names the release.
 
 name: CI
 
@@ -118,3 +126,147 @@ jobs:
       - name: Show the API log
         if: failure()
         run: cat "$RUNNER_TEMP/api.log"
+
+  image:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # The build runs one time. The layer cache lives in the GitHub Actions
+      # cache, with one scope for each architecture. The result loads into the
+      # Docker daemon of the runner under a local tag, so the next step can
+      # start it.
+      - name: Build the image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          load: true
+          tags: grocy-next:ci
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
+
+      - name: Start the image
+        run: |
+          docker run --detach --name api --publish 3000:3000 \
+            --env GROCY_URL --env GROCY_API_KEY grocy-next:ci
+
+      - name: Call the health checks
+        env:
+          API_CONTAINER: api
+        run: bash .github/scripts/check-health.sh
+
+      - name: Show the container log
+        if: failure()
+        run: docker logs api
+
+      # The rest of the job runs on a push to `main` only. The push takes the
+      # image from the cache of the first build, so no build step runs again.
+      # The image goes to GHCR by digest, with no tag. The `manifest` job
+      # gives the tags to the merged manifest.
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push the image by digest
+        if: github.event_name == 'push'
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.arch }}
+
+      # The digest travels to the `manifest` job as an empty file whose name is
+      # the digest.
+      - name: Export the digest
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p "$RUNNER_TEMP/digests"
+          touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+
+      - name: Upload the digest
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: digest-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  manifest:
+    if: github.event_name == 'push'
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+    steps:
+      - name: Download the digests
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Two tags: the full commit SHA and the branch name, which is `main`.
+      - name: Compute the tags
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,format=long,prefix=
+            type=ref,event=branch
+
+      # One manifest holds the two images. The file names in the digests folder
+      # are the digests.
+      - name: Merge the manifest
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          args=()
+          while IFS= read -r tag; do
+            args+=(--tag "$tag")
+          done <<< "$DOCKER_METADATA_OUTPUT_TAGS"
+          for digest in *; do
+            args+=("$IMAGE@sha256:$digest")
+          done
+          docker buildx imagetools create "${args[@]}"
+
+      - name: Inspect the manifest
+        run: docker buildx imagetools inspect "$IMAGE:${{ steps.meta.outputs.version }}"
