@@ -10,12 +10,12 @@
 # - `image` builds the container image two times, one time for each
 #   architecture, each on a runner of that architecture. No build uses
 #   emulation. Each job starts the built image and calls the three health
-#   checks. On a push to `main`, each job then pushes its image to GHCR by
-#   digest, with no tag.
+#   checks. On a push to `main`, each job then pushes its image to the GitHub
+#   Container Registry (GHCR) by digest, with no tag.
 #
 # On a push to `main`, the `manifest` job runs after the two `image` jobs. It
 # merges the two digests into one manifest and gives the manifest two tags:
-# the commit SHA and `main`. A pull request pushes nothing.
+# the commit SHA and `main`. A pull request run pushes no image.
 #
 # A lint error, a failed test, a failed start, or a failed build fails the
 # workflow. Each job stops after 15 minutes. Every third-party action is pinned
@@ -43,6 +43,8 @@ env:
   # reserves the `.invalid` domain. It never resolves.
   GROCY_URL: http://grocy.invalid
   GROCY_API_KEY: ci
+  # The image name on GHCR. The `image` job and the `manifest` job use it.
+  IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
   lint:
@@ -141,8 +143,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    env:
-      IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -163,6 +163,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
 
       - name: Start the image
+        id: start
         run: |
           docker run --detach --name api --publish 3000:3000 \
             --env GROCY_URL --env GROCY_API_KEY grocy-next:ci
@@ -173,7 +174,7 @@ jobs:
         run: bash .github/scripts/check-health.sh
 
       - name: Show the container log
-        if: failure()
+        if: failure() && steps.start.outcome == 'success'
         run: docker logs api
 
       # The rest of the job runs on a push to `main` only. The push takes the
@@ -198,15 +199,15 @@ jobs:
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ matrix.arch }}
 
-      # The digest travels to the `manifest` job as an empty file whose name is
-      # the digest.
+      # The job passes the digest to the `manifest` job as an empty file. The
+      # file name is the digest.
       - name: Export the digest
         if: github.event_name == 'push'
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
         run: |
           mkdir -p "$RUNNER_TEMP/digests"
           touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"
-        env:
-          DIGEST: ${{ steps.push.outputs.digest }}
 
       - name: Upload the digest
         if: github.event_name == 'push'
@@ -225,8 +226,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    env:
-      IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - name: Download the digests
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -244,9 +243,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Two tags: the full commit SHA and the branch name, which is `main`.
+      # The manifest gets two tags: the full commit SHA and the branch name
+      # `main`.
       - name: Compute the tags
-        id: meta
+        id: tags
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGE }}
@@ -269,4 +269,4 @@ jobs:
           docker buildx imagetools create "${args[@]}"
 
       - name: Inspect the manifest
-        run: docker buildx imagetools inspect "$IMAGE:${{ steps.meta.outputs.version }}"
+        run: docker buildx imagetools inspect "$IMAGE:${{ steps.tags.outputs.version }}"
