@@ -1,0 +1,51 @@
+# Grocy Next on PostgreSQL, with a PostgreSQL that this overlay runs for you.
+# This is the deployment for k3s when you want PostgreSQL and have no database
+# server.
+#
+# Create the Secret with the two Grocy values first. Then run:
+#
+#   kubectl apply -k deploy/kubernetes/overlays/postgres
+#
+# See `deploy/kubernetes/README.md` for the Secret command and for an overlay
+# outside this repo.
+#
+# The overlay adds a one-instance PostgreSQL StatefulSet, its Service, and the
+# database Secret. The ConfigMap merge sets `DB_ENGINE=postgres`. The patch
+# gives the app pod the database Secret.
+#
+# The database Secret holds the host, the database, the user, and the
+# password. The app reads the four keys as variables. The StatefulSet reads
+# the database, the user, and the password to create the database at the
+# first start. The password below is a placeholder. Set your own password with
+# a `secretGenerator` entry that has the same name and `behavior: merge` in
+# an overlay outside this repo. The Secret name gets a hash suffix, so a
+# change to a value restarts both pods. A change to the database, the user, or
+# the password after the first start does not change the database. Delete the
+# claim of the StatefulSet and start again.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - service.yaml
+  - statefulset.yaml
+
+patches:
+  - path: deployment.yaml
+    target:
+      kind: Deployment
+      name: grocy-next
+
+configMapGenerator:
+  - name: grocy-next
+    behavior: merge
+    literals:
+      - DB_ENGINE=postgres
+
+secretGenerator:
+  - name: grocy-next-database
+    literals:
+      - DB_HOST=grocy-next-postgres
+      - DB_NAME=grocy-next
+      - DB_USER=grocy-next
+      - DB_PASSWORD=change-me

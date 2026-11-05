@@ -6,11 +6,13 @@ your Secret stay in an overlay outside this repo.
 
 ## Layout
 
-| Path                  | What it holds                                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `base/`               | The Deployment with the three probes, the Service, and the ConfigMap. Do not apply the base alone.             |
-| `overlays/sqlite/`    | Grocy Next on SQLite. One replica, the `Recreate` strategy, and one `ReadWriteOnce` claim for the SQLite file. |
-| `components/ingress/` | An optional Ingress with a placeholder host. Add the component to your overlay to expose the app.              |
+| Path                          | What it holds                                                                                                  |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `base/`                       | The Deployment with the three probes, the Service, and the ConfigMap. Do not apply the base alone.             |
+| `overlays/sqlite/`            | Grocy Next on SQLite. One replica, the `Recreate` strategy, and one `ReadWriteOnce` claim for the SQLite file. |
+| `overlays/postgres/`          | Grocy Next on a PostgreSQL that the overlay runs for you. A one-instance StatefulSet, a Service, and a Secret. |
+| `overlays/postgres-external/` | Grocy Next on your own PostgreSQL server. No database. The app reads one Secret with the connection values.    |
+| `components/ingress/`         | An optional Ingress with a placeholder host. Add the component to your overlay to expose the app.              |
 
 ## The Secret
 
@@ -26,6 +28,23 @@ kubectl create secret generic grocy-next-grocy-access \
 `GROCY_URL` is the address of your Grocy instance, as the pod reaches it.
 `GROCY_API_KEY` is a key from the Grocy "Manage API keys" page. The pod exits
 at start when one of the two is missing.
+
+## The database Secret
+
+The two PostgreSQL overlays give the pod a second Secret with the name
+`grocy-next-database`. The pod reads the connection values from it. The keys
+are the variable names.
+
+| Key           | Value                                                     |
+| ------------- | --------------------------------------------------------- |
+| `DB_HOST`     | The host of the PostgreSQL server, as the pod reaches it. |
+| `DB_PORT`     | Optional. The port of the server. The default is 5432.    |
+| `DB_NAME`     | The database.                                             |
+| `DB_USER`     | The user.                                                 |
+| `DB_PASSWORD` | The password of the user.                                 |
+
+The `postgres` overlay creates this Secret with a placeholder password. The
+`postgres-external` overlay does not create it. You create it.
 
 ## Apply the `sqlite` overlay
 
@@ -52,6 +71,65 @@ port:
 ```sh
 kubectl port-forward service/grocy-next 3000:80
 ```
+
+## Apply the `postgres` overlay
+
+The `postgres` overlay runs a one-instance PostgreSQL for you. Use it when you
+want PostgreSQL and have no database server. Create the Grocy Secret. Then
+apply the overlay:
+
+```sh
+kubectl apply -k deploy/kubernetes/overlays/postgres
+```
+
+The overlay creates the database Secret with the placeholder password
+`change-me`. The PostgreSQL pod creates the database with the values of the
+Secret at its first start. The app pod retries the connection while
+PostgreSQL starts. When the app does not pass the startup probe within 60
+seconds, the cluster restarts the app container. This can happen on the first
+apply. Check both:
+
+```sh
+kubectl rollout status statefulset/grocy-next-postgres
+kubectl rollout status deployment/grocy-next
+```
+
+Set your own password before the first apply. Add a `secretGenerator` entry
+with the same name and `behavior: merge` in an overlay outside this repo. The
+section "An overlay outside this repo" shows it. A change to the database, the user, or the password
+after the first start does not change the database. To start again, delete
+the StatefulSet and its claim, then apply again:
+
+```sh
+kubectl delete statefulset/grocy-next-postgres
+kubectl delete persistentvolumeclaim/data-grocy-next-postgres-0
+```
+
+The claim requests 2 GiB from the default storage class. To change the size,
+patch the claim template in your overlay before the first apply.
+
+## Apply the `postgres-external` overlay
+
+The `postgres-external` overlay ships no database. Use it when you have a
+PostgreSQL server. Create the database and the user on your server. Create the
+Grocy Secret and the database Secret:
+
+```sh
+kubectl create secret generic grocy-next-database \
+  --from-literal=DB_HOST=postgres.example.com \
+  --from-literal=DB_NAME=grocy-next \
+  --from-literal=DB_USER=grocy-next \
+  --from-literal=DB_PASSWORD=your-password
+```
+
+Then apply the overlay:
+
+```sh
+kubectl apply -k deploy/kubernetes/overlays/postgres-external
+```
+
+The pod exits at start when one of the four values is missing. The readiness
+probe passes when the database connection answers.
 
 ## An overlay outside this repo
 
@@ -102,6 +180,22 @@ configMapGenerator:
     literals:
       - DB_FILE=/data/household.db
 ```
+
+For the `postgres` overlay, point `resources` at `overlays/postgres` and set
+your password with a `secretGenerator` entry with the same name and
+`behavior: merge`:
+
+```yaml
+secretGenerator:
+  - name: grocy-next-database
+    behavior: merge
+    literals:
+      - DB_PASSWORD=a-long-random-password
+```
+
+For the `postgres-external` overlay, point `resources` at
+`overlays/postgres-external` and create the database Secret in your
+namespace.
 
 ## The Ingress
 

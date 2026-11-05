@@ -1,0 +1,31 @@
+# Grocy Next on your own PostgreSQL server. The overlay ships no database.
+# This is the deployment for k3s when you have a database server.
+#
+# Create the Secret with the two Grocy values and the Secret with the four
+# database values first. Then run:
+#
+#   kubectl apply -k deploy/kubernetes/overlays/postgres-external
+#
+# See `deploy/kubernetes/README.md` for the Secret commands and for an overlay
+# outside this repo.
+#
+# The ConfigMap merge sets `DB_ENGINE=postgres`. The patch gives the app pod
+# the database Secret. The database Secret holds the host, the database, the
+# user, and the password. The port is optional and defaults to 5432.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  - path: deployment.yaml
+    target:
+      kind: Deployment
+      name: grocy-next
+
+configMapGenerator:
+  - name: grocy-next
+    behavior: merge
+    literals:
+      - DB_ENGINE=postgres

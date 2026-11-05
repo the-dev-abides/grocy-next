@@ -1,0 +1,19 @@
+# The Service routes traffic inside the cluster to the PostgreSQL pod on port
+# 5432. The app reaches PostgreSQL at the Service name, `grocy-next-postgres`.
+# The Service has a cluster address, so the app keeps one stable address
+# across a PostgreSQL pod restart. The StatefulSet names this Service as its
+# governing Service. The Service has no external address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: grocy-next-postgres
+  labels:
+    app.kubernetes.io/name: grocy-next-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: grocy-next-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
