@@ -1,0 +1,25 @@
+# This action installs the workspace on a GitHub-hosted runner. Every job of
+# the CI workflow runs it first. pnpm comes from the `packageManager` field of
+# `package.json`. Node comes from `.nvmrc`. The Node action caches the pnpm
+# store between runs. The lockfile is the cache key.
+#
+# Every third-party action is pinned to a commit SHA. The tag in the comment
+# names the release. A tag can move, a SHA cannot.
+name: Install the workspace
+description: Installs pnpm, Node, and the packages of the workspace.
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+    - name: Install Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
+    - name: Install the packages
+      shell: bash
+      run: pnpm install --frozen-lockfile
