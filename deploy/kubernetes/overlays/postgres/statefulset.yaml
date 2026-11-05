@@ -1,9 +1,9 @@
 # One PostgreSQL pod with one claim. The StatefulSet keeps the claim across a
 # pod restart and a pod delete, so the data survives both.
 #
-# The image is the official PostgreSQL image at the latest stable version.
-# PostgreSQL 18 keeps its data under `/var/lib/postgresql`, not under
-# `/var/lib/postgresql/data`. The claim mounts there.
+# The image is the official PostgreSQL image. PostgreSQL 18 keeps its data
+# under `/var/lib/postgresql`, not under `/var/lib/postgresql/data`. The claim
+# mounts there.
 #
 # The container reads the database, the user, and the password from the
 # database Secret. It creates the database with these values at the first
@@ -13,9 +13,10 @@
 # security context sets that user and group, so the claim is writable by the
 # process.
 #
-# The two probes call `pg_isready`. The readiness probe passes when PostgreSQL
-# accepts connections. Three consecutive liveness failures restart the
-# container.
+# The three probes call `pg_isready`. The startup probe allows 120 seconds for
+# the first start, which creates the database. The other two probes start
+# after it passes. The readiness probe passes when PostgreSQL accepts
+# connections. Three consecutive liveness failures restart the container.
 #
 # The claim names no storage class, so the cluster uses its default class. On
 # k3s, that is `local-path`. PostgreSQL writes its transaction log next to the
@@ -72,6 +73,15 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 24
           readinessProbe:
             exec:
               command:
@@ -87,7 +97,6 @@ spec:
                 - sh
                 - -c
                 - pg_isready -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3

@@ -85,8 +85,8 @@ kubectl apply -k deploy/kubernetes/overlays/postgres
 The overlay creates the database Secret with the placeholder password
 `change-me`. The PostgreSQL pod creates the database with the values of the
 Secret at its first start. The app pod retries the connection while
-PostgreSQL starts. When the connection does not answer within 60 seconds, the
-startup probe restarts the app pod one time. This can happen on the first
+PostgreSQL starts. When the app does not pass the startup probe within 60
+seconds, the cluster restarts the app container. This can happen on the first
 apply. Check both:
 
 ```sh
@@ -96,7 +96,7 @@ kubectl rollout status deployment/grocy-next
 
 Set your own password before the first apply. Add a `secretGenerator` entry
 with the same name and `behavior: merge` in an overlay outside this repo. The
-example below shows it. A change to the database, the user, or the password
+section "An overlay outside this repo" shows it. A change to the database, the user, or the password
 after the first start does not change the database. To start again, delete
 the StatefulSet and its claim, then apply again:
 
