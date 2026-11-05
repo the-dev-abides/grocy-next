@@ -17,6 +17,10 @@
 # The process runs as the `node` user of the image, user 1000. The pod
 # security context sets that user and group, so a mounted volume is writable
 # by the process.
+#
+# The process uses 85 MiB of memory at idle and 100 MiB under requests. The
+# memory limit gives it two times that. The CPU limit of one core lets the
+# migrations and the first requests run at full speed.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,7 +54,7 @@ spec:
             - configMapRef:
                 name: grocy-next
             - secretRef:
-                name: grocy-next-grocy
+                name: grocy-next-grocy-access
           startupProbe:
             httpGet:
               path: /api/v2/health/startup
@@ -72,6 +76,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '1'
+              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

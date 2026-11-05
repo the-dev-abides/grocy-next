@@ -15,10 +15,10 @@ your Secret stay in an overlay outside this repo.
 ## The Secret
 
 The pod reads the Grocy URL and the Grocy API key from one Secret with the
-name `grocy-next-grocy`. You create it. The keys are the two variable names.
+name `grocy-next-grocy-access`. You create it. The keys are the two variable names.
 
 ```sh
-kubectl create secret generic grocy-next-grocy \
+kubectl create secret generic grocy-next-grocy-access \
   --from-literal=GROCY_URL=https://grocy.example.com \
   --from-literal=GROCY_API_KEY=your-key
 ```
@@ -86,7 +86,7 @@ Create the namespace and the Secret in it. Then apply your overlay:
 
 ```sh
 kubectl create namespace grocy-next
-kubectl -n grocy-next create secret generic grocy-next-grocy \
+kubectl -n grocy-next create secret generic grocy-next-grocy-access \
   --from-literal=GROCY_URL=https://grocy.example.com \
   --from-literal=GROCY_API_KEY=your-key
 kubectl apply -k .
