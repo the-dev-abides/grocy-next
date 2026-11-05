@@ -1,0 +1,17 @@
+# The Service routes traffic inside the cluster to the pod on port 3000. The
+# Ingress component points at this Service. The Service has no external
+# address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: grocy-next
+  labels:
+    app.kubernetes.io/name: grocy-next
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: grocy-next
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
