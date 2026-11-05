@@ -1,0 +1,23 @@
+# Grocy Next on SQLite. One pod on one node with one volume. This is the
+# default deployment for k3s.
+#
+# Create the Secret with the two Grocy values first. Then run:
+#
+#   kubectl apply -k deploy/kubernetes/overlays/sqlite
+#
+# See `deploy/kubernetes/README.md` for the Secret command and for an overlay
+# outside this repo.
+#
+# The overlay sets one replica and the `Recreate` strategy. A SQLite file
+# accepts one process, and a `ReadWriteOnce` claim mounts on one node. With
+# `Recreate`, the cluster stops the old pod before it starts the new one, so
+# the two never run at the same time.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - persistentvolumeclaim.yaml
+
+patches:
+  - path: deployment.yaml

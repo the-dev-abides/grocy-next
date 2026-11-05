@@ -1,0 +1,90 @@
+# One pod with one container. The container runs the image from the `main`
+# tag of the GitHub Container Registry. The `main` tag points at the newest
+# build after every push to `main`, so the pull policy is `Always`. A pod
+# restart then pulls the newest build.
+#
+# The three probes call the three health checks of the API:
+#
+# - The startup probe calls the startup check. It passes when the migrations
+#   are complete. The probe allows 60 seconds. The other two probes start after
+#   it passes.
+# - The liveness probe calls the liveness check. It passes when the process
+#   answers. Three consecutive failures restart the container.
+# - The readiness probe calls the readiness check. It passes when the
+#   database connection answers. The Service routes traffic to the pod only
+#   while this probe passes.
+#
+# The process runs as the `node` user of the image, user 1000. The pod
+# security context sets that user and group, so a mounted volume is writable
+# by the process.
+#
+# The process uses 85 MiB of memory at idle and 100 MiB under requests. The
+# memory limit gives it two times that. The CPU limit of one core lets the
+# migrations and the first requests run at full speed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grocy-next
+  labels:
+    app.kubernetes.io/name: grocy-next
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grocy-next
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grocy-next
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: grocy-next
+          image: ghcr.io/the-dev-abides/grocy-next:main
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: grocy-next
+            - secretRef:
+                name: grocy-next-grocy-access
+          startupProbe:
+            httpGet:
+              path: /api/v2/health/startup
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /api/v2/health/live
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v2/health/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '1'
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL

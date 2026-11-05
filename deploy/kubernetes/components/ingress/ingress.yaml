@@ -1,0 +1,22 @@
+# The Ingress routes every path of the host to the Service. The Ingress names
+# no class, so the cluster uses its default Ingress controller. On k3s, that
+# is Traefik. The Ingress has no TLS. When your controller or your certificate
+# tool needs TLS, add a `tls` section in your overlay.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grocy-next
+  labels:
+    app.kubernetes.io/name: grocy-next
+spec:
+  rules:
+    - host: grocy-next.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grocy-next
+                port:
+                  name: http

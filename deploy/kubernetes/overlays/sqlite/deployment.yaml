@@ -1,0 +1,21 @@
+# This patch sets one replica and the `Recreate` strategy, and mounts the
+# claim at `/data`. The API writes the SQLite file to `/data/grocy-next.db`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grocy-next
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+        - name: grocy-next
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: grocy-next-data

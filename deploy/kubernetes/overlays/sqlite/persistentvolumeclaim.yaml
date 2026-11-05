@@ -1,0 +1,16 @@
+# The claim for the SQLite file. The claim names no storage class, so the
+# cluster uses its default class. On k3s, that is `local-path`. The SQLite
+# file of a household is small, so 1 GiB is enough. When you need more, change
+# the size in an overlay outside this repo.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grocy-next-data
+  labels:
+    app.kubernetes.io/name: grocy-next
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
