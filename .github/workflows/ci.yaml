@@ -8,8 +8,9 @@
 # - `start-postgres` builds the API, starts it against a PostgreSQL service
 #   container, and calls the three health checks.
 #
-# A lint error, a failed test, or a failed start fails the workflow. Issue 46
-# adds the image build and the image push.
+# A lint error, a failed test, or a failed start fails the workflow. Every
+# third-party action is pinned to a commit SHA. The tag in the comment names
+# the release. Issue 46 adds the image build and the image push.
 
 name: CI
 
@@ -32,7 +33,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
       - name: Lint every project
         run: pnpm nx run-many -t lint
@@ -40,7 +41,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
       - name: Run the unit tests of every project
         run: pnpm nx run-many -t test
@@ -50,7 +51,7 @@ jobs:
     env:
       DB_ENGINE: sqlite
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
       - name: Build the API
         run: pnpm nx build api
@@ -93,7 +94,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
       - name: Build the API
         run: pnpm nx build api

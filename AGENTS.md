@@ -42,6 +42,13 @@ process when it is not one. `GLOSSARY.md` has the approved names.
 Before you add a package, run `npm view <name> version`. Do not use a version
 from memory. The lockfile is the pin.
 
+## GitHub Actions
+
+Pin every third-party action to a commit SHA. A third party is anyone who is
+not us. Write the release tag in a comment after the SHA. Set
+`timeout-minutes: 15` on every job. Give every workflow a `concurrency`
+group.
+
 ## Commits
 
 Work on a branch. Make one small commit for each logical change. Do not amend
