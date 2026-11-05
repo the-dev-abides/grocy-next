@@ -1,0 +1,9 @@
+# This patch adds the database Secret to the variables of the app container.
+# The app reads `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` from it.
+# The patch is a JSON patch, because a merge patch replaces the whole
+# `envFrom` list.
+- op: add
+  path: /spec/template/spec/containers/0/envFrom/-
+  value:
+    secretRef:
+      name: grocy-next-database
