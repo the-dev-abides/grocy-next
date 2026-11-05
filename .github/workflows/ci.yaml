@@ -23,6 +23,12 @@ on:
 permissions:
   contents: read
 
+# A new push to a branch cancels the run that is still in progress for that
+# branch. A push to `main` cancels nothing.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 env:
   # The API exits at start when the two Grocy variables are missing. No
   # health check calls Grocy, so the values here point at no instance. RFC 2606
