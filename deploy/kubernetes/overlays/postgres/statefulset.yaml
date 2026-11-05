@@ -1,0 +1,114 @@
+# One PostgreSQL pod with one claim. The StatefulSet keeps the claim across a
+# pod restart and a pod delete, so the data survives both.
+#
+# The image is the official PostgreSQL image at the latest stable version.
+# PostgreSQL 18 keeps its data under `/var/lib/postgresql`, not under
+# `/var/lib/postgresql/data`. The claim mounts there.
+#
+# The container reads the database, the user, and the password from the
+# database Secret. It creates the database with these values at the first
+# start. A later change to the values does not change the database.
+#
+# The process runs as the `postgres` user of the image, user 999. The pod
+# security context sets that user and group, so the claim is writable by the
+# process.
+#
+# The two probes call `pg_isready`. The readiness probe passes when PostgreSQL
+# accepts connections. Three consecutive liveness failures restart the
+# container.
+#
+# The claim names no storage class, so the cluster uses its default class. On
+# k3s, that is `local-path`. PostgreSQL writes its transaction log next to the
+# data, and the log can reach 1 GiB before PostgreSQL recycles it. The claim
+# requests 2 GiB. When you need more, change the size in an overlay outside
+# this repo before the first apply. A StatefulSet does not change the size of
+# an existing claim template.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grocy-next-postgres
+  labels:
+    app.kubernetes.io/name: grocy-next-postgres
+spec:
+  serviceName: grocy-next-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grocy-next-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grocy-next-postgres
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: postgres:18.6
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: grocy-next-database
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grocy-next-database
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grocy-next-database
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
