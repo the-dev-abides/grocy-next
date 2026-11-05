@@ -8,7 +8,8 @@
 # - `start-postgres` builds the API, starts it against a PostgreSQL service
 #   container, and calls the three health checks.
 #
-# A lint error, a failed test, or a failed start fails the workflow. Every
+# A lint error, a failed test, or a failed start fails the workflow. Each job
+# stops after 15 minutes. The slowest job ends in about five minutes. Every
 # third-party action is pinned to a commit SHA. The tag in the comment names
 # the release. Issue 46 adds the image build and the image push.
 
@@ -32,6 +33,7 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
@@ -40,6 +42,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/install
@@ -48,6 +51,7 @@ jobs:
 
   start-sqlite:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       DB_ENGINE: sqlite
     steps:
@@ -69,6 +73,7 @@ jobs:
 
   start-postgres:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       DB_ENGINE: postgres
       DB_HOST: localhost
