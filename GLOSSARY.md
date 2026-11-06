@@ -50,6 +50,34 @@ sub-product.
 _Avoid_: product group (a product group is a Grocy category, not a parent),
 variant, generic product
 
+**Stock workflow**:
+One of the four Grocy stock actions that a user does by scan: Purchase,
+Consume, Transfer, and Inventory. Each workflow has its own scan screen. One
+review queue serves all four.
+_Avoid_: inventory workflow (Inventory is one of the four), stock action,
+scan mode
+
+**Purchase**:
+The stock workflow that adds an amount of a product to stock as one new stock
+entry, with a price, a store, a due date, and a location.
+_Avoid_: stock (as a workflow name), shop, buy, add, receive
+
+**Consume**:
+The stock workflow that removes an amount of a product from stock. Grocy picks
+the stock entries by the consume rule of the product.
+_Avoid_: use, remove, deduct, eat
+
+**Transfer**:
+The stock workflow that moves an amount of a product from one location to
+another. A transfer is one transaction with two bookings.
+_Avoid_: move, relocate
+
+**Inventory**:
+The stock workflow that sets the stock amount of a product to a counted
+amount. Grocy books the difference as one new stock entry or as a consume.
+_Avoid_: audit, stocktake, count, correction (a correction is the Grocy name
+of the booking, not of the workflow)
+
 ## Grocy Next terms
 
 **Domain**:
@@ -95,8 +123,8 @@ _Avoid_: phase, stage, release, version
 
 **Implied requirement**:
 A function that Grocy Next must have, that no requirements document lists.
-Parity, the data migration from a running Grocy instance, and the legacy API
-are implied requirements.
+Parity, the data migration from a running Grocy instance, the legacy API, and
+the theme are implied requirements.
 _Avoid_: hidden requirement, assumption, non-functional requirement
 
 **UI parity**:
