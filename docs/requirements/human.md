@@ -22,14 +22,13 @@ tool. It does not say how the tool is built.
 ## Inventory and product management
 
 - Barcode scanning with a hardware scanner and with the phone camera.
-- Inventory workflows: stock, shop, consume, and audit.
+- Stock workflows: Purchase, Consume, Transfer, and Inventory.
   - The user scans one product after another without a stop.
   - Each scan becomes a pending scan in the review queue.
   - An AI can read the review queue through the MCP.
   - The tool finds the product from the barcode.
   - When the barcode is not found, the tool alerts the user at once with a
-    sound, a vibration, and an onscreen alert. The user types a name and
-    continues.
+    sound, a vibration, and an onscreen alert. The scan continues.
   - Smart scale support over Bluetooth and Wi-Fi.
   - Consume supports tare weight. The tool follows Grocy's tare setting for
     the product.
