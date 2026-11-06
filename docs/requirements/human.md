@@ -36,6 +36,7 @@ tool. It does not say how the tool is built.
 - Grocy is the primary source of truth for units, products, and locations.
 - Mealie is the secondary source of truth, mainly for recipes.
 - The "I made this" action in Mealie consumes stock.
+- I want to be able to select a bunch of products; and with that list, print a "re-order sheet" that includes QR codes and names. Scanning one of the codes adds it to my default shopping list.
 
 ## Grocy gaps and bugs
 
