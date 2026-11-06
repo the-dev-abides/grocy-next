@@ -37,6 +37,13 @@ A unit of measure for an amount, such as piece, gram, or litre. A product has
 a stock unit, a purchase unit, a consume unit, and a price unit.
 _Avoid_: unit of measure, UoM, QU
 
+**Product barcode**:
+One code that is linked to one product, with optional defaults for a scan: a
+quantity unit, an amount, a store, a last price, and a note. A product can have
+many product barcodes. A typed produce code is a product barcode too.
+_Avoid_: barcode (when you mean the link), EAN, UPC, PLU (names of code
+formats)
+
 **Conversion**:
 A factor from one quantity unit to another. A general conversion applies to
 every product. A product conversion applies to one product and wins over the
@@ -98,9 +105,26 @@ the review queue.
 _Avoid_: approval queue, inbox, staging area
 
 **Pending scan**:
-One scanned item, or one item that an assistant read from a receipt, that
-waits in the review queue. An accepted pending scan becomes a booking.
-_Avoid_: pending item, draft, proposal
+One scanned or typed code, or one item that an assistant read from a receipt,
+that waits in the review queue. An accepted pending scan becomes a booking.
+_Avoid_: pending item, draft, proposal, scan row
+
+**Scan session**:
+The time between the open and the close of one scan screen, with the optional
+defaults that the screen copies into each pending scan. A scan session is not
+stored.
+_Avoid_: session (alone), batch, scan run
+
+**Booking type**:
+The field of a pending scan that says which booking the accept makes: a
+purchase or an inventory. The scan screen sets it.
+_Avoid_: workflow (as a field name), transaction type (the Grocy field), mode
+
+**Lookup result**:
+The data that an online barcode service returned for a code that no product
+barcode matched: the service, the name, the brand, the quantity, one image,
+and the source link.
+_Avoid_: product data, external product, hit
 
 **Legacy API**:
 The Grocy v4.7.1 API, served by Grocy Next at the same paths, under `/api`,
