@@ -3,23 +3,25 @@
 This roadmap is a living document. It is a starting point for the planning of
 the work, not a plan that is settled. It orders the work on Grocy Next into
 milestones. A milestone has one paragraph of scope and one exit condition.
-The roadmap sets no process. Jeff decides how each milestone is designed and
-built. The roadmap has no end. It lists the milestones known on 2026-11-03. A
-later effort appends more.
+The roadmap sets no process. The maintainer decides how each milestone is
+designed and built. The roadmap has no end. It lists the milestones known on
+2026-11-03. A later effort appends more.
 
 ## Rules
 
-- Nothing on this roadmap is final. Jeff can change the order, the scope, or
-  the exit condition of any milestone at any time, also during a build.
+- Nothing on this roadmap is final. The maintainer can change the order, the
+  scope, or the exit condition of any milestone at any time, also during a
+  build.
 - Grocy Next is a drop-in replacement for Grocy. Every Grocy v4.7.1 area,
   screen, and API operation lands in a milestone. There is no parity
   exception.
 - Grocy owns its data until API parity. Until then, Grocy Next reads and
   writes Grocy through the Grocy API. The data import at API parity is
   API-based.
-- Every milestone ends with user documentation. The team writes it after Jeff
-  signs off the requirements of the milestone. The documentation names every
-  function that the team could not test on a real device or a real path.
+- Every milestone ends with user documentation. The team writes it after the
+  maintainer signs off the requirements of the milestone. The documentation
+  names every function that the team could not test on a real device or a
+  real path.
 - Every milestone ships as one container image for Docker, Compose,
   Portainer, and k3s, with SQLite or PostgreSQL as the storage for the data
   that Grocy Next owns. The deployment files are examples for any
@@ -48,7 +50,7 @@ Tasks, Batteries, Equipment), Users, and the Mealie link.
 
 1. Scaffold and deployment
 2. Scan to stock
-3. Shop, consume, audit
+3. Consume and transfer
 4. Assistant tools
 5. Mealie link
 6. Inventory UI
@@ -77,31 +79,34 @@ and the k3s manifests. SQLite and PostgreSQL for the data that Grocy Next
 owns. The Grocy API client. The CI pipeline: lint, unit tests, image build.
 This milestone makes the stack decisions real.
 
-Exit condition: the empty app runs on Jeff's k3s cluster and lists the
-products of his Grocy instance.
+Exit condition: the empty app runs on a k3s cluster and lists the products of
+the Grocy instance of the household.
 
 ### 2. Scan to stock
 
-The stock workflow only. The user scans one product after another with the
-phone camera, with no stop. Each scan becomes a pending scan in the review
-queue, and the user accepts or rejects pending scans in bulk or one by one. An
-accepted pending scan becomes a purchase booking in Grocy. An unknown barcode
-alerts the user at once with a sound, a vibration, and an onscreen alert, and
-the user types a name and continues.
+The Purchase and the Inventory workflows through the scanner and one review
+queue. The theme and the app shell, because this milestone has the first
+screens. The user scans one product after another with the phone camera, with
+no stop. Each scan becomes a pending scan in the review queue, and the user
+accepts or rejects pending scans in bulk or one by one. An accepted pending
+scan becomes a purchase booking or an inventory booking in Grocy. An unknown
+barcode alerts the user at once with a sound, a vibration, and an onscreen
+alert. The scan continues with no input. The MCP server base and the review
+queue tools: an assistant reads the review queue and creates pending scans
+through the MCP server.
 
-Exit condition: Jeff enters one weekly shop with the phone camera, with no
-stop, and accepts the pending scans in Grocy Next.
+Exit condition: a user takes the first inventory of a household and enters one
+weekly shop, both with the phone camera, with no stop, and accepts the pending
+scans in Grocy Next.
 
-### 3. Shop, consume, audit
+### 3. Consume and transfer
 
-The three other inventory workflows through the same scanner and the same
+The Consume and the Transfer workflows through the same scanner and the same
 review queue. Consume follows the Grocy tare setting of the product. The
-hardware scanner is built as best effort, with no device to test. An
-assistant reads the review queue and creates pending scans through the MCP
-server.
+hardware scanner is built as best effort, with no device to test.
 
-Exit condition: Jeff consumes by scan, and the assistant reads the review
-queue through the MCP server.
+Exit condition: a user consumes one product and transfers one product with
+the phone camera, and accepts the pending scans in Grocy Next.
 
 ### 4. Assistant tools
 
@@ -117,7 +122,8 @@ Alternate names for each product and each store are a Grocy Next attribute,
 because Grocy has no field for them. Where Grocy Next stores them is decided
 in this milestone.
 
-Exit condition: Jeff removes grocy-mcp from the assistant's configuration.
+Exit condition: a household removes grocy-mcp from the configuration of its
+assistant.
 
 ### 5. Mealie link
 
@@ -127,10 +133,10 @@ suggestions, the broken-link check, the Mealie food operations of section 3.5
 of the assistant requirements, the sync conflict view, and the "I made this"
 consume. The open candidates are: which Mealie recipes the household can cook
 from the current stock, what is missing for one recipe, recipe costing, and
-the Mealie meal plan to the shopping list. Jeff settles the full scope at the
-start of this milestone.
+the Mealie meal plan to the shopping list. The maintainer settles the full
+scope at the start of this milestone.
 
-Exit condition: Jeff switches off Grocy Mealie Sync.
+Exit condition: a household switches off Grocy Mealie Sync.
 
 ## UI parity stretch
 
@@ -150,7 +156,7 @@ list, and Userfields. The translation mechanism, with the Grocy translations
 as the source, so that every later screen uses it from the start.
 
 Exit condition: every function of the Grocy Stock, Shopping list, and master
-data screens is in Grocy Next, and Jeff's household uses Grocy Next for them.
+data screens is in Grocy Next, and a household uses Grocy Next for them.
 
 ### 7. Recipes UI
 
@@ -178,8 +184,8 @@ Every function of the Grocy Users, permissions, user settings, and System
 screens, and the generic entity screens that no earlier milestone built. This
 milestone reaches UI parity.
 
-Exit condition: Jeff's household does every function of the Grocy v4.7.1 UI
-in Grocy Next and opens the Grocy UI for nothing.
+Exit condition: a household does every function of the Grocy v4.7.1 UI in
+Grocy Next and opens the Grocy UI for nothing.
 
 ## API parity stretch
 
@@ -242,24 +248,24 @@ changed, the old value, the new value, who, and when. Undo of any change, not
 only a stock transaction: a rename, a delete, a unit change, a link.
 
 Exit condition: every change through the Next API or the MCP server appears
-in the log with its old and new values, and Jeff undoes one of each change
+in the log with its old and new values, and a user undoes one of each change
 type from the log.
 
 ### 15. Authentication and multi-user
 
 Grocy Next reaches API parity with the Grocy user model and the Grocy
 permission set. This milestone decides what multi-user means beyond that.
-Jeff settles the scope at its start.
+The maintainer settles the scope at its start.
 
-Exit condition: open. Jeff sets it at the start of the milestone.
+Exit condition: open. The maintainer sets it at the start of the milestone.
 
 ### 16. Smart scale
 
 Smart scale support over Bluetooth and Wi-Fi from the web app. The tool
 records stock by gross weight and subtracts the tare of the product.
 
-Exit condition: Jeff records one purchase and one consume from the scale with
-no typed amount.
+Exit condition: a user records one purchase and one consume from the scale
+with no typed amount.
 
 ## Not planned
 
@@ -273,37 +279,40 @@ no typed amount.
 
 ## Where each requirement lands
 
-| Requirement                                                                                             | Milestone                                |
-| ------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Human: fewer clicks, responsive, large screen                                                           | Rule, every milestone                    |
-| Human: bulk edit, inline edit                                                                           | 6                                        |
-| Human: full MCP server                                                                                  | Rule, every milestone; complete at 13    |
-| Human: SQLite or PostgreSQL                                                                             | Rule, from 1                             |
-| Human: Docker, Compose, Portainer, k3s                                                                  | Rule, from 1                             |
-| Human: barcode scanning, four workflows, review queue, unknown-barcode alert, AI reads the review queue | 2 and 3                                  |
-| Human: hardware scanner                                                                                 | 3, best effort                           |
-| Human: smart scale                                                                                      | 16                                       |
-| Human: tare weight on consume                                                                           | 3 through Grocy; 10 as a Grocy Next rule |
-| Human: Grocy is the primary source of truth                                                             | Companion stretch, until 13              |
-| Human: Mealie is the secondary source of truth, "I made this"                                           | 5                                        |
-| Human: the four stock service defects                                                                   | 10                                       |
-| Assistant 3.1 general behaviour                                                                         | Rule, from 4                             |
-| Assistant 3.2 bulk operations                                                                           | 4                                        |
-| Assistant 3.3 reading and searching                                                                     | 4                                        |
-| Assistant 3.4 Grocy products, alternate names included                                                  | 4                                        |
-| Assistant 3.5 Mealie foods                                                                              | 5                                        |
-| Assistant 3.6 links                                                                                     | 5                                        |
-| Assistant 3.7 units and conversions                                                                     | 4                                        |
-| Assistant 3.8 catalogue                                                                                 | 4                                        |
-| Assistant 3.9 stock                                                                                     | 4                                        |
-| Assistant 3.10 shopping list                                                                            | 4                                        |
-| Assistant 3.11 undo a stock transaction                                                                 | 4                                        |
-| Assistant 3.11 undo any change, log of every change                                                     | 14                                       |
-| Assistant 3.11 sync conflicts                                                                           | 5                                        |
-| Assistant section 5                                                                                     | Not planned                              |
-| Implied: parity                                                                                         | 6 to 13                                  |
-| Implied: data migration                                                                                 | 13                                       |
-| Implied: legacy API                                                                                     | 10 to 13                                 |
-| Grocy Recipes and Meal plan areas                                                                       | 7 and 11                                 |
-| Localization                                                                                            | 6, mechanism and the Grocy translations  |
-| Authentication and multi-user                                                                           | 15                                       |
+| Requirement                                                                                                  | Milestone                                |
+| ------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| Human: fewer clicks, responsive, large screen                                                                | Rule, every milestone                    |
+| Human: bulk edit, inline edit                                                                                | 6                                        |
+| Human: full MCP server                                                                                       | Rule, every milestone; complete at 13    |
+| Human: SQLite or PostgreSQL                                                                                  | Rule, from 1                             |
+| Human: Docker, Compose, Portainer, k3s                                                                       | Rule, from 1                             |
+| Human: barcode scanning, Purchase, Inventory, review queue, unknown-barcode alert, AI reads the review queue | 2                                        |
+| Human: Consume and Transfer by scan                                                                          | 3                                        |
+| Human: hardware scanner                                                                                      | 3, best effort                           |
+| Human: re-order sheet with QR codes                                                                          | open                                     |
+| Human: smart scale                                                                                           | 16                                       |
+| Human: tare weight on consume                                                                                | 3 through Grocy; 10 as a Grocy Next rule |
+| Human: Grocy is the primary source of truth                                                                  | Companion stretch, until 13              |
+| Human: Mealie is the secondary source of truth, "I made this"                                                | 5                                        |
+| Human: the four stock service defects                                                                        | 10                                       |
+| Assistant 3.1 general behaviour                                                                              | Rule, from 4                             |
+| Assistant 3.2 bulk operations                                                                                | 4                                        |
+| Assistant 3.3 reading and searching                                                                          | 4                                        |
+| Assistant 3.4 Grocy products, alternate names included                                                       | 4                                        |
+| Assistant 3.5 Mealie foods                                                                                   | 5                                        |
+| Assistant 3.6 links                                                                                          | 5                                        |
+| Assistant 3.7 units and conversions                                                                          | 4                                        |
+| Assistant 3.8 catalogue                                                                                      | 4                                        |
+| Assistant 3.9 stock                                                                                          | 4                                        |
+| Assistant 3.10 shopping list                                                                                 | 4                                        |
+| Assistant 3.11 undo a stock transaction                                                                      | 4                                        |
+| Assistant 3.11 undo any change, log of every change                                                          | 14                                       |
+| Assistant 3.11 sync conflicts                                                                                | 5                                        |
+| Assistant section 5                                                                                          | Not planned                              |
+| Implied: parity                                                                                              | 6 to 13                                  |
+| Implied: data migration                                                                                      | 13                                       |
+| Implied: legacy API                                                                                          | 10 to 13                                 |
+| Implied: theme                                                                                               | 2                                        |
+| Grocy Recipes and Meal plan areas                                                                            | 7 and 11                                 |
+| Localization                                                                                                 | 6, mechanism and the Grocy translations  |
+| Authentication and multi-user                                                                                | 15                                       |
