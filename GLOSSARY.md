@@ -209,3 +209,9 @@ A function that more than one domain uses and that no domain owns: Calendar,
 Files, Print, Userfields, and System. A shared service is built in the first
 milestone whose screens need it.
 _Avoid_: cross-cutting concern, utility, infrastructure
+
+**App shell**:
+The parts of the web app that every screen shares: the top bar, the sidebar,
+the page frame, and the install manifest. ADR 0013 defines it.
+_Avoid_: layout (alone), frame, chrome, navigation (the sidebar is one part
+of the shell)
