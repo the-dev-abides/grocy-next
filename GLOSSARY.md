@@ -120,6 +120,12 @@ The field of a pending scan that says which booking the accept makes: a
 purchase or an inventory. The scan screen sets it.
 _Avoid_: workflow (as a field name), transaction type (the Grocy field), mode
 
+**Write-in name**:
+A product name that the user types on a scan screen for a pending scan that
+no product barcode and no lookup result matched. The short product form
+takes it as the product name.
+_Avoid_: manual name, custom name, free text
+
 **Lookup result**:
 The data that an online barcode service returned for a code that no product
 barcode matched: the service, the name, the brand, the quantity, one image,
