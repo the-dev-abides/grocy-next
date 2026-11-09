@@ -126,6 +126,19 @@ barcode matched: the service, the name, the brand, the quantity, one image,
 and the source link.
 _Avoid_: product data, external product, hit
 
+**Lookup provider**:
+The part of the server that asks one online barcode service for a code and
+returns the lookup result, the nutrition facts, and the image. The Open Facts
+family is the one lookup provider.
+_Avoid_: lookup plugin (the Grocy term), lookup service (the online service
+itself), adapter, source (alone)
+
+**Nutrition facts**:
+The record that a lookup stores for one product barcode and its product: the
+nutrients per 100 g or 100 ml and per serving, the scores, the ingredients,
+the allergens, and the source of the data.
+_Avoid_: nutrition data, product facts, nutriments (the Open Facts field name)
+
 **Legacy API**:
 The Grocy v4.7.1 API, served by Grocy Next at the same paths, under `/api`,
 for backwards compatibility.

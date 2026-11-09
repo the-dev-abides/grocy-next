@@ -23,8 +23,12 @@ booking.
   scan with the code, the booking type, and the optional defaults. The
   server resolves the code against the product barcodes in Grocy. A match
   sets the product and copies the barcode defaults: amount, unit, store,
-  last price, and note. No match runs the online lookup and stores the
-  lookup result. The response is the stored row.
+  last price, and note. No match queues the online lookup. The response is
+  the stored row, with no lookup result yet. The lookup worker stores the
+  lookup result on the row later, within the rate limit of the source. The
+  row records the time of its last lookup attempt. ADR 0011 holds the lookup
+  decision. Amended by ADR 0011: the first version ran the lookup in the
+  create call.
 - A code is a scanned barcode or a typed code, such as a four-digit produce
   code. A typed code goes through the same create call.
 - The pending scan needs a code or a product. Both can be set. An assistant
@@ -110,6 +114,9 @@ booking.
 
 - The scan screens and the MCP server share one create path. The Grocy
   logic for the code resolution lives in the server only.
+- A pending scan changes after the create call when the lookup worker stores
+  the lookup result. The scan screens and the review queue need a poll or a
+  server push to see that change. That is a Next API conventions decision.
 - A row with an error stays in the queue until the user edits it, accepts
   it again, or rejects it.
 - The review queue needs the current stock, the parent product flag, and
