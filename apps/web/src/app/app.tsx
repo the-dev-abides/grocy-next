@@ -8,15 +8,18 @@ import { Product, useListProductsQuery } from './api';
 import { ThemePrototype } from '../prototype/theme';
 import { PurchasePrototype } from '../prototype/purchase';
 import { InventoryPrototype } from '../prototype/inventory';
+import { QueuePrototype } from '../prototype/queue';
 
 // PROTOTYPE. Throwaway. `?variant=` on the one route shows the theme and
 // app shell prototype instead of the product list. `?proto=purchase` shows
 // the Purchase scan screen prototype. `?proto=inventory` shows the
-// Inventory scan screen prototype. Development only.
+// Inventory scan screen prototype. `?proto=queue` shows the review queue
+// screen prototype. Development only.
 const params = new URLSearchParams(window.location.search);
 const showPrototype = import.meta.env.DEV && params.has('variant');
 const showPurchase = import.meta.env.DEV && params.get('proto') === 'purchase';
 const showInventory = import.meta.env.DEV && params.get('proto') === 'inventory';
+const showQueue = import.meta.env.DEV && params.get('proto') === 'queue';
 
 
 // The one page of milestone 1: the product list. The grid has one column on
@@ -24,6 +27,7 @@ const showInventory = import.meta.env.DEV && params.get('proto') === 'inventory'
 export function App() {
   if (showPurchase) return <PurchasePrototype />;
   if (showInventory) return <InventoryPrototype />;
+  if (showQueue) return <QueuePrototype />;
   if (showPrototype) return <ThemePrototype />;
   return <ProductPage />;
 }
