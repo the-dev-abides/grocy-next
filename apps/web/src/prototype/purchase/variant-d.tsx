@@ -6,8 +6,9 @@
 // with no price field. The price is not a default. A price row sits
 // directly under the camera: the price for the next scan, unit or total.
 // The user types the price, then scans the item. The scan takes the price
-// and the field clears. The price type stays.
-import { useState } from 'react';
+// and the field clears. The price type stays. A swipe to the left on a row
+// rejects the scan: a wrong scan, a change of mind, a scan by accident.
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { Check, ChevronDown, ChevronRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { cn } from 'cn';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,7 @@ export function VariantD({ force, onDone }: { force: Force; onDone: () => void }
       <div className="flex min-h-[calc(100svh-3.25rem-13rem)] flex-col lg:min-h-[calc(100svh-3.25rem)]">
         <ul className="flex-1 divide-y">
           {scans.map((scan, index) => (
-            <li key={scan.id} className={cn('flex min-h-14 items-center gap-2 px-3 py-1', index === 0 && 'bg-muted/50')}>
+            <SwipeRow key={scan.id} onReject={() => session.remove(scan.id)} className={cn('flex min-h-14 items-center gap-2 px-3 py-1', index === 0 ? 'bg-muted' : 'bg-background')}>
               <div className="min-w-0 flex-1">
                 <ScanName scan={scan} />
                 <p className="text-muted-foreground truncate text-xs">
@@ -82,7 +83,7 @@ export function VariantD({ force, onDone }: { force: Force; onDone: () => void }
                 <Button variant="outline" size="icon" aria-label="More" onClick={() => session.changeAmount(scan.id, 1)}><Plus /></Button>
                 <Button variant="ghost" size="icon" aria-label="Reject" className="hidden sm:inline-flex" onClick={() => session.remove(scan.id)}><Trash2 /></Button>
               </div>
-            </li>
+            </SwipeRow>
           ))}
           {scans.length === 0 && <li className="text-muted-foreground px-3 py-6 text-center">Point the camera at a barcode. The scan appears here.</li>}
         </ul>
@@ -123,5 +124,66 @@ function PriceRow({ price, priceType, onChange }: { price: string; priceType: Pr
         ))}
       </div>
     </div>
+  );
+}
+
+// A list row that the user swipes to the left to reject. A short drag snaps
+// back. A drag past a third of the row width rejects. The row keeps the
+// vertical scroll of the page.
+const REJECT_FRACTION = 0.34;
+
+function SwipeRow({ onReject, className, children }: { onReject: () => void; className?: string; children: ReactNode }) {
+  const [dx, setDx] = useState(0);
+  const [gone, setGone] = useState(false);
+  const start = useRef<{ x: number; y: number; id: number; active: boolean } | null>(null);
+  const row = useRef<HTMLLIElement>(null);
+
+  const onDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    start.current = { x: e.clientX, y: e.clientY, id: e.pointerId, active: false };
+  };
+  const onMove = (e: PointerEvent<HTMLDivElement>) => {
+    const s = start.current;
+    if (!s || s.id !== e.pointerId) return;
+    const mx = e.clientX - s.x;
+    const my = e.clientY - s.y;
+    if (!s.active) {
+      if (Math.abs(my) > 8 && Math.abs(my) > Math.abs(mx)) { start.current = null; return; }
+      if (mx > -10) return;
+      s.active = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    setDx(Math.min(0, mx));
+  };
+  const onUp = (e: PointerEvent<HTMLDivElement>) => {
+    const s = start.current;
+    start.current = null;
+    if (!s || !s.active) return;
+    const width = row.current?.clientWidth ?? 360;
+    if (-dx > width * REJECT_FRACTION) {
+      setGone(true);
+      setDx(-width);
+      window.setTimeout(onReject, 150);
+    } else {
+      setDx(0);
+    }
+  };
+
+  return (
+    <li ref={row} className="relative overflow-hidden">
+      <div aria-hidden="true" className="bg-destructive absolute inset-0 flex items-center justify-end gap-2 pr-4 text-sm font-medium text-white">
+        <Trash2 className="size-4" /> Reject
+      </div>
+      <div
+        className={cn('relative touch-pan-y', className, (dx === 0 || gone) && 'transition-transform duration-150')}
+        style={{ transform: `translateX(${dx}px)` }}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+      >
+        {children}
+      </div>
+    </li>
   );
 }

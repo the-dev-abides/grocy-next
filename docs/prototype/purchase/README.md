@@ -61,7 +61,8 @@ ADR 0010 and ADR 0011 give the server:
   section above the camera; open, it is the form of B with no price field.
   A price row sits under the camera: the price for the next scan, unit or
   total. The user types the price, then scans the item. The scan takes the
-  price and the field clears; the price type stays.
+  price and the field clears; the price type stays. A swipe to the left on
+  a row rejects the scan; a short swipe snaps back.
 - A, "Viewfinder": the camera fills the screen. The defaults are chips over
   the camera; a chip opens a bottom sheet. The last scans sit in a panel
   over the bottom of the camera. The camera starts when the screen opens.
