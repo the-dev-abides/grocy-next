@@ -35,6 +35,10 @@ booking.
   code. A typed code goes through the same create call.
 - The pending scan needs a code or a product. Both can be set. An assistant
   that reads a receipt creates a pending scan with a product and no code.
+  Amended by the Inventory scan screen prototype: a pending scan with no
+  product can carry a write-in name that the user types on the scan screen,
+  for a code that no product barcode and no lookup result matched. The
+  short product form takes the write-in name as the product name.
 - No state field. A pending scan has a product or none, a lookup result or
   none, and an error or none. The error is the Grocy message of the last
   failed accept. An update of the row clears it. The screens derive the
@@ -44,13 +48,20 @@ booking.
 - Repeat rule: a new scan with a code that an open pending scan of the same
   booking type already has adds to that row. The merge adds the barcode
   amount when the barcode has one, else one. The rule has no session limit.
-  One product has at most one open Inventory pending scan, and its amount is
-  the total count. A pending scan from the MCP server never merges.
-- The amount is in the scanned unit. For Purchase the empty unit means the
-  purchase unit of the product. For Inventory the empty unit means the stock
-  unit. The server converts to the stock unit at accept, with the resolved
-  conversions of the product. A missing conversion is an accept error on
-  that row.
+  One product has at most one open Inventory pending scan. A pending scan
+  from the MCP server never merges. Amended by the Inventory scan screen
+  prototype: an Inventory scan does not count. A repeat Inventory scan of a
+  product changes nothing on its row. The Inventory scan screen makes the
+  list of the products; the review queue sets the amount of each row.
+- The amount of a Purchase pending scan is in the scanned unit. The empty
+  unit means the purchase unit of the product. The server converts to the
+  stock unit at accept, with the resolved conversions of the product. A
+  missing conversion is an accept error on that row. Amended by the
+  Inventory scan screen prototype: the amount of an Inventory pending scan
+  is in the stock unit. The product barcode unit and amount do not apply to
+  Inventory. The first version put the Inventory amount in the scanned unit
+  too, and a product barcode with its own unit made the difference between
+  the count and the stock unreadable.
 - The price is stored as entered, with a price type: unit price or total
   price. The default price type is unit price, or the product default price
   type when the product sets one. A barcode last price enters as a total
@@ -70,11 +81,13 @@ booking.
 - An accepted pending scan and a rejected pending scan both leave the queue.
   The accept response carries the booking with the values that Grocy stored.
   The queue keeps no history.
-- The Inventory accept follows Grocy as it is: the count is the own stock of
-  the product across all locations, a parent product counts own stock only,
-  a tare weight product takes the gross weight, and a decrease consumes in
-  the Grocy order. When the count equals the current stock, the server does
-  not call Grocy; the accept removes the row and reports no change.
+- The Inventory accept follows Grocy as it is: the amount is the new own
+  stock of the product across all locations, a parent product counts own
+  stock only, a tare weight product takes the gross weight, and a decrease
+  consumes in the Grocy order. When the amount equals the current stock, the
+  server does not call Grocy; the accept removes the row and reports no
+  change. The scan screen has no rule for a parent product or a tare weight
+  product; the review queue shows what the accept does.
 - Bulk accept and bulk reject are the client calling one operation per row.
   Each call is one result. No all-or-nothing option in this milestone.
 - The Next API is standard REST on resources:
@@ -135,3 +148,6 @@ booking.
 - The Grocy API research on branch `research/grocy-api-review-queue`.
 - The barcode lookup research on branch `research/barcode-lookup-services`.
 - Ticket [#68](https://github.com/the-dev-abides/grocy-next/issues/68).
+- The Inventory scan screen prototype, ticket
+  [#73](https://github.com/the-dev-abides/grocy-next/issues/73), on branch
+  `prototype/inventory-scan-screen`.
