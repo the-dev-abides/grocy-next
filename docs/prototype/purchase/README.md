@@ -8,10 +8,10 @@ scan screen", GitHub issue #72.
 1. Check out the branch `prototype/purchase-scan-screen`.
 2. Run `pnpm install`.
 3. Run `pnpm exec nx run web:dev`.
-4. Open `http://localhost:4200/?proto=purchase&variant=a`.
+4. Open `http://localhost:4200/?proto=purchase&variant=d`.
 
 The bar at the bottom of the page switches the variant and the dark mode.
-The URL holds the state: `?proto=purchase&variant=a|b|c` and `&dark=1`.
+The URL holds the state: `?proto=purchase&variant=d|a|b|c` and `&dark=1`.
 Add `&decoder=zxing` or `&decoder=native` to force one decoder. That switch
 exists only in the prototype. The product has none (ADR 0009).
 
@@ -25,13 +25,13 @@ The camera needs a secure context. The dev server has two ways:
 
 1. HTTPS with a self-signed certificate. Run
    `PROTO_PHONE=1 pnpm exec nx run web:dev`. On the phone, open
-   `https://<the LAN address of the computer>:4200/?proto=purchase&variant=a`.
+   `https://<the LAN address of the computer>:4200/?proto=purchase&variant=d`.
    Chrome shows a certificate warning. Tap "Advanced", then "Proceed".
 2. HTTP with a Chrome flag. Run `PROTO_PHONE=http pnpm exec nx run web:dev`.
    On the phone, open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`,
    add `http://<the LAN address of the computer>:4200`, enable the flag, and
    restart Chrome. Then open
-   `http://<the LAN address of the computer>:4200/?proto=purchase&variant=a`.
+   `http://<the LAN address of the computer>:4200/?proto=purchase&variant=d`.
 
 If port 4200 is in use, the dev server prints the port that it took.
 
@@ -56,6 +56,12 @@ ADR 0010 and ADR 0011 give the server:
 
 ## The variants
 
+- D, "Hybrid": the maintainer's mix after the first review, and the
+  direction of the ticket. The layout of C. The defaults are a collapsible
+  section above the camera; open, it is the form of B with no price field.
+  A price row sits under the camera: the price for the next scan, unit or
+  total. The user types the price, then scans the item. The scan takes the
+  price and the field clears; the price type stays.
 - A, "Viewfinder": the camera fills the screen. The defaults are chips over
   the camera; a chip opens a bottom sheet. The last scans sit in a panel
   over the bottom of the camera. The camera starts when the screen opens.

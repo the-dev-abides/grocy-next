@@ -65,6 +65,9 @@ export interface SessionState {
   // is the message for about 2 s. The store clears both on a timer.
   flash: Feedback['kind'] | null;
   feedback: Feedback | null;
+  // The price for the next scan (variant D). The scan takes it; the price
+  // clears, the price type stays.
+  nextPrice: { price: string; priceType: PriceType };
   scanner: ScannerStatus;
   audio: boolean;
   force: Force;
@@ -94,7 +97,7 @@ export class Session {
 
   constructor(force: Force) {
     this.state = {
-      catalog: null, defaults: initialDefaults, scans: [], flash: null, feedback: null, scanner: initialScanner, audio: false, force,
+      catalog: null, defaults: initialDefaults, scans: [], flash: null, feedback: null, nextPrice: { price: '', priceType: 'unit' }, scanner: initialScanner, audio: false, force,
     };
     void loadCatalog().then((catalog) => this.set({ catalog }));
     const unlock = () => {
@@ -123,6 +126,17 @@ export class Session {
 
   resetDefaults() {
     this.set({ defaults: initialDefaults });
+  }
+
+  setNextPrice(patch: Partial<{ price: string; priceType: PriceType }>) {
+    this.set({ nextPrice: { ...this.state.nextPrice, ...patch } });
+  }
+
+  private takeNextPrice(): { price: string; priceType: PriceType } | null {
+    const next = this.state.nextPrice;
+    if (!next.price) return null;
+    this.set({ nextPrice: { price: '', priceType: next.priceType } });
+    return next;
   }
 
   // The camera. One scanner at a time, bound to the video element of the
@@ -155,14 +169,16 @@ export class Session {
     const open = this.state.scans.find((s) => forms.includes(s.code.toLowerCase()));
     if (open) {
       const add = open.product?.barcodeAmount ?? 1;
-      const merged = { ...open, amount: open.amount + add, scanCount: open.scanCount + 1 };
-      this.set({ scans: this.state.scans.map((s) => (s.id === open.id ? merged : s)) });
+      const typed = this.takeNextPrice();
+      const merged = { ...open, amount: open.amount + add, scanCount: open.scanCount + 1, ...(typed ?? {}) };
+      this.set({ scans: [merged, ...this.state.scans.filter((s) => s.id !== open.id)] });
       feedbackRepeat();
       this.feedback('repeat', merged.product?.name ?? merged.lookup?.name ?? code, `${merged.amount} ${unitOf(merged)}`.trim());
       return;
     }
     const product = await resolveCode(code);
     const d = this.state.defaults;
+    const typed = this.takeNextPrice();
     const scan: PendingScan = {
       id: this.nextId++,
       code,
@@ -177,8 +193,8 @@ export class Session {
       productGroupId: d.productGroupId,
       storeId: d.storeId ?? product?.barcodeStoreId ?? null,
       dueDate: dueDateOf(d.dueRule),
-      price: d.price || product?.barcodeLastPrice || '',
-      priceType: d.price ? d.priceType : product?.barcodeLastPrice ? 'total' : d.priceType,
+      price: typed?.price || d.price || product?.barcodeLastPrice || '',
+      priceType: typed ? typed.priceType : d.price ? d.priceType : product?.barcodeLastPrice ? 'total' : d.priceType,
       note: product?.barcodeNote ?? null,
       scannedAt: new Date(),
       scanCount: 1,

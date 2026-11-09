@@ -25,7 +25,7 @@ function RowSelect({ id, label, rows, value, onChange, none = 'Product default' 
   );
 }
 
-export function DefaultsFields({ catalog, defaults, onChange, idPrefix = 'f' }: { catalog: Catalog | null; defaults: Defaults; onChange: (patch: Partial<Defaults>) => void; idPrefix?: string }) {
+export function DefaultsFields({ catalog, defaults, onChange, idPrefix = 'f', withPrice = true }: { catalog: Catalog | null; defaults: Defaults; onChange: (patch: Partial<Defaults>) => void; idPrefix?: string; withPrice?: boolean }) {
   const due = defaults.dueRule;
   const dueKinds: Record<string, string> = { none: 'Product default', days: 'Days from today', date: 'Fixed date' };
   return (
@@ -57,6 +57,7 @@ export function DefaultsFields({ catalog, defaults, onChange, idPrefix = 'f' }: 
           )}
         </div>
       </div>
+      {withPrice && (
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${idPrefix}-price`}>Price</Label>
         <div className="flex gap-2">
@@ -70,6 +71,7 @@ export function DefaultsFields({ catalog, defaults, onChange, idPrefix = 'f' }: 
           </Select>
         </div>
       </div>
+      )}
     </>
   );
 }
