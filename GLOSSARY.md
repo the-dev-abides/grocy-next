@@ -149,6 +149,17 @@ The API that Grocy Next designs for its own clients, under `/api/v2`. It never
 mixes with the legacy API.
 _Avoid_: v2 API, new API, native API
 
+**MCP server**:
+The surface of Grocy Next that an AI assistant uses. It serves one MCP tool
+for each Next API operation. MCP is the Model Context Protocol.
+_Avoid_: assistant API, agent interface, grocy-mcp (that is the third-party
+tool that the MCP server replaces)
+
+**MCP tool**:
+One operation of the MCP server. An MCP tool mirrors one Next API operation
+and returns the same confirmation or the same error.
+_Avoid_: function, action, command, endpoint (when you mean the tool)
+
 **Companion app**:
 The first milestone. Grocy Next runs beside Grocy. Grocy stays the source of
 truth. Grocy Next adds the functions that Grocy lacks.
