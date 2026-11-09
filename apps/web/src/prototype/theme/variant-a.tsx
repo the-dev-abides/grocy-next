@@ -1,7 +1,12 @@
 // PROTOTYPE. Throwaway. Variant A: Grocy, kept.
-// A grey top bar, a grey 250px sidebar with a blue active bar on the left,
-// a white page. On a phone the sidebar opens from the left as a sheet.
-// Roboto at 14px. The scan buttons are the first group of the sidebar.
+// A grey top bar, a grey sidebar with a blue active bar on the left, a white
+// page. Roboto at 14px. The scan buttons are the first group of the sidebar.
+//
+// The sidebar by screen width (Tailwind steps):
+// - lg and wider, 1024px and up: open, 250px, with the labels.
+// - md, 768px to 1023px: an icon rail of 56px. It opens to 250px over the
+//   page on hover and on keyboard focus.
+// - below md, under 768px: a hamburger button opens the sidebar as a sheet.
 import { useState } from 'react';
 import { Menu, Search } from 'lucide-react';
 import { cn } from 'cn';
@@ -13,11 +18,13 @@ import { Mark } from './mark';
 
 export const name = 'Grocy, kept';
 
-function Group({ label, items, page, go }: { label?: string; items: NavItem[]; page: Page; go: (p: Page) => void }) {
+// `rail` is true inside the fixed sidebar, where the labels hide on md.
+function Group({ label, items, page, go, rail }: { label?: string; items: NavItem[]; page: Page; go: (p: Page) => void; rail?: boolean }) {
+  const hideOnRail = rail && 'md:opacity-0 md:group-hover/side:opacity-100 md:group-focus-within/side:opacity-100 lg:opacity-100';
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-0.5">
       {label && (
-        <p className="text-sidebar-foreground/60 px-4 pt-3 pb-1 text-xs font-medium">{label}</p>
+        <p className={cn('text-sidebar-foreground/60 h-7 px-4 pt-3 text-xs font-medium whitespace-nowrap', hideOnRail)}>{label}</p>
       )}
       {items.map((item) => {
         const active = item.page === page;
@@ -27,16 +34,20 @@ function Group({ label, items, page, go }: { label?: string; items: NavItem[]; p
             type="button"
             onClick={() => go(item.page)}
             aria-current={active ? 'page' : undefined}
+            title={rail ? item.label : undefined}
             className={cn(
-              'flex h-10 items-center gap-3 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sidebar-ring',
-              'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+              'relative mx-2 flex h-10 items-center gap-3 rounded-lg px-3 text-left whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+              'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
               active && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-[inset_4px_0_0_var(--sidebar-primary)]',
             )}
           >
-            <item.icon className="size-4.5 shrink-0" />
-            <span className="flex-1">{item.label}</span>
+            <item.icon className="size-5 shrink-0" />
+            <span className={cn('flex-1', hideOnRail)}>{item.label}</span>
             {item.badge && (
-              <span className="bg-sidebar-primary text-sidebar-primary-foreground rounded-full px-1.5 py-px text-xs font-medium tabular-nums">
+              <span className={cn(
+                'bg-sidebar-primary text-sidebar-primary-foreground rounded-full px-1.5 py-px text-xs font-medium tabular-nums',
+                rail && 'md:absolute md:top-1 md:left-6 md:px-1 md:text-[10px] md:group-hover/side:static md:group-hover/side:px-1.5 md:group-hover/side:text-xs md:group-focus-within/side:static md:group-focus-within/side:px-1.5 md:group-focus-within/side:text-xs lg:static lg:px-1.5 lg:text-xs',
+              )}>
                 {item.badge}
               </span>
             )}
@@ -47,13 +58,13 @@ function Group({ label, items, page, go }: { label?: string; items: NavItem[]; p
   );
 }
 
-function Nav({ page, go }: { page: Page; go: (p: Page) => void }) {
+function Nav({ page, go, rail }: { page: Page; go: (p: Page) => void; rail?: boolean }) {
   return (
-    <nav aria-label="Main" className="flex flex-col py-2">
-      <Group label="Scan" items={scanItems} page={page} go={go} />
-      <Group items={[queueItem]} page={page} go={go} />
-      <Group label="Stock" items={stockItems} page={page} go={go} />
-      <Group label="More" items={otherItems} page={page} go={go} />
+    <nav aria-label="Main" className="flex flex-col gap-1 py-2">
+      <Group label="Scan" items={scanItems} page={page} go={go} rail={rail} />
+      <Group items={[queueItem]} page={page} go={go} rail={rail} />
+      <Group label="Stock" items={stockItems} page={page} go={go} rail={rail} />
+      <Group label="More" items={otherItems} page={page} go={go} rail={rail} />
     </nav>
   );
 }
@@ -65,9 +76,9 @@ export function VariantA() {
 
   return (
     <div className="proto-font-roboto bg-background text-foreground min-h-svh text-sm">
-      <header className="bg-sidebar border-sidebar-border fixed inset-x-0 top-0 z-30 flex h-13 items-center gap-2 border-b-2 px-2 lg:pl-4">
+      <header className="bg-sidebar border-sidebar-border fixed inset-x-0 top-0 z-40 flex h-13 items-center gap-2 border-b px-2 lg:pl-4">
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger render={<Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open the menu" />}>
+          <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" aria-label="Open the menu" />}>
             <Menu />
           </SheetTrigger>
           <SheetContent side="left" className="bg-sidebar text-sidebar-foreground w-72 p-0">
@@ -90,11 +101,11 @@ export function VariantA() {
         </div>
       </header>
 
-      <aside className="bg-sidebar border-sidebar-border text-sidebar-foreground fixed top-13 bottom-0 left-0 z-20 hidden w-[250px] overflow-y-auto border-r-2 lg:block">
-        <Nav page={page} go={go} />
+      <aside className="group/side bg-sidebar border-sidebar-border text-sidebar-foreground fixed top-13 bottom-0 left-0 z-30 hidden w-14 overflow-x-hidden overflow-y-auto border-r shadow-none transition-[width] duration-150 md:block md:hover:w-[250px] md:hover:shadow-lg md:focus-within:w-[250px] md:focus-within:shadow-lg lg:w-[250px] lg:shadow-none">
+        <Nav page={page} go={go} rail />
       </aside>
 
-      <main className="pt-13 lg:pl-[250px]">
+      <main className="pt-13 md:pl-14 lg:pl-[250px]">
         <div className="flex flex-col gap-4 p-4 lg:p-6">
           <h1 className="text-2xl font-medium">{pageTitle[page]}</h1>
           <PageContent page={page} variant="a" />
