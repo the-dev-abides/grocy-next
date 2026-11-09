@@ -6,16 +6,20 @@ import {
 } from '@/components/ui/card';
 import { Product, useListProductsQuery } from './api';
 import { ThemePrototype } from '../prototype/theme';
+import { PurchasePrototype } from '../prototype/purchase';
 
 // PROTOTYPE. Throwaway. `?variant=` on the one route shows the theme and
-// app shell prototype instead of the product list. Development only.
-const showPrototype =
-  import.meta.env.DEV && new URLSearchParams(window.location.search).has('variant');
+// app shell prototype instead of the product list. `?proto=purchase` shows
+// the Purchase scan screen prototype. Development only.
+const params = new URLSearchParams(window.location.search);
+const showPrototype = import.meta.env.DEV && params.has('variant');
+const showPurchase = import.meta.env.DEV && params.get('proto') === 'purchase';
 
 
 // The one page of milestone 1: the product list. The grid has one column on
 // a phone, two on a tablet, and three on a large screen.
 export function App() {
+  if (showPurchase) return <PurchasePrototype />;
   if (showPrototype) return <ThemePrototype />;
   return <ProductPage />;
 }
