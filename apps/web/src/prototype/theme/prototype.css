@@ -1,0 +1,208 @@
+/*
+  PROTOTYPE. Throwaway. Not merged.
+
+  Three palettes, one for each shell variant. The variant sets a class on
+  the <html> element, next to the `dark` class. The values override the
+  shadcn/ui variables from `styles.css`. Every hex value that this file
+  quotes in a comment is a Grocy colour from the theme research.
+*/
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+
+/* The type of each variant. The variant root carries the class. */
+.proto-font-roboto,
+.proto-font-roboto * {
+  font-family: 'Roboto', system-ui, sans-serif;
+}
+.proto-font-geist,
+.proto-font-geist * {
+  font-family: 'Geist Variable', system-ui, sans-serif;
+}
+
+/* Variant A: Grocy, kept. Grey bars, white page, blue accent, 14px. */
+:root.proto-a {
+  --radius: 0.375rem;
+  --background: oklch(1 0 0); /* #ffffff page */
+  --foreground: oklch(0.262 0.009 248.2); /* #212529 text */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.262 0.009 248.2);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.262 0.009 248.2);
+  --primary: oklch(0.564 0.118 247.7); /* #337ab7 Grocy blue */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.922 0 0); /* #e5e5e5 bars */
+  --secondary-foreground: oklch(0.262 0.009 248.2);
+  --muted: oklch(0.972 0.003 247.9);
+  --muted-foreground: oklch(0.558 0.016 244.9); /* #6c757d */
+  --accent: oklch(0.876 0 0); /* #d6d6d6 active item */
+  --accent-foreground: oklch(0.15 0 0);
+  --destructive: oklch(0.592 0.202 21.2); /* #dc3545 */
+  --border: oklch(0.911 0.007 247.9); /* #dee2e6 */
+  --input: oklch(0.876 0 0);
+  --ring: oklch(0.564 0.118 247.7);
+  --sidebar: oklch(0.922 0 0); /* #e5e5e5 */
+  --sidebar-foreground: oklch(0.262 0.009 248.2);
+  --sidebar-primary: oklch(0.564 0.118 247.7); /* #337ab7 indicator */
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.876 0 0); /* #d6d6d6 */
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.876 0 0); /* #d6d6d6 */
+  --sidebar-ring: oklch(0.564 0.118 247.7);
+}
+:root.proto-a.dark {
+  --background: oklch(0.315 0.003 17.3); /* #333131 night page */
+  --foreground: oklch(0.811 0 0); /* #c1c1c1 night text */
+  --card: oklch(0.315 0.003 17.3);
+  --card-foreground: oklch(0.811 0 0);
+  --popover: oklch(0.315 0.003 17.3);
+  --popover-foreground: oklch(0.811 0 0);
+  --primary: oklch(0.73 0.168 15.1); /* #ff7585 night accent */
+  --primary-foreground: oklch(0.2 0 0);
+  --secondary: oklch(0.341 0 0); /* #383838 */
+  --secondary-foreground: oklch(0.811 0 0);
+  --muted: oklch(0.36 0 0);
+  --muted-foreground: oklch(0.683 0.02 243.1); /* #8f9ba5 night muted */
+  --accent: oklch(0.341 0 0); /* #383838 */
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(0.341 0 0); /* #383838 */
+  --input: oklch(0.45 0 0);
+  --ring: oklch(0.73 0.168 15.1);
+  --sidebar: oklch(0.315 0.003 17.3);
+  --sidebar-foreground: oklch(0.811 0 0);
+  --sidebar-primary: oklch(0.73 0.168 15.1); /* #ff7585 indicator */
+  --sidebar-primary-foreground: oklch(0.2 0 0);
+  --sidebar-accent: oklch(0.341 0 0); /* #383838 */
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.341 0 0);
+  --sidebar-ring: oklch(0.73 0.168 15.1);
+}
+
+/* Variant B: scan first. White chrome, blue only on the active item. */
+:root.proto-b {
+  --radius: 0.75rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.01 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 250);
+  --primary: oklch(0.564 0.118 247.7); /* #337ab7 */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.955 0.006 247.9);
+  --secondary-foreground: oklch(0.2 0.01 250);
+  --muted: oklch(0.965 0.004 247.9);
+  --muted-foreground: oklch(0.52 0.016 244.9);
+  --accent: oklch(0.93 0.03 247.7); /* blue tint for the active item */
+  --accent-foreground: oklch(0.4 0.1 247.7);
+  --destructive: oklch(0.592 0.202 21.2);
+  --border: oklch(0.9 0.006 247.9);
+  --input: oklch(0.87 0.006 247.9);
+  --ring: oklch(0.564 0.118 247.7);
+  --sidebar: oklch(0.985 0.002 247.9);
+  --sidebar-foreground: oklch(0.2 0.01 250);
+  --sidebar-primary: oklch(0.564 0.118 247.7);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.93 0.03 247.7);
+  --sidebar-accent-foreground: oklch(0.4 0.1 247.7);
+  --sidebar-border: oklch(0.9 0.006 247.9);
+  --sidebar-ring: oklch(0.564 0.118 247.7);
+}
+:root.proto-b.dark {
+  --background: oklch(0.19 0.008 250);
+  --foreground: oklch(0.93 0.005 250);
+  --card: oklch(0.23 0.008 250);
+  --card-foreground: oklch(0.93 0.005 250);
+  --popover: oklch(0.23 0.008 250);
+  --popover-foreground: oklch(0.93 0.005 250);
+  --primary: oklch(0.671 0.109 247.5); /* #5b9bd5 lifted blue */
+  --primary-foreground: oklch(0.15 0.01 250);
+  --secondary: oklch(0.28 0.008 250);
+  --secondary-foreground: oklch(0.93 0.005 250);
+  --muted: oklch(0.27 0.008 250);
+  --muted-foreground: oklch(0.7 0.015 250);
+  --accent: oklch(0.32 0.04 247.7);
+  --accent-foreground: oklch(0.85 0.06 247.7);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.671 0.109 247.5);
+  --sidebar: oklch(0.215 0.008 250);
+  --sidebar-foreground: oklch(0.93 0.005 250);
+  --sidebar-primary: oklch(0.671 0.109 247.5);
+  --sidebar-primary-foreground: oklch(0.15 0.01 250);
+  --sidebar-accent: oklch(0.32 0.04 247.7);
+  --sidebar-accent-foreground: oklch(0.85 0.06 247.7);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.671 0.109 247.5);
+}
+
+/* Variant C: blue bar. The Grocy blue is the chrome. */
+:root.proto-c {
+  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.262 0.009 248.2);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.262 0.009 248.2);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.262 0.009 248.2);
+  --primary: oklch(0.564 0.118 247.7); /* #337ab7 */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.945 0.008 247.9);
+  --secondary-foreground: oklch(0.262 0.009 248.2);
+  --muted: oklch(0.965 0.004 247.9);
+  --muted-foreground: oklch(0.558 0.016 244.9);
+  --accent: oklch(0.945 0.008 247.9);
+  --accent-foreground: oklch(0.262 0.009 248.2);
+  --destructive: oklch(0.592 0.202 21.2);
+  --border: oklch(0.911 0.007 247.9);
+  --input: oklch(0.876 0 0);
+  --ring: oklch(0.564 0.118 247.7);
+  --sidebar: oklch(0.564 0.118 247.7); /* the bar */
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0.564 0.118 247.7);
+  --sidebar-accent: oklch(0.465 0.092 247.8); /* #2a5d8a hover */
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.465 0.092 247.8);
+  --sidebar-ring: oklch(1 0 0);
+}
+:root.proto-c.dark {
+  --background: oklch(0.25 0.006 250);
+  --foreground: oklch(0.88 0.004 250);
+  --card: oklch(0.29 0.006 250);
+  --card-foreground: oklch(0.88 0.004 250);
+  --popover: oklch(0.29 0.006 250);
+  --popover-foreground: oklch(0.88 0.004 250);
+  --primary: oklch(0.671 0.109 247.5);
+  --primary-foreground: oklch(0.15 0.01 250);
+  --secondary: oklch(0.33 0.006 250);
+  --secondary-foreground: oklch(0.88 0.004 250);
+  --muted: oklch(0.31 0.006 250);
+  --muted-foreground: oklch(0.68 0.015 250);
+  --accent: oklch(0.33 0.006 250);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.671 0.109 247.5);
+  --sidebar: oklch(0.38 0.08 247.8); /* darker bar */
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.97 0 0);
+  --sidebar-primary-foreground: oklch(0.38 0.08 247.8);
+  --sidebar-accent: oklch(0.32 0.07 247.8);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.32 0.07 247.8);
+  --sidebar-ring: oklch(0.97 0 0);
+}
+
+/* The four Grocy stock status row colours, light and night. */
+.proto-row-expired { background: oklch(0.869 0.054 11.1); } /* #f5c6cb */
+.proto-row-overdue { background: oklch(0.882 0.005 258.3); } /* #d6d8db */
+.proto-row-due-soon { background: oklch(0.95 0.069 92.1); } /* #ffeeba */
+.proto-row-below-min { background: oklch(0.896 0.041 207.8); } /* #bee5eb */
+.dark .proto-row-expired { background: oklch(0.272 0.082 19.3); } /* #471116 */
+.dark .proto-row-overdue { background: oklch(0.423 0.004 247.9); } /* #4c4e50 */
+.dark .proto-row-due-soon { background: oklch(0.342 0.067 88); } /* #473604 */
+.dark .proto-row-below-min { background: oklch(0.311 0.05 211.7); } /* #07373f */
