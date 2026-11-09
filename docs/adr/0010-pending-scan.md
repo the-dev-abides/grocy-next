@@ -16,9 +16,11 @@ booking.
 
 - No stored scan session. A scan session is the time between the open and
   the close of one scan screen. The screen holds the optional defaults:
-  location, due date rule, product group, store, and price. The screen
-  copies the defaults into each pending scan at scan time. The server knows
-  no session.
+  location, due date rule, product group, and store. The screen copies the
+  defaults into each pending scan at scan time. The server knows no
+  session. Amended by the purchase scan screen prototype: the price is not
+  a session default. The Purchase screen holds one optional price for the
+  next scan, unit or total. The scan takes it, and the field clears.
 - Every scan is stored at once. The scan screen sends one create call per
   scan with the code, the booking type, and the optional defaults. The
   server resolves the code against the product barcodes in Grocy. A match
@@ -114,6 +116,8 @@ booking.
 
 - The scan screens and the MCP server share one create path. The Grocy
   logic for the code resolution lives in the server only.
+- The create call carries the code, the booking type, the defaults, and
+  for Purchase the price that the user typed for that scan.
 - A pending scan changes after the create call when the lookup worker stores
   the lookup result. The scan screens and the review queue need a poll or a
   server push to see that change. That is a Next API conventions decision.

@@ -19,6 +19,11 @@ data, and the app shows the attribution that Open Facts asks for.
   produce code, a Code 128 value, and a QR or Data Matrix value that is not a
   Grocycode skip it. For the lookup only, the server expands a UPC-E code to
   its 12-digit UPC-A form. The product barcode keeps the code as scanned.
+- Amended by the purchase scan screen prototype: ZXing returns a UPC-A as a
+  13-digit EAN with a leading zero, and Grocy stores the 12 digits that its
+  own scanner gave. The product barcode match treats a 12-digit code and
+  its 13-digit form with a leading zero as one code. The repeat rule of ADR
+  0010 does the same.
 - The source is the Open Facts family: Open Food Facts, Open Beauty Facts,
   Open Pet Food Facts, and Open Products Facts. The server sends one v3 read
   to Open Food Facts with `product_type=all` and follows the redirect to the
@@ -121,7 +126,8 @@ data, and the app shows the attribution that Open Facts asks for.
 - A backfill of nutrition facts for existing products, and a screen that
   shows nutrition facts, are not in milestone 2.
 - Whether the camera decoder returns UPC-E as 8 digits or as 12 digits is a
-  fact that the build checks.
+  fact that the build checks. The purchase scan screen prototype checked
+  UPC-A: ZXing returns 13 digits with a leading zero.
 - The built-in name lists for units and packages can be wrong for a
   household. The form always lets the user change the proposal.
 
