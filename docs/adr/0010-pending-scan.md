@@ -141,15 +141,14 @@ booking.
   for Purchase the price that the user typed for that scan.
 - A pending scan changes after the create call when the lookup worker stores
   the lookup result. The scan screens and the review queue need a poll or a
-  server push to see that change. That is a Next API conventions decision.
+  server push to see that change. ADR 0014 sets a poll every three seconds.
 - A row with an error stays in the queue until the user edits it, accepts
   it again, or rejects it.
 - The review queue needs the current stock, the parent product flag, and
   the tare weight flag at display time. It reads them from the product, not
   from the row.
 - The Next API conventions that these operations need, the error shape, the
-  id format, and the confirmation body, are a separate decision on the
-  milestone 2 map.
+  id format, and the body of a change, are in ADR 0014.
 
 ## Sources
 

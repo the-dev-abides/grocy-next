@@ -146,6 +146,10 @@ API has these rules, from the roadmap:
 - A change touches no other field and has no hidden side effect.
 - A full list has no cut-off.
 
+ADR 14 holds the conventions that every resource follows: the id format,
+the error body, the body of a change, the list shape, the field names and
+formats, and the poll for a change that the server makes on its own.
+
 The legacy API is the Grocy v4.7.1 API, served by Grocy Next at the same
 paths. Its contract is `docs/reference/grocy-openapi.json`. It exists for
 backwards compatibility. Grocy Next serves it from

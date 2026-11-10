@@ -117,8 +117,7 @@ data, and the app shows the attribution that Open Facts asks for.
   lack the lookup result, and the pending scan has a last lookup attempt
   time.
 - The scan screens and the review queue must see a pending scan change after
-  the create call. A poll or a server push is a decision of the Next API
-  conventions.
+  the create call. ADR 0014 sets a poll every three seconds.
 - The household data stays internal. Section 4.5c of the ODbL says that use
   of a derivative database inside an organisation is not public use, so the
   share-alike clause does not apply. The attribution in the UI meets the
