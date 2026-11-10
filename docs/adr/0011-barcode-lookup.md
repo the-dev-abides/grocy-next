@@ -35,6 +35,9 @@ data, and the app shows the attribution that Open Facts asks for.
   ordered list of providers, and a setting for that order, come with the
   second provider.
 - One environment variable turns the online lookup off. The default is on.
+  A second environment variable sets the Open Facts base URL. The default
+  is the real Open Food Facts host. The end-to-end tests point it at the
+  Imposter mock of ADR 0015.
 - The create call of a pending scan stores the row and queues the lookup. An
   in-process worker runs the lookups within the budget of the provider, 15
   reads per minute for Open Facts, and updates the row with the result. The
