@@ -110,8 +110,9 @@ the Next API bodies.
 
 ## Consequences
 
-- The Next API conventions ticket inherits Zod as the validation library
-  and the strict object as the unknown-field rule.
+- ADR 0014, the Next API conventions, inherits Zod as the validation
+  library and the strict object as the unknown-field rule, and sets the
+  error body and the body of a change that the tools return.
 - The MCP endpoint needs HTTPS for a remote assistant. The milestone 1
   deployments serve HTTPS through the Ingress.
 - A tool call shares the Grocy API key of the process. The token does not
