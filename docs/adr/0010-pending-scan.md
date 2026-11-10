@@ -87,9 +87,17 @@ booking.
   consumes in the Grocy order. When the amount equals the current stock, the
   server does not call Grocy; the accept removes the row and reports no
   change. The scan screen has no rule for a parent product or a tare weight
-  product; the review queue shows what the accept does.
+  product; the review queue shows what the accept does. Amended by the
+  review queue screen prototype: an Inventory pending scan arrives with no
+  amount, and the review queue sets it. The accept of an Inventory pending
+  scan with no amount is refused. Grocy has no field for a specific stock
+  entry on an inventory. The review queue shows the stock entries that a
+  decrease takes from, in the Grocy order, and picks none.
 - Bulk accept and bulk reject are the client calling one operation per row.
   Each call is one result. No all-or-nothing option in this milestone.
+  Amended by the review queue screen prototype: the bulk accept sends only
+  the rows that the server can book, with a product and, for Inventory,
+  an amount. The screen counts the other rows as skipped in the result.
 - The Next API is standard REST on resources:
   - `GET /api/v2/pending-scans`, the full list, no cut-off.
   - `POST /api/v2/pending-scans`, create.
@@ -151,3 +159,6 @@ booking.
 - The Inventory scan screen prototype, ticket
   [#73](https://github.com/the-dev-abides/grocy-next/issues/73), on branch
   `prototype/inventory-scan-screen`.
+- The review queue screen prototype, ticket
+  [#74](https://github.com/the-dev-abides/grocy-next/issues/74), on branch
+  `prototype/review-queue-screen`.

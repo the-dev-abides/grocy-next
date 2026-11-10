@@ -31,6 +31,15 @@ Work that serves only Grocy is temporary.
 The design serves any self-hosting user.
 Never name Jeff's environment in this repo.
 
+## Processes and branches
+
+Never stop, kill, or restart a process that you did not start. Jeff's dev
+server is Jeff's. Stop only the processes that you started, and stop them
+before you end the session.
+
+Do not work in a git worktree. Check out the branch in the main repo, so
+that Jeff's running dev server serves it.
+
 ## Names
 
 Use plain names. A name says what a thing is. Do not give a part of the
