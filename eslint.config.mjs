@@ -458,17 +458,11 @@ const config = [
     },
   },
 
-  // The tests. Playwright runs the end-to-end tests, so the Vitest rules
-  // skip them. A test file gets the recommended Vitest set, not every rule:
-  // a test reads better with hooks, with no assertion count, and with the
-  // global `describe` and `it`. The mock and call-count bans above stay.
+  // The tests. A test file is not production code and gets these
+  // exceptions.
   {
     files: TEST_FILES,
-    ignores: E2E_FILES,
-    plugins: { vitest },
-    settings: { vitest: { typecheck: true } },
     rules: {
-      ...asErrors(vitest.configs.recommended.rules),
       // A test nests `describe`, `it`, and one callback of the code under
       // test.
       'max-nested-callbacks': ['error', 5],
@@ -505,6 +499,17 @@ const config = [
       'unicorn/no-manually-wrapped-comments': 'off',
     },
   },
+  // The Vitest rules. Playwright runs the end-to-end tests, so they skip
+  // them. A test file gets the recommended set, not every rule: a test
+  // reads better with hooks, with no assertion count, and with the global
+  // `describe` and `it`.
+  {
+    files: TEST_FILES,
+    ignores: E2E_FILES,
+    plugins: { vitest },
+    settings: { vitest: { typecheck: true } },
+    rules: asErrors(vitest.configs.recommended.rules),
+  },
   {
     files: WEB_TEST_FILES,
     ...testingLibrary.configs['flat/react'],
@@ -529,7 +534,7 @@ const config = [
   },
   {
     files: OPTION_READER_FILES,
-    rules: { 'no-restricted-properties': 'off' },
+    rules: { 'no-restricted-properties': ['error', ...MOCK_PROPERTIES] },
   },
   {
     files: AXIOS_CALLER_FILES,
