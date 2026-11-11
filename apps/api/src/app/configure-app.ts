@@ -1,6 +1,8 @@
 import type { INestApplication } from '@nestjs/common';
+import type { OpenAPIObject } from '@nestjs/swagger';
 
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 // Both APIs live under `/api`. The legacy API takes `/api` itself, from
 // milestone 10. The Next API lives under `/api/v2`. The web app takes every
@@ -13,24 +15,26 @@ const API_PREFIX = `${API_ROOT}/v2`;
 const DOCS_PATH = 'docs';
 const OPENAPI_DOCUMENT_PATH = 'openapi.json';
 
-export function configureApp(app: INestApplication): INestApplication {
-  app.setGlobalPrefix(API_PREFIX);
-
+// This function builds the OpenAPI document of the app. The schemas come
+// from the Zod DTOs through `nestjs-zod`, which also cleans the document.
+// The web app generates its API slice from this document.
+export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
   const documentBuilder = new DocumentBuilder();
   const openApiConfig = documentBuilder
     .setTitle('Grocy Next API')
     .setDescription('The Next API of Grocy Next.')
     .setVersion('0.0.1')
     .build();
-  SwaggerModule.setup(
-    DOCS_PATH,
-    app,
-    () => SwaggerModule.createDocument(app, openApiConfig),
-    {
-      jsonDocumentUrl: OPENAPI_DOCUMENT_PATH,
-      useGlobalPrefix: true,
-    },
-  );
+  return cleanupOpenApiDoc(SwaggerModule.createDocument(app, openApiConfig));
+}
+
+export function configureApp(app: INestApplication): INestApplication {
+  app.setGlobalPrefix(API_PREFIX);
+
+  SwaggerModule.setup(DOCS_PATH, app, () => buildOpenApiDocument(app), {
+    jsonDocumentUrl: OPENAPI_DOCUMENT_PATH,
+    useGlobalPrefix: true,
+  });
 
   return app;
 }

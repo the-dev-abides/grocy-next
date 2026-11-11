@@ -2,9 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 
+import type { Product } from '../product.ts';
 import type { GrocyProduct } from './grocy-product.ts';
-
-import { Product } from '../product.ts';
 
 // The Grocy API client. It reads and writes a running Grocy instance through
 // the Grocy API and returns the Next API shapes. The HTTP module carries the
