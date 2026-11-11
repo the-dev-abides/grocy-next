@@ -98,7 +98,7 @@ describe('the master data lists of the Next API', () => {
     });
   });
 
-  // The Grocy table holds the household conversion 1 Pack = 500 Gram, with
+  // The Grocy table holds the household conversion 1 Box = 24 Cans, with
   // no product, and the conversion 1 Box = 6 Packs of product 3. The list
   // holds the household conversion only.
   it('lists the household quantity unit conversions and leaves out the conversions of a product', async () => {
@@ -106,7 +106,7 @@ describe('the master data lists of the Next API', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      items: [{ factor: 500, fromQuantityUnitId: 2, toQuantityUnitId: 4 }],
+      items: [{ factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 }],
     });
   });
 

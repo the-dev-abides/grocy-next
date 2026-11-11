@@ -159,8 +159,10 @@ factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
 it in Boxes converts to the stock unit. Product 1 has no conversion from the
 Pack to the Can, so a Purchase of it in Packs has no path to the stock unit.
 
-The table of the conversions holds one household conversion, 1 Pack = 500
-Gram, with no product. It also holds the conversion 1 Box = 6 Packs of
+The table of the conversions holds one household conversion, 1 Box = 24
+Cans, with no product. No row converts to the Gram, so the stock unit
+proposal of the short product form for a lookup result in g stays the
+Gram. It also holds the conversion 1 Box = 6 Packs of
 product 3. The household conversion list of the Next API reads the table
 with no filter and leaves out the row of product 3.
 

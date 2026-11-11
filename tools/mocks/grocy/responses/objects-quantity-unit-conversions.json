@@ -1,9 +1,9 @@
 [
   {
     "id": 1,
-    "from_qu_id": 2,
-    "to_qu_id": 4,
-    "factor": 500,
+    "from_qu_id": 3,
+    "to_qu_id": 1,
+    "factor": 24,
     "product_id": null,
     "row_created_timestamp": "2026-01-05 10:00:00"
   },
