@@ -1,0 +1,23 @@
+{
+  "schemaFile": "../api/openapi.json",
+  "apiFile": "./src/app/api/base-api.ts",
+  "apiImport": "baseApi",
+  "outputFile": "./src/app/api/next-api.ts",
+  "exportName": "nextApi",
+  "argSuffix": "Request",
+  "responseSuffix": "Response",
+  "hooks": true,
+  "useUnknown": true,
+  "filterEndpoints": [
+    "createPendingScan",
+    "deletePendingScan",
+    "getPendingScan",
+    "listLocations",
+    "listPendingScans",
+    "listProductGroups",
+    "listProducts",
+    "listQuantityUnits",
+    "listStores",
+    "updatePendingScan"
+  ]
+}

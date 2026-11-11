@@ -1,4 +1,4 @@
-import type { BookingType, PendingScan } from '../api/next-api';
+import type { PendingScan } from '../api/next-api';
 
 // The session list of a scan screen is the pending scan list filtered to the
 // rows that this screen created or merged since it opened, and to the booking
@@ -8,7 +8,7 @@ import type { BookingType, PendingScan } from '../api/next-api';
 export function sessionRows(
   items: readonly PendingScan[],
   sessionIds: ReadonlySet<number>,
-  bookingType: BookingType,
+  bookingType: PendingScan['bookingType'],
 ): PendingScan[] {
   return items
     .filter(

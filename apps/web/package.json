@@ -8,7 +8,23 @@
     "tags": [
       "scope:web",
       "type:app"
-    ]
+    ],
+    "targets": {
+      "generate-api": {
+        "command": "pnpm exec rtk-query-codegen-openapi openapi-config.json",
+        "options": {
+          "cwd": "apps/web"
+        },
+        "dependsOn": [
+          {
+            "projects": [
+              "api"
+            ],
+            "target": "openapi"
+          }
+        ]
+      }
+    }
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -27,6 +43,7 @@
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
+    "@rtk-query/codegen-openapi": "^2.2.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",

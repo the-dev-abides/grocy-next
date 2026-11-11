@@ -1,7 +1,7 @@
 import type {
   CreatePendingScan,
   Location,
-  PriceType,
+  PendingScan,
   ProductGroup,
   Store,
 } from '../api/next-api';
@@ -32,7 +32,7 @@ export const INITIAL_DEFAULTS: SessionDefaults = {
 // clears, and the price type stays.
 export interface NextPrice {
   price: string;
-  priceType: PriceType;
+  priceType: PendingScan['priceType'];
 }
 
 export const INITIAL_NEXT_PRICE: NextPrice = { price: '', priceType: 'unit' };

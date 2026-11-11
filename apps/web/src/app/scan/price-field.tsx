@@ -2,10 +2,9 @@ import { cn } from 'cn';
 
 import { Input } from '@/components/ui/input';
 
-import type { PriceType } from '../api/next-api';
 import type { NextPrice } from './session-defaults';
 
-const PRICE_TYPES: readonly PriceType[] = ['unit', 'total'];
+const PRICE_TYPES: readonly NextPrice['priceType'][] = ['unit', 'total'];
 
 // The price for the next scan, under the camera: a decimal field and the
 // price type, unit or total. The row is tinted while a price is typed. The
