@@ -32,9 +32,10 @@ const MOCK_INCREASE_ROW = {
 const MOCK_INCREASE_TRANSACTION_ID = '69131a2b3c508';
 
 // The accept of an Inventory pending scan: the creation of a booking, as ADR
-// 0010 decided. The amount is the new own stock in the stock unit. The
-// fixture household has 6 cans of product 1 and 1 pack of product 3 in
-// stock.
+// 0010 decided. The amount is the new own stock in the stock unit, or the
+// gross weight for a tare weight product. The fixture household has 6 cans
+// of product 1, 1 pack of product 3, and 500 grams of the tare weight
+// product 7 in stock.
 describe('the accept of an Inventory pending scan', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -200,6 +201,52 @@ describe('the accept of an Inventory pending scan', () => {
       pendingScanId: created.id,
       productId: 1,
       transactionId: null,
+    });
+    expect(await readStatus(created.id)).toBe(404);
+  });
+
+  // The count of a tare weight product is the gross weight on the scale,
+  // container included. The Rice jar, product 7, has 500 grams in stock and
+  // the tare weight 250, so the gross weight 750 is no change. The Grocy
+  // mock refuses an inventory of 750 on product 7, as Grocy does, so a
+  // success here shows that the accept called no Grocy.
+  it('removes a row with a gross weight equal to the stock plus the tare weight of a tare weight product as no change', async () => {
+    const created = await createAndRead({
+      amount: 750,
+      bookingType: 'inventory',
+      productId: 7,
+    });
+
+    const response = await accept({ pendingScanId: created.id });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      bookingType: 'inventory',
+      bookings: [],
+      pendingScanId: created.id,
+      productId: 7,
+      transactionId: null,
+    });
+    expect(await readStatus(created.id)).toBe(404);
+  });
+
+  // A gross weight equal to the own stock of a tare weight product is a
+  // change: the jar then holds 250 grams less than before. The accept sends
+  // it to Grocy, and the Grocy mock answers the fixed increase row.
+  it('books a gross weight equal to the own stock of a tare weight product', async () => {
+    const created = await createAndRead({
+      amount: 500,
+      bookingType: 'inventory',
+      productId: 7,
+    });
+
+    const response = await accept({ pendingScanId: created.id });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      bookings: [{ transactionType: 'inventory-correction' }],
+      productId: 7,
+      transactionId: MOCK_INCREASE_TRANSACTION_ID,
     });
     expect(await readStatus(created.id)).toBe(404);
   });
