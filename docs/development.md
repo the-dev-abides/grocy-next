@@ -1,8 +1,29 @@
 # Development
 
 This document lists the commands and the variables that a contributor needs.
-Node 26 and pnpm are the prerequisites. `.nvmrc` holds the Node version.
-Docker with the Compose plugin runs the developer stack.
+Node 26, pnpm, and the Imposter CLI are the prerequisites. `.nvmrc` holds the
+Node version. Docker with the Compose plugin runs the developer stack.
+
+## The Imposter CLI
+
+Imposter is the one stand-in for Grocy and Open Food Facts in the tests, as
+ADR 0015 decided. The API tests and the end-to-end tests start the two mocks
+under `tools/mocks` through the Imposter CLI, so the CLI must be on the
+`PATH`. The project files under `tools/mocks` pin the CLI version 1.13.0 and
+the native engine version 5.21.3. The CLI downloads the engine into
+`~/.imposter` on the first start. To install the CLI on Linux, run these
+commands:
+
+```sh
+curl -sSfL -o /tmp/imposter-cli.tar.gz \
+  https://github.com/imposter-project/imposter-cli/releases/download/v1.13.0/imposter-cli_linux_amd64.tar.gz
+tar -xzf /tmp/imposter-cli.tar.gz -C ~/.local/bin imposter
+imposter version
+```
+
+On macOS, `brew install imposter-project/imposter/imposter` installs the
+current CLI. `tools/mocks/README.md` describes the two mocks and the fixture
+household.
 
 ## Commands
 
@@ -16,7 +37,10 @@ Docker with the Compose plugin runs the developer stack.
 | `docker compose -f compose.dev.yaml --profile grocy --profile mealie --profile postgres down --volumes` | Stops the bundled instances and removes their data. The next start has fresh data.                                                                                                                                                                             |
 | `pnpm nx serve api`                                                                                     | Builds the API and runs it on port 3000. A change restarts it. The OpenAPI document is at `/api/v2/openapi.json`.                                                                                                                                              |
 | `pnpm nx serve web`                                                                                     | Runs the web app on port 4200 with instant reload. It forwards `/api` to port 3000. The product list page shows the demo products of Grocy.                                                                                                                    |
-| `pnpm nx run-many -t test`                                                                              | Runs the unit tests of every project.                                                                                                                                                                                                                          |
+| `pnpm nx run-many -t test`                                                                              | Runs the unit tests of every project. The API tests start the two Imposter mocks and stop them after the run.                                                                                                                                                  |
+| `pnpm exec playwright install --with-deps chromium`                                                     | Installs Chromium and its system packages for Playwright. `pnpm exec playwright install firefox webkit` adds the two other browsers.                                                                                                                           |
+| `pnpm nx e2e web-e2e`                                                                                   | Runs the end-to-end tests on Chromium, Firefox, and WebKit. Playwright starts the four processes of the test environment and stops them after the run. See the section below.                                                                                  |
+| `pnpm nx e2e web-e2e -- --project=chromium`                                                             | Runs the end-to-end tests on Chromium only, as CI does.                                                                                                                                                                                                        |
 | `pnpm nx run-many -t lint typecheck`                                                                    | Runs the lint and the type check of every project.                                                                                                                                                                                                             |
 | `pnpm nx format:write`                                                                                  | Formats every file. `pnpm nx format:check` reports and changes nothing.                                                                                                                                                                                        |
 | `pnpm exec knip`                                                                                        | Reports an unused file, an unused export, an unused dependency, and a missing dependency. CI runs it.                                                                                                                                                          |
@@ -42,9 +66,32 @@ the same file, so the API and the bundled PostgreSQL agree.
 | `DB_PASSWORD`   | `grocy-next`              | The PostgreSQL password.                                                                                                    |
 | `GROCY_URL`     | `http://localhost:9283`   | The address of the Grocy instance. Set your own address to use your own Grocy.                                              |
 | `GROCY_API_KEY` | `demo`                    | An API key of the Grocy instance. The bundled Grocy accepts any value. Your own Grocy needs a real key.                     |
+| `PORT`          | `3000`                    | The port that the API listens on.                                                                                           |
 
 A change to a `DB_*` value after the first start of the bundled PostgreSQL
 does not change the database. Remove the volumes and start again.
+
+The web dev server reads one variable of its own from the shell: `API_URL`,
+the address that it forwards `/api` to. Unset means `http://localhost:3000`.
+
+## The end-to-end tests
+
+`pnpm nx e2e web-e2e` starts four processes, each on a port of its own, and
+stops them after the run. Playwright never reuses a process that already
+runs, so a test never touches the API on port 3000 or the web dev server on
+port 4200. A port in use fails the run. Stop the process that holds the port
+and run the tests again.
+
+| Process                                        | Port  |
+| ---------------------------------------------- | ----- |
+| The Grocy mock on Imposter                     | 18080 |
+| The Open Food Facts mock on Imposter           | 18081 |
+| The API on a SQLite file in a temporary folder | 13000 |
+| The web dev server                             | 14200 |
+
+The API tests start the two mocks on ports 18082 and 18083, so the API tests
+and the end-to-end tests can run at one time. The mocks hold no state. A
+booking in the Grocy mock returns a fixed stock log row and changes nothing.
 
 ## Checks
 
