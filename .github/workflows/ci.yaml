@@ -22,8 +22,9 @@
 # the commit SHA and `main`. A pull request run pushes no image.
 #
 # A lint error, a type error, a format error, a knip report, a failed test,
-# a failed start, or a failed build fails the workflow. Each job stops after 15 minutes. Every third-party action is pinned
-# to a commit SHA. The tag in the comment names the release.
+# a failed start, or a failed build fails the workflow. Each job stops after
+# 15 minutes. Every third-party action is pinned to a commit SHA. The tag in
+# the comment names the release.
 
 name: CI
 
