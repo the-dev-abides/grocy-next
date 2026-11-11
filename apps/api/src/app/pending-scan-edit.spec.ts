@@ -84,10 +84,13 @@ describe('the update and the delete of a pending scan', () => {
     await app.close();
   });
 
+  // The row carries a write-in name, so the lookup worker does not take it
+  // and the row stays as created until the update.
   it('updates every writable field of a pending scan', async () => {
     const created = await createAndRead({
       bookingType: 'purchase',
       code: '4006381333931',
+      writeInName: 'Pasta',
     });
 
     const response = await update(created.id, {

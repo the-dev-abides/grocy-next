@@ -13,23 +13,19 @@ import type {
 import type { RepeatRule } from './repeat-scan.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
+import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
 import { resolveCode } from './resolve-code.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
+import { now } from './storage/timestamp.ts';
 
 // The result of a create. The pending scan is the new row, or the open row
 // that a repeat scan added to.
 export interface CreateResult {
   isMerged: boolean;
   pendingScan: PendingScan;
-}
-
-// The time of a change as RFC 3339 text in UTC with milliseconds, the
-// precision that both storage engines keep.
-function now(): string {
-  return Temporal.Now.instant().toString({ fractionalSecondDigits: 3 });
 }
 
 // The pending scan operations of the Next API. The controller and, in a
@@ -40,12 +36,15 @@ export class PendingScansService {
     @InjectRepository(storedPendingScanSchema)
     private readonly pendingScans: Repository<StoredPendingScan>,
     private readonly grocy: GrocyClient,
+    private readonly lookups: LookupWorker,
   ) {}
 
   // The create call of ADR 0010: the Grocy reads first, then one database
   // transaction over the Grocy Next storage. The repeat rule runs inside the
-  // transaction, before the write. The lookup queue of a later ticket takes
-  // the stored row after it.
+  // transaction, before the write. The lookup worker takes a new row after
+  // the transaction, so the worker reads a stored row. A repeat scan adds to
+  // a row that the worker already took. A lookup result is never in the
+  // create response.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
@@ -53,19 +52,25 @@ export class PendingScansService {
     const match =
       body.code === undefined ? null : await resolveCode(this.grocy, body.code);
     const row = pendingScanToStore(body, match, now());
-    return this.pendingScans.manager.transaction(async (manager) => {
-      const target =
-        repeatRule === 'merge' ? await findRepeatTarget(manager, row) : null;
-      if (target === null) {
-        const pendingScan = await manager.save(storedPendingScanSchema, row);
-        return { isMerged: false, pendingScan };
-      }
-      const pendingScan = await manager.save(
-        storedPendingScanSchema,
-        mergedPendingScan(target, match, row.scannedAt),
-      );
-      return { isMerged: true, pendingScan };
-    });
+    const result = await this.pendingScans.manager.transaction(
+      async (manager) => {
+        const target =
+          repeatRule === 'merge' ? await findRepeatTarget(manager, row) : null;
+        if (target === null) {
+          const pendingScan = await manager.save(storedPendingScanSchema, row);
+          return { isMerged: false, pendingScan };
+        }
+        const pendingScan = await manager.save(
+          storedPendingScanSchema,
+          mergedPendingScan(target, match, row.scannedAt),
+        );
+        return { isMerged: true, pendingScan };
+      },
+    );
+    if (!result.isMerged) {
+      this.lookups.queue(result.pendingScan);
+    }
+    return result;
   }
 
   // The full list, no cut-off, most recent scan first. Two rows with one

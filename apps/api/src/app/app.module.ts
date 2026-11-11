@@ -3,6 +3,7 @@ import { ReviewQueueModule } from '@grocy-next/inventory-review-queue';
 import { NextApiModule } from '@grocy-next/shared-next-api';
 import { Module } from '@nestjs/common';
 
+import { readApiVersion } from '../api-version.ts';
 import { WebAppModule } from '../web-app.module.ts';
 import { HealthModule } from './health/health.module.ts';
 import { StorageModule } from './storage/storage.module.ts';
@@ -13,7 +14,7 @@ import { StorageModule } from './storage/storage.module.ts';
     NextApiModule,
     HealthModule,
     ProductsModule,
-    ReviewQueueModule,
+    ReviewQueueModule.forRoot({ apiVersion: readApiVersion() }),
     WebAppModule,
   ],
 })
