@@ -14,5 +14,12 @@
       "Bash(git push -u origin research/:*)",
       "Bash(git push origin research/:*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash"
+      }
+    ]
   }
 }
