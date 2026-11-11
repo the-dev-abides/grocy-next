@@ -1,4 +1,5 @@
 export { ApiProblemResponses } from './lib/api-problem-responses.ts';
+export { LOCATION_HEADER, locationOf } from './lib/location.ts';
 export { NextApiModule } from './lib/next-api.module.ts';
 export { NoQuery } from './lib/no-query.ts';
 export {

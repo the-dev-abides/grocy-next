@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import {
   ApiProblemResponses,
+  LOCATION_HEADER,
+  locationOf,
   NoQuery,
   PROBLEM_TYPES,
 } from '@grocy-next/shared-next-api';
@@ -32,15 +34,6 @@ import {
   UpdatePendingScan,
 } from './pending-scan.ts';
 import { PendingScansService } from './pending-scans.service.ts';
-
-// The `Location` header of a create names the path of the new resource. The
-// path of the request is the path of the collection.
-const LOCATION_HEADER = 'Location';
-
-function locationOf(request: IncomingMessage, id: number): string {
-  const { pathname } = new URL(request.url ?? '/', 'http://localhost');
-  return `${pathname}/${String(id)}`;
-}
 
 // The pending scan operations of the Next API. The controller is a surface
 // and holds no rules.
