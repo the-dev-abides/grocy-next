@@ -41,6 +41,7 @@ household.
 | `pnpm exec playwright install --with-deps chromium`                                                     | Installs Chromium and its system packages for Playwright. `pnpm exec playwright install firefox webkit` adds the two other browsers.                                                                                                                                       |
 | `pnpm nx e2e web-e2e`                                                                                   | Runs the end-to-end tests on Chromium, Firefox, and WebKit. Playwright starts the four processes of the test environment and stops them after the run. See the section below.                                                                                              |
 | `pnpm nx e2e web-e2e -- --project=chromium`                                                             | Runs the end-to-end tests on Chromium only, as CI does.                                                                                                                                                                                                                    |
+| `pnpm --filter @grocy-next/web-e2e camera-files`                                                        | Writes the four camera files of the end-to-end tests again, one per fixture code, with the ZXing writer and Chromium. See the section below.                                                                                                                               |
 | `pnpm nx run-many -t lint typecheck`                                                                    | Runs the lint and the type check of every project.                                                                                                                                                                                                                         |
 | `pnpm nx format:write`                                                                                  | Formats every file. `pnpm nx format:check` reports and changes nothing.                                                                                                                                                                                                    |
 | `pnpm exec knip`                                                                                        | Reports an unused file, an unused export, an unused dependency, and a missing dependency. CI runs it.                                                                                                                                                                      |
@@ -95,6 +96,30 @@ and run the tests again.
 The API tests start the two mocks on ports 18082 and 18083, so the API tests
 and the end-to-end tests can run at one time. The mocks hold no state. A
 booking in the Grocy mock returns a fixed stock log row and changes nothing.
+
+### The camera files
+
+The camera tests run on Chromium only, with the Chromium fake camera, as ADR
+0015 decided. The Chromium project runs them with three flags:
+`--use-fake-ui-for-media-stream` grants the camera permission with no
+prompt, `--use-fake-device-for-media-stream` offers a fake camera, and
+`--use-file-for-fake-video-capture=<file>` plays a file as the camera
+picture. The Firefox and WebKit projects leave the camera tests out.
+
+The files are under `apps/web-e2e/src/camera`, one per fixture code. Each
+file is one JPEG picture of the EAN-13 barcode, 640 by 360 pixels, with the
+extension `.mjpeg`. Chromium accepts a `.y4m` file or a `.mjpeg` file for the
+flag and refuses every other extension. It reads a file with one JPEG as a
+one-frame MJPEG stream and loops it, so the barcode stays in view for the
+whole test. The script `apps/web-e2e/src/camera/write-camera-files.ts`
+writes the files again: the ZXing writer draws each barcode as SVG, and
+Chromium renders it as a JPEG. Run it with
+`pnpm --filter @grocy-next/web-e2e camera-files` after a change to the
+fixture codes.
+
+Headless Chromium on Linux has no native `BarcodeDetector`, so the camera
+tests exercise the ZXing path in the Web Worker. The label on the camera
+view in the test output names the decoder that ran.
 
 ## Checks
 
