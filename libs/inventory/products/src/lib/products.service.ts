@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 import type { CreateProduct, Product } from './product.ts';
 
+import { grocyRefused } from './grocy/grocy-answers.ts';
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { toGrocyProductBody } from './grocy/grocy-product-body.ts';
 import { toGrocyProductConversionBody } from './grocy/grocy-product-conversions.ts';
@@ -88,14 +89,4 @@ export class ProductsService {
     }
     return toProduct(details);
   }
-}
-
-// A Grocy refusal as the grocy-refused problem of ADR 0014.
-function grocyRefused(grocy: {
-  message: string;
-  status: number;
-}): ProblemException {
-  return new ProblemException(PROBLEM_TYPES.grocyRefused, grocy.message, {
-    grocy,
-  });
 }
