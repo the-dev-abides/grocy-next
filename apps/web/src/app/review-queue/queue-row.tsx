@@ -1,4 +1,3 @@
-import { skipToken } from '@reduxjs/toolkit/query';
 import { cn } from 'cn';
 import { Check, RotateCw, Trash2 } from 'lucide-react';
 
@@ -8,19 +7,18 @@ import { TableCell, TableRow } from '@/components/ui/table';
 
 import type { PendingScan, Product } from '../api/next-api';
 import type { ResultLine } from './result-panel';
+import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
 
-import { useGetProductQuery } from '../api/next-api';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { AmountCell } from './amount-cell';
 import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
-import { type RowState, stateOf } from './row-state';
-import { amountText, rowName, unitOf } from './row-text';
-import { useRowActions } from './use-row-actions';
+import { amountText, unitOf } from './row-text';
+import { useRowFacts } from './use-row-facts';
 
 // The edit button and the reject button on every row. The accept button on
 // a ready row, and the Accept again button on a failed row. A row that needs
@@ -154,52 +152,6 @@ function FactCells({
       </TableCell>
     </>
   );
-}
-
-// The stock unit of the product, in which the result line names a booking.
-function stockUnitOf(
-  product: Product | undefined,
-  quantityUnits: QueueLists['quantityUnits'],
-): string {
-  return product === undefined
-    ? ''
-    : nameOf(quantityUnits, product.stockUnitId, '');
-}
-
-// The facts of a row: the product read, the state, the unit, the name, and
-// the actions.
-function useRowFacts({
-  lists,
-  onChanged,
-  onResult,
-  scan,
-}: Readonly<{
-  lists: QueueLists;
-  onChanged: () => void;
-  onResult: (line: Omit<ResultLine, 'key'>) => void;
-  scan: PendingScan;
-}>) {
-  const product = useGetProductQuery(
-    scan.productId === null ? skipToken : { id: scan.productId },
-  ).data;
-  // The product read names a product that the product list does not hold
-  // yet, such as a product that the short product form created.
-  const name = product?.name ?? rowName(scan, lists.products);
-  const actions = useRowActions({
-    locations: lists.locations,
-    name,
-    onChanged,
-    onResult,
-    scan,
-    stockUnit: stockUnitOf(product, lists.quantityUnits),
-  });
-  return {
-    actions,
-    name,
-    product,
-    state: stateOf(scan),
-    unit: unitOf(scan, product, lists.quantityUnits),
-  };
 }
 
 // A failed row has the expired row colour, and a busy row is faded.

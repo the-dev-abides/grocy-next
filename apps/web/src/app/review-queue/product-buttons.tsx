@@ -11,12 +11,19 @@ import { PickProductDialog } from './pick-product-dialog';
 
 // The two buttons of a row with no product, in place of the accept: Pick
 // product opens the product pick dialog, and New product opens the short
-// product form. Both set the product on the row through the same update.
+// product form. Both set the product on the row through the same update. A
+// card gives the big size.
 export function ProductButtons({
   actions,
   lists,
   scan,
-}: Readonly<{ actions: RowActions; lists: QueueLists; scan: PendingScan }>) {
+  size = 'sm',
+}: Readonly<{
+  actions: RowActions;
+  lists: QueueLists;
+  scan: PendingScan;
+  size?: 'lg' | 'sm';
+}>) {
   const [dialog, setDialog] = useState<'new' | 'pick' | null>(null);
   const close = () => {
     setDialog(null);
@@ -25,7 +32,7 @@ export function ProductButtons({
     <>
       <Button
         variant="outline"
-        size="sm"
+        size={size}
         disabled={actions.isBusy}
         onClick={() => {
           setDialog('pick');
@@ -35,7 +42,7 @@ export function ProductButtons({
       </Button>
       <Button
         variant="outline"
-        size="sm"
+        size={size}
         disabled={actions.isBusy}
         onClick={() => {
           setDialog('new');

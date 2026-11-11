@@ -41,7 +41,7 @@ export function StateBadge({ state }: Readonly<{ state: RowState }>) {
 
 // The name of a row: the product name, the write-in name, or the lookup name
 // in a medium weight, or the bare code in the monospace font.
-function RowName({
+export function RowName({
   name,
   scan,
 }: Readonly<{ name: string; scan: PendingScan }>) {
@@ -61,7 +61,7 @@ function RowName({
 // The second line under the name: the code when the row has a product, the
 // service of a lookup result as a link to the product page for the
 // attribution of ADR 0011, and the note.
-function RowMeta({ scan }: Readonly<{ scan: PendingScan }>) {
+export function RowMeta({ scan }: Readonly<{ scan: PendingScan }>) {
   return (
     <span
       className="
@@ -112,7 +112,7 @@ function RowFacts({
 }
 
 // The Grocy message of the last failed accept.
-function ErrorLine({ error }: Readonly<{ error: null | string }>) {
+export function ErrorLine({ error }: Readonly<{ error: null | string }>) {
   if (error === null) {
     return null;
   }

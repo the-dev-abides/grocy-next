@@ -8,19 +8,23 @@ import { useSwipe } from './use-swipe';
 // A list row that the user swipes to the left to reject. A short drag snaps
 // back. A drag past a third of the row width slides the row out over the red
 // layer and calls `onReject`. The row keeps the vertical scroll of the page.
+// A rounded row, such as a card of the review queue, rounds the red layer
+// too.
 export function SwipeRow({
   children,
   className,
+  isRounded = false,
   onReject,
 }: Readonly<{
   children: ReactNode;
   className?: string;
+  isRounded?: boolean;
   onReject: () => void;
 }>) {
   const { dragX, handlers, isGone } = useSwipe(onReject);
 
   return (
-    <li className="relative overflow-hidden">
+    <li className={cn('relative overflow-hidden', isRounded && 'rounded-lg')}>
       <div
         aria-hidden="true"
         className="

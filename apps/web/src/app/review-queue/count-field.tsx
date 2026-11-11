@@ -40,7 +40,8 @@ function countOf(typed: string): null | number | undefined {
 // shows the Grocy stock as the placeholder while the row has no count. On
 // Enter and on the loss of the focus, the field sends the count when it
 // changed, and an empty field sends no count. Escape puts the last count
-// back. The field calls onLeave when it loses the focus and on Escape.
+// back. The field calls onLeave, when the caller gives it, when it loses the
+// focus and on Escape.
 export function CountField({
   amount,
   isFocused,
@@ -52,7 +53,7 @@ export function CountField({
   amount: null | number;
   isFocused: boolean;
   onCommit: (amount: null | number) => void;
-  onLeave: () => void;
+  onLeave?: () => void;
   stockAmount: number;
   unit: string;
 }>) {
@@ -65,7 +66,7 @@ export function CountField({
     } else if (count !== amount) {
       onCommit(count);
     }
-    onLeave();
+    onLeave?.();
   };
   return (
     <span className="flex items-center justify-end gap-1">
@@ -86,7 +87,7 @@ export function CountField({
         onKeyDown={(event) => {
           onCountKey(event, () => {
             setTyped(last);
-            onLeave();
+            onLeave?.();
           });
         }}
       />
