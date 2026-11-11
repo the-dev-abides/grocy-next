@@ -1454,6 +1454,78 @@
         "required": ["locationId", "name", "purchaseUnitId", "stockUnitId"],
         "additionalProperties": false
       },
+      "QuantityUnitConversion": {
+        "type": "object",
+        "properties": {
+          "factor": {
+            "type": "number",
+            "description": "One from unit is this many to units. An amount in the from unit times the factor is the amount in the to unit."
+          },
+          "fromQuantityUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the from quantity unit."
+          },
+          "toQuantityUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the to quantity unit."
+          }
+        },
+        "required": ["factor", "fromQuantityUnitId", "toQuantityUnitId"],
+        "additionalProperties": false
+      },
+      "StockEntry": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The amount in the stock unit."
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The due date of the stock entry.",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the stock entry."
+          },
+          "locationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the location.",
+            "nullable": true
+          },
+          "open": {
+            "type": "boolean",
+            "description": "Whether the stock entry is open."
+          },
+          "purchasedDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The purchase date.",
+            "nullable": true
+          }
+        },
+        "required": [
+          "amount",
+          "dueDate",
+          "id",
+          "locationId",
+          "open",
+          "purchasedDate"
+        ],
+        "additionalProperties": false
+      },
       "Product": {
         "type": "object",
         "properties": {
@@ -1472,6 +1544,13 @@
             "type": "string",
             "description": "The name of the product."
           },
+          "conversions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuantityUnitConversion"
+            },
+            "description": "The resolved conversions of the product."
+          },
           "defaultDueDays": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -1481,6 +1560,10 @@
           "hasPicture": {
             "type": "boolean",
             "description": "Whether the product has a picture."
+          },
+          "isParent": {
+            "type": "boolean",
+            "description": "Whether the product is a parent product. The stock amount of a parent product is its own stock only."
           },
           "locationId": {
             "type": "integer",
@@ -1514,26 +1597,42 @@
             "type": "number",
             "description": "The own stock of the product in the stock unit."
           },
+          "stockEntries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockEntry"
+            },
+            "description": "The stock entries of the product in the Grocy consume order: the default consume location first, then open entries, then the earliest due date, then the earliest purchase date."
+          },
           "stockUnitId": {
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
             "description": "The id of the stock quantity unit."
+          },
+          "tareWeight": {
+            "description": "The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight.",
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
           "description",
           "id",
           "name",
+          "conversions",
           "defaultDueDays",
           "hasPicture",
+          "isParent",
           "locationId",
           "minStockAmount",
           "productGroupId",
           "purchaseToStockFactor",
           "purchaseUnitId",
           "stockAmount",
-          "stockUnitId"
+          "stockEntries",
+          "stockUnitId",
+          "tareWeight"
         ],
         "additionalProperties": false
       },
