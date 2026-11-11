@@ -125,8 +125,8 @@ Product 4 is the product that the product create answers. It is not in the
 product list, because the mock holds no state.
 
 The product barcode 5449000000996 has the last price 0.85. The product
-barcode 8000500310427 has the amount 2, so a scan of it carries a product
-barcode amount. Product 1 has a
+barcode 8000500310427 has the amount 2 and the last price 7.98, so a scan of
+it carries a product barcode amount and the unit price 3.99. Product 1 has a
 second product barcode, 0049000006346: the UPC-A code 049000006346 of the
 can in its 13-digit form with a leading zero. A typed 12-digit code against
 that product barcode tests the code forms rule of ADR 0011.

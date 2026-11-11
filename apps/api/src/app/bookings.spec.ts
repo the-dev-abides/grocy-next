@@ -116,7 +116,7 @@ describe('the accept of a Purchase pending scan', () => {
   });
 
   // The scan of the can carries the product barcode defaults: one can in the
-  // stock unit and the last price 0.85 as a total price. The accept sends
+  // stock unit and the last price 0.85 as a unit price. The accept sends
   // amount 1 and price 0.85 per can, and the row goes.
   it('accepts a Purchase in the stock unit and deletes the row', async () => {
     const created = await createAndRead({
@@ -135,6 +135,26 @@ describe('the accept of a Purchase pending scan', () => {
       transactionId: MOCK_TRANSACTION_ID,
     });
     expect(await readStatus(created.id)).toBe(404);
+  });
+
+  // The product barcode 8000500310427 has the amount 2 packs and the last
+  // price 7.98, so each scan adds two packs at 3.99 per pack. After the
+  // repeat scan the row holds four packs, and the accept books each pack at
+  // 3.99.
+  it('books the unit price of the product barcode on a merged Purchase row', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '8000500310427',
+    });
+    await createAndRead({ bookingType: 'purchase', code: '8000500310427' });
+
+    const response = await accept({ pendingScanId: first.id });
+
+    expect(response.status).toBe(200);
+    const booking = (await response.json()) as BookingBody;
+    expect(booking.bookings).toEqual([
+      { ...MOCK_PURCHASE_ROW, amount: 4, price: 3.99 },
+    ]);
   });
 
   it('converts the amount with the resolved conversion and divides a unit price by the factor', async () => {

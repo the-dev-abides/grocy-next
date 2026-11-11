@@ -31,7 +31,7 @@ test('a typed fixture code shows the product name, the time, and the barcode pri
   });
   await expect(row).toBeVisible({ timeout: 3000 });
   await expect(row.locator('time')).toHaveText(/\d{1,2}:\d{2}/);
-  await expect(row).toContainText('0.85 total');
+  await expect(row).toContainText('0.85 unit');
   await expect(row).toContainText('1 Can');
 });
 

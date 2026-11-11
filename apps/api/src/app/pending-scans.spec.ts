@@ -112,9 +112,27 @@ describe('the pending scans of the Next API', () => {
       amount: 1,
       code: '5449000000996',
       price: 0.85,
-      priceType: 'total',
+      priceType: 'unit',
       productId: 1,
       quantityUnitId: 1,
+    });
+  });
+
+  // The last price of a product barcode is the price of one product barcode
+  // amount. The product barcode 8000500310427 has the amount 2 packs and the
+  // last price 7.98, so the unit price is 3.99 per pack.
+  it('stores the last price of a product barcode with an amount as a unit price', async () => {
+    const response = await create({
+      bookingType: 'purchase',
+      code: '8000500310427',
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      amount: 2,
+      price: 3.99,
+      priceType: 'unit',
+      quantityUnitId: 2,
     });
   });
 
@@ -304,6 +322,7 @@ describe('the pending scans of the Next API', () => {
 
     expect(body.id).toBe(first.id);
     expect(body.amount).toBe(4);
+    expect(body).toMatchObject({ price: 3.99, priceType: 'unit' });
   });
 
   it('merges the two forms of a 12-digit code as one code', async () => {

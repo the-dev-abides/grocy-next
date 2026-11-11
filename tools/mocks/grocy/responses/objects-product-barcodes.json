@@ -39,7 +39,7 @@
     "qu_id": 2,
     "amount": 2,
     "shopping_location_id": null,
-    "last_price": null,
+    "last_price": 7.98,
     "row_created_timestamp": "2026-01-05 10:00:00",
     "note": null
   }

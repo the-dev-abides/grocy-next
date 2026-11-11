@@ -56,8 +56,11 @@ function productFields(
   };
 }
 
-// A price from the body keeps its price type. A barcode last price enters
-// as a total price, as ADR 0010 decided.
+// A price from the body keeps its price type. The last price of a product
+// barcode is the price of one product barcode amount. It enters as a unit
+// price in the unit of the product barcode: the last price divided by the
+// product barcode amount when the product barcode has one, else the last
+// price. Thus a repeat scan that adds to the amount keeps a correct price.
 function priceFields(
   body: CreatePendingScan,
   barcode: Omit<ProductBarcode, 'barcode' | 'id'>,
@@ -69,7 +72,10 @@ function priceFields(
     };
   }
   if (barcode.price !== null) {
-    return { price: barcode.price, priceType: 'total' };
+    return {
+      price: barcode.price / (barcode.amount ?? DEFAULT_PURCHASE_AMOUNT),
+      priceType: 'unit',
+    };
   }
   return { price: null, priceType: body.priceType ?? DEFAULT_PRICE_TYPE };
 }

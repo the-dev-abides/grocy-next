@@ -7,7 +7,7 @@ export const BOOKING_TYPES = ['inventory', 'purchase'] as const;
 export type BookingType = (typeof BOOKING_TYPES)[number];
 
 // The price of a pending scan is stored as entered, with its price type.
-// A barcode last price enters as a total price.
+// A barcode last price enters as a unit price.
 const PRICE_TYPES = ['total', 'unit'] as const;
 export type PriceType = (typeof PRICE_TYPES)[number];
 
