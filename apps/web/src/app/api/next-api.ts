@@ -1,6 +1,13 @@
 import { baseApi as api } from './base-api';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
+    createProduct: build.mutation<CreateProductResponse, CreateProductRequest>({
+      query: (queryArg) => ({
+        url: `/api/v2/products`,
+        method: 'POST',
+        body: queryArg.createProduct,
+      }),
+    }),
     listProducts: build.query<ListProductsResponse, ListProductsRequest>({
       query: () => ({ url: `/api/v2/products` }),
     }),
@@ -74,6 +81,11 @@ const injectedRtkApi = api.injectEndpoints({
   overrideExisting: false,
 });
 export { injectedRtkApi as nextApi };
+export type CreateProductResponse =
+  /** status 201 The product as Grocy stores it. */ Product;
+export type CreateProductRequest = {
+  createProduct: CreateProduct;
+};
 export type ListProductsResponse = /** status 200 Every product. */ ProductList;
 export type ListProductsRequest = void;
 export type GetProductResponse = /** status 200 The product. */ Product;
@@ -125,46 +137,6 @@ export type CreateBookingResponse =
   /** status 200 The booking with the values that Grocy stored. */ Booking;
 export type CreateBookingRequest = {
   createBooking: CreateBooking;
-};
-export type ProductListItem = {
-  /** The description of the product, or null when it has none. */
-  description: string | null;
-  /** The id of the product. */
-  id: number;
-  /** The name of the product. */
-  name: string;
-};
-export type ProductList = {
-  /** Every product. */
-  items: ProductListItem[];
-};
-export type FieldError = {
-  /** What is wrong with the field. */
-  message: string;
-  /** The dotted path of the field. */
-  path: string;
-};
-export type GrocyRefusal = {
-  /** The error message that Grocy returned. */
-  message: string;
-  /** The HTTP status that Grocy returned. */
-  status: number;
-};
-export type Problem = {
-  /** What went wrong in this one request. */
-  detail: string;
-  /** The field errors of a validation problem. */
-  errors?: FieldError[];
-  /** The status and the message that Grocy returned. */
-  grocy?: GrocyRefusal;
-  /** The request path. */
-  instance: string;
-  /** The HTTP status of the response. */
-  status: number;
-  /** The fixed title of the type. */
-  title: string;
-  /** The stable URI of the cause. */
-  type: string;
 };
 export type QuantityUnitConversion = {
   /** One from unit is this many to units. An amount in the from unit times the factor is the amount in the to unit. */
@@ -221,6 +193,66 @@ export type Product = {
   stockUnitId: number;
   /** The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight. */
   tareWeight: number | null;
+};
+export type FieldError = {
+  /** What is wrong with the field. */
+  message: string;
+  /** The dotted path of the field. */
+  path: string;
+};
+export type GrocyRefusal = {
+  /** The error message that Grocy returned. */
+  message: string;
+  /** The HTTP status that Grocy returned. */
+  status: number;
+};
+export type Problem = {
+  /** What went wrong in this one request. */
+  detail: string;
+  /** The field errors of a validation problem. */
+  errors?: FieldError[];
+  /** The status and the message that Grocy returned. */
+  grocy?: GrocyRefusal;
+  /** The request path. */
+  instance: string;
+  /** The HTTP status of the response. */
+  status: number;
+  /** The fixed title of the type. */
+  title: string;
+  /** The stable URI of the cause. */
+  type: string;
+};
+export type CreateProduct = {
+  /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */
+  defaultDueDays?: number;
+  /** The description of the product. */
+  description?: string;
+  /** The id of the default location. */
+  locationId: number;
+  /** The minimum stock amount in the stock unit. */
+  minStockAmount?: number;
+  /** The name of the product. */
+  name: string;
+  /** The id of the product group. */
+  productGroupId?: number;
+  /** The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. */
+  purchaseToStockFactor?: number;
+  /** The id of the purchase quantity unit. */
+  purchaseUnitId: number;
+  /** The id of the stock quantity unit. */
+  stockUnitId: number;
+};
+export type ProductListItem = {
+  /** The description of the product, or null when it has none. */
+  description: string | null;
+  /** The id of the product. */
+  id: number;
+  /** The name of the product. */
+  name: string;
+};
+export type ProductList = {
+  /** Every product. */
+  items: ProductListItem[];
 };
 export type Location = {
   /** The id of the location. */
@@ -423,6 +455,7 @@ export type CreateBooking = {
   pendingScanId: number;
 };
 export const {
+  useCreateProductMutation,
   useListProductsQuery,
   useGetProductQuery,
   useListLocationsQuery,
