@@ -6,6 +6,11 @@ import { z } from 'zod';
 // relative URI per cause, with a fixed title and a fixed status. A later
 // ticket adds a type when an operation needs one.
 export const PROBLEM_TYPES = {
+  grocyUnavailable: {
+    status: 502,
+    title: 'Grocy is unavailable',
+    type: '/problems/grocy-unavailable',
+  },
   notFound: {
     status: 404,
     title: 'Not found',

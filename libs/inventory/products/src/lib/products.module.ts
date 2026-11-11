@@ -5,12 +5,14 @@ import { GrocyClient } from './grocy/grocy-client.ts';
 import { readGrocyOptions } from './grocy/grocy-options.ts';
 import { ProductsController } from './products.controller.ts';
 
-// The Products subdomain of the Inventory domain. In milestone 1 it holds the
-// Grocy API client and the product list operation. The HTTP module factory
-// reads the Grocy variables at start, so a missing variable stops the
+// The Products subdomain of the Inventory domain. It holds the Grocy API client
+// and the product list operation. The module exports the client, so the review
+// queue resolves a code against the product barcodes in Grocy. The HTTP module
+// factory reads the Grocy variables at start, so a missing variable stops the
 // process before it listens.
 @Module({
   controllers: [ProductsController],
+  exports: [GrocyClient],
   imports: [
     HttpModule.registerAsync({
       useFactory: () => {
