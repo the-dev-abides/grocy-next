@@ -6,11 +6,17 @@ import { Button } from '@/components/ui/button';
 
 import type { PendingScan } from '../api/next-api';
 import type { PurchaseSession } from './use-purchase-session';
+import type { ScanFeedback } from './use-scan-feedback';
+import type { ScannerHandle } from './use-scanner';
 
+import { CameraView } from './camera-view';
+import { bannerOf } from './scan-outcome';
 import { ScanRow } from './scan-row';
 import { SwipeRow } from './swipe-row';
 import { TypeCodeField } from './type-code-field';
 import { usePurchaseSession } from './use-purchase-session';
+import { useScanFeedback } from './use-scan-feedback';
+import { useScanner } from './use-scanner';
 
 // The scans of the session, most recent at the top. The first row has the
 // muted background. A swipe to the left rejects a row.
@@ -47,7 +53,7 @@ function SessionList({
       })}
       {rows.length === 0 && (
         <li className="px-3 py-6 text-center text-muted-foreground">
-          Type a code. The scan appears here.
+          Point the camera at a barcode, or type a code. The scan appears here.
         </li>
       )}
     </ul>
@@ -82,15 +88,50 @@ function ScanFooter({
   );
 }
 
+// The camera strip of the left column, with the feedback of the last scan
+// on it.
+function ScanCamera({
+  feedback,
+  scanner,
+}: Readonly<{ feedback: ScanFeedback; scanner: ScannerHandle }>) {
+  return (
+    <CameraView
+      className="
+        h-40
+        lg:aspect-4/3 lg:h-auto
+      "
+      attachVideo={scanner.attachVideo}
+      banner={feedback.banner}
+      flash={feedback.flash}
+      isAudioUnlocked={scanner.isAudioUnlocked}
+      status={scanner.status}
+      onRetry={scanner.retry}
+    />
+  );
+}
+
 // The Purchase scan screen, in the layout of the prototype: a left column
-// that stays at the top, and the scans of the session as the page, most
-// recent at the top. The defaults section, the camera view, and the price
-// row for the next scan come with later tickets and go into the left column
-// above the typed code field.
+// that stays at the top with the camera view and the typed code field, and
+// the scans of the session as the page, most recent at the top. A camera
+// scan and a typed code send the same create call and get the same
+// feedback. The defaults section and the price row for the next scan come
+// with later tickets and go into the left column.
 export function PurchaseScanPage() {
   const navigate = useNavigate();
   const session = usePurchaseSession();
-  const { addCode, hasFailed, rows } = session;
+  const feedback = useScanFeedback();
+  const { hasFailed, rows } = session;
+
+  async function scan(code: string): Promise<void> {
+    const row = await session.addCode(code);
+    if (row !== null) {
+      feedback.show(bannerOf(row, session.lists));
+    }
+  }
+  const addCode = (code: string) => {
+    void scan(code);
+  };
+  const scanner = useScanner(addCode);
 
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
@@ -101,8 +142,9 @@ export function PurchaseScanPage() {
         "
       >
         <h1 className="px-3 pt-3 pb-2 text-2xl font-medium">Purchase</h1>
+        <ScanCamera feedback={feedback} scanner={scanner} />
         {hasFailed && (
-          <p role="alert" className="px-3 pb-2 text-destructive">
+          <p role="alert" className="px-3 py-2 text-destructive">
             The code did not become a pending scan. Check that the API runs.
           </p>
         )}

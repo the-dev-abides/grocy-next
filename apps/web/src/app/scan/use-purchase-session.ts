@@ -20,7 +20,7 @@ import { nextAmount } from './swipe';
 const POLL_MS = 3000;
 
 export interface PurchaseSession {
-  addCode: (code: string) => void;
+  addCode: (code: string) => Promise<null | PendingScan>;
   changeAmount: (scan: PendingScan, delta: number) => void;
   hasFailed: boolean;
   lists: ScanRowLists;
@@ -32,7 +32,9 @@ export interface PurchaseSession {
 // or merged, the master data lists that name a row, the create call of a
 // typed code, the update of plus and minus, and the delete of the swipe. The
 // session is not stored. A new screen starts a new session. Every call
-// refetches the list, so the row changes before the next poll.
+// refetches the list, so the row changes before the next poll. The create
+// call returns the stored row, or null when the call failed, so the screen
+// gives the feedback of the outcome.
 export function usePurchaseSession(): PurchaseSession {
   const [sessionIds, setSessionIds] = useState<ReadonlySet<number>>(
     () => new Set(),
@@ -50,20 +52,23 @@ export function usePurchaseSession(): PurchaseSession {
   const [updatePendingScan] = useUpdatePendingScanMutation();
   const [deletePendingScan] = useDeletePendingScanMutation();
 
-  async function send(call: Promise<PendingScan>): Promise<void> {
+  async function send(call: Promise<PendingScan>): Promise<null | PendingScan> {
+    let scan: PendingScan;
     try {
-      const scan = await call;
-      setSessionIds((ids) => new Set([...ids, scan.id]));
-      setHasFailed(false);
-      await pendingScans.refetch();
+      scan = await call;
     } catch {
       setHasFailed(true);
+      return null;
     }
+    setSessionIds((ids) => new Set([...ids, scan.id]));
+    setHasFailed(false);
+    await pendingScans.refetch();
+    return scan;
   }
 
   return {
     addCode: (code) => {
-      void send(
+      return send(
         createPendingScan({
           createPendingScan: { bookingType: 'purchase', code },
         }).unwrap(),
