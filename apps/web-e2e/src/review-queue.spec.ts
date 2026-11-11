@@ -100,12 +100,7 @@ test('the table shows the rows of both booking types, most recent at the top, an
   request,
 }) => {
   const note = 'review-queue-both-types';
-  await removeRows(request, (row) => {
-    return (
-      row.note === note ||
-      (row.bookingType === 'inventory' && row.productId === 7)
-    );
-  });
+  await removeRows(request, (row) => row.note === note);
   // A Purchase row of product 6 first, then an Inventory row of product 7.
   const purchase = await createRow(request, {
     amount: 2,

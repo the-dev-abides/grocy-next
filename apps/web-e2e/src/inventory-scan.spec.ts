@@ -38,13 +38,16 @@ async function inventoryRows(
   return items.filter((row) => {
     return (
       row.bookingType === 'inventory' &&
+      row.code !== null &&
       (row.code === code || (productId !== null && row.productId === productId))
     );
   });
 }
 
-// One product has at most one open Inventory pending scan, so the open rows
-// of the product go too, whatever code they carry.
+// One product has at most one open Inventory pending scan with a code, so the
+// open rows of the product with a code go too, whatever code they carry. A
+// row with no code is never a merge target, and the review queue tests own
+// the Inventory rows with no code.
 async function removeInventoryRows(
   request: APIRequestContext,
   code: string,
