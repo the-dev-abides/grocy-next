@@ -12,10 +12,27 @@ import {
 // file runs in parallel against one API, so each test creates its own rows
 // through the API with a note of its own, finds them by that note, and
 // removes them at the end. The other spec files own the fixture codes, so
-// the rows of this file carry a product and no code, or a produce code that
-// no other file types.
+// the rows of this file carry a product and no code, a produce code that no
+// other file types, or the third unknown code of the Open Food Facts mock.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
+
+// The third unknown code of the Open Food Facts mock, Heinz Beanz 415 g. The
+// record names the end-to-end mock as its image host, so the picture
+// download of the update that sets the new product reaches the mock. The
+// Grocy mock answers the product create with the id 4 and the product
+// barcode create with the id 5.
+const NEW_PRODUCT_CODE = '5000157024671';
+const NEW_PRODUCT_ID = 4;
+const NEW_PRODUCT_BARCODE_ID = 5;
+
+// The Open Food Facts mock of the Playwright configuration. The lookup worker
+// of the API names the source URL after it.
+const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
+
+// The lookup worker answers within a few seconds. The row shows the result
+// at the next poll of the pending scan list.
+const LOOKUP_TIMEOUT_MS = 15_000;
 
 // The Grocy mock answers a purchase with a fixed stock log row: the location
 // 1 Fridge, the due date 2027-01-01, and the amount and the price of the
@@ -24,7 +41,9 @@ const MOCK_DUE_DATE = '2027-01-01';
 
 interface PendingScanRow {
   bookingType: 'inventory' | 'purchase';
+  code: null | string;
   id: number;
+  locationId: null | number;
   note: null | string;
   productBarcodeId: null | number;
   productId: null | number;
@@ -297,5 +316,143 @@ test('the product pick dialog finds a fixture product by a part of its name and 
     productId: 2,
   });
 
+  await removeRows(request, (item) => item.id === created.id);
+});
+
+async function pickOption(dialog: Locator, label: string, option: string) {
+  await dialog.getByLabel(label, { exact: true }).click();
+  await dialog
+    .page()
+    .getByRole('option', { name: option, exact: true })
+    .click();
+}
+
+test('New product opens the short product form with the proposals of the lookup result, creates the product, and the accept books it', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-new-product';
+  await removeRows(
+    request,
+    (row) => row.note === note || row.code === NEW_PRODUCT_CODE,
+  );
+  const created = await createRow(request, {
+    bookingType: 'purchase',
+    code: NEW_PRODUCT_CODE,
+    note,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row.getByRole('link', { name: 'Open Food Facts' })).toBeVisible({
+    timeout: LOOKUP_TIMEOUT_MS,
+  });
+  await expect(row).toContainText('Beanz in a rich tomato sauce');
+
+  await row.getByRole('button', { name: 'New product' }).click();
+
+  // The proposals of ADR 0011: the name, the description with the brand and
+  // the label text, the stock unit Gram from g, the purchase unit Pack from a
+  // label with no package word, and the factor 415 from the net quantity.
+  const dialog = page.getByRole('dialog', { name: 'New product' });
+  const name = dialog.getByRole('textbox', { name: 'Name' });
+  await expect(name).toHaveValue('Beanz in a rich tomato sauce');
+  await expect(
+    dialog.getByRole('textbox', { name: 'Description' }),
+  ).toHaveValue('H J Heinz Foods UK Ltd, 415g');
+  await expect(dialog.getByLabel('Stock unit', { exact: true })).toContainText(
+    'Gram',
+  );
+  await expect(
+    dialog.getByLabel('Purchase unit', { exact: true }),
+  ).toContainText('Pack');
+  await expect(
+    dialog.getByRole('spinbutton', { name: 'One Pack is how many Gram' }),
+  ).toHaveValue('415');
+  await expect(
+    dialog.getByRole('spinbutton', { name: 'Default due days' }),
+  ).toHaveValue('0');
+  const attribution = dialog.getByText(
+    'Contains data from Open Food Facts, available under the Open Database License.',
+  );
+  await expect(attribution).toBeVisible();
+  await expect(
+    attribution.getByRole('link', { name: 'Open Food Facts' }),
+  ).toHaveAttribute(
+    'href',
+    `${OPEN_FACTS_MOCK_URL}/product/${NEW_PRODUCT_CODE}`,
+  );
+  // The create needs a location, and every proposal can be changed.
+  const save = dialog.getByRole('button', { name: 'Create and use' });
+  await expect(save).toBeDisabled();
+  await pickOption(dialog, 'Default location', 'Pantry');
+  await pickOption(dialog, 'Product group', 'Snacks');
+  await name.fill('Heinz Beanz 415 g');
+  await expect(save).toBeEnabled();
+
+  await save.click();
+
+  // The product exists in Grocy and the row has it: the server added the
+  // code to the product, set the default location of the product on the row,
+  // and the row is ready.
+  await expect(dialog).toBeHidden();
+  await expect(row).toContainText('Heinz Beanz 415 g');
+  await expect(row).toContainText('Ready');
+  await expect(row.getByRole('button', { name: 'Accept' })).toBeVisible();
+  const rows = await listRows(request);
+  expect(rows.find((item) => item.id === created.id)).toMatchObject({
+    locationId: 2,
+    productBarcodeId: NEW_PRODUCT_BARCODE_ID,
+    productId: NEW_PRODUCT_ID,
+  });
+
+  await row.getByRole('button', { name: 'Accept' }).click();
+
+  // One Pack is 415 Gram, so the booking of the one scanned pack holds 415
+  // Gram. The Grocy mock answers the purchase with its fixed location and
+  // due date.
+  await expect(row).toHaveCount(0);
+  const result = page.getByRole('status');
+  await expect(result).toContainText('1 booked');
+  await expect(result).toContainText(
+    `Heinz Beanz 415 g: Booked 415 Gram at Fridge, due ${MOCK_DUE_DATE}, no price, purchase.`,
+  );
+  const stored = await listRows(request);
+  expect(stored.filter((item) => item.note === note)).toEqual([]);
+});
+
+test('New product on a row with a write-in name opens the form with that name and no unit proposal', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-write-in-name';
+  await removeRows(request, (row) => row.note === note);
+  const created = await createRow(request, {
+    bookingType: 'inventory',
+    code: '4020',
+    note,
+    writeInName: 'Oat milk',
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row).toContainText('Oat milk');
+
+  await row.getByRole('button', { name: 'New product' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'New product' });
+  await expect(dialog.getByRole('textbox', { name: 'Name' })).toHaveValue(
+    'Oat milk',
+  );
+  await expect(dialog.getByLabel('Stock unit', { exact: true })).toContainText(
+    'Pick one',
+  );
+  await expect(
+    dialog.getByLabel('Purchase unit', { exact: true }),
+  ).toContainText('Pick one');
+  await expect(
+    dialog.getByRole('button', { name: 'Create and use' }),
+  ).toBeDisabled();
+
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).toBeHidden();
   await removeRows(request, (item) => item.id === created.id);
 });
