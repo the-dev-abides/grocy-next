@@ -2,9 +2,8 @@ import { z } from 'zod';
 
 import type { StockEntry } from '../product.ts';
 
-// Grocy returns a number as a JSON string in many places. The schema
-// coerces every number and keeps null.
-const grocyNumber = z.coerce.number();
+import { grocyNumber } from './grocy-answers.ts';
+
 const grocyNullableNumber = grocyNumber.nullable();
 
 // One row of the Grocy view `stock_next_use`, as the stock entries call of

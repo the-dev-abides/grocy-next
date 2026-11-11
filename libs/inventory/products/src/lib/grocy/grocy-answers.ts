@@ -4,7 +4,8 @@ import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { z } from 'zod';
 
 // The answers of Grocy as the Grocy client reads them.
-// This file holds the answer of one call, the shapes that the writes share, and the tables that the client writes rows into.
+// This file holds the answer of one call and the number schema of the reads.
+// It holds the shapes that the writes share and the tables that the client writes rows into.
 // It also holds the problems of ADR 0014 that a refusal becomes.
 
 // The answer of one Grocy call: the body that Grocy answered, or the
@@ -14,11 +15,15 @@ import { z } from 'zod';
 export type GrocyAnswer =
   { data: null; grocy: GrocyRefusal } | { data: unknown; grocy: null };
 
+// Grocy returns a number as a JSON string in many places. This schema
+// coerces the string to a number.
+export const grocyNumber = z.coerce.number();
+
 // The body of a Grocy refusal: 400 with the error message.
 export const grocyErrorSchema = z.looseObject({ error_message: z.string() });
 // The answer of a Grocy object create: the id of the new row.
 const grocyCreatedSchema = z.looseObject({
-  created_object_id: z.coerce.number(),
+  created_object_id: grocyNumber,
 });
 
 export function createdIdOf(data: unknown): { id: number } {

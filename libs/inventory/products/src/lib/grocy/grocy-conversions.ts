@@ -2,9 +2,7 @@ import { z } from 'zod';
 
 import type { QuantityUnitConversion } from '../product.ts';
 
-// Grocy returns a number as a JSON string in many places. The schema
-// coerces every number.
-const grocyNumber = z.coerce.number();
+import { grocyNumber } from './grocy-answers.ts';
 
 // One row of the Grocy view `quantity_unit_conversions_resolved`: the factor
 // from one quantity unit to another for one product, with the path of units

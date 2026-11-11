@@ -2,9 +2,7 @@ import { z } from 'zod';
 
 import type { ProductConversion } from '../product-conversion.ts';
 
-// Grocy returns a number as a JSON string in many places. The schema
-// coerces every number.
-const grocyNumber = z.coerce.number();
+import { grocyNumber } from './grocy-answers.ts';
 
 // One row of the Grocy table `quantity_unit_conversions` that belongs to
 // one product. The schema is loose, because the row carries more fields
