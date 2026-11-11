@@ -32,6 +32,12 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: () => ({ url: `/api/v2/quantity-units` }),
     }),
+    listQuantityUnitConversions: build.query<
+      ListQuantityUnitConversionsResponse,
+      ListQuantityUnitConversionsRequest
+    >({
+      query: () => ({ url: `/api/v2/quantity-unit-conversions` }),
+    }),
     createPendingScan: build.mutation<
       CreatePendingScanResponse,
       CreatePendingScanRequest
@@ -105,6 +111,9 @@ export type ListProductGroupsRequest = void;
 export type ListQuantityUnitsResponse =
   /** status 200 Every active quantity unit. */ QuantityUnitList;
 export type ListQuantityUnitsRequest = void;
+export type ListQuantityUnitConversionsResponse =
+  /** status 200 Every household quantity unit conversion. */ QuantityUnitConversionList;
+export type ListQuantityUnitConversionsRequest = void;
 export type CreatePendingScanResponse =
   | /** status 200 The open pending scan that the repeat scan added to. */ PendingScan
   | /** status 201 The stored pending scan. */ PendingScan;
@@ -294,6 +303,10 @@ export type QuantityUnitList = {
   /** Every active quantity unit. */
   items: QuantityUnit[];
 };
+export type QuantityUnitConversionList = {
+  /** Every household quantity unit conversion. */
+  items: QuantityUnitConversion[];
+};
 export type LookupResult = {
   /** The brand. */
   brand: string | null;
@@ -462,6 +475,7 @@ export const {
   useListStoresQuery,
   useListProductGroupsQuery,
   useListQuantityUnitsQuery,
+  useListQuantityUnitConversionsQuery,
   useCreatePendingScanMutation,
   useListPendingScansQuery,
   useGetPendingScanQuery,
