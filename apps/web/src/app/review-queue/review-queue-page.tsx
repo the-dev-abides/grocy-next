@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ResultLine } from './result-panel';
 
 import { Page } from '../shell/page';
+import { Attribution } from './attribution';
 import { QueueTable } from './queue-table';
 import { ResultPanel } from './result-panel';
 import { useReviewQueue } from './use-review-queue';
@@ -48,6 +49,7 @@ export function ReviewQueuePage() {
           onResult={addLine}
         />
       )}
+      <Attribution />
     </Page>
   );
 }

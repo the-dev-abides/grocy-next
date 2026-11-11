@@ -53,6 +53,14 @@ describe('the web app', () => {
         'The review queue did not load. Check that the API runs.',
       ),
     ).toBeDefined();
+    expect(screen.getByText(/Contains data from/).textContent).toBe(
+      'Contains data from Open Food Facts, available under the Open Database License.',
+    );
+    expect(
+      screen
+        .getByRole('link', { name: 'Open Food Facts' })
+        .getAttribute('href'),
+    ).toBe('https://world.openfoodfacts.org/');
   });
 
   it('shows the sidebar with the scan items, the review queue, and the stock item', () => {
