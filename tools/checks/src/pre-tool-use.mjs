@@ -34,6 +34,7 @@ const SUPPRESSION_COMMENTS = [
 // changes these files.
 const GUARDED_FILES = new Set([
   'eslint.config.mjs',
+  'nx.json',
   'tsconfig.base.json',
   '.prettierrc',
   'knip.json',
@@ -52,11 +53,11 @@ const PROJECT_CONFIG_FORM =
   /^export \{ default \} from '(?:\.\.\/)+eslint\.config\.mjs';\n$/u;
 
 const REPLY_SUPPRESSION =
-  'Fix the error in the code. No comment turns a check off.';
+  'Fix the error in the code instead of a comment that turns the check off.';
 const REPLY_GUARDED =
   'Tell the maintainer what the check configuration must change and why.';
 const REPLY_PROJECT_CONFIG =
-  'Keep the project lint configuration as one re-export of the root configuration. Add a rule in the root eslint.config.mjs instead.';
+  'Add the rule to the root eslint.config.mjs, because a project configuration is one re-export of it.';
 const REPLY_COMMIT =
   'Fix the error that the pre-commit hook reports, then commit.';
 const REPLY_MAX_WARNINGS = 'Run the lint with --max-warnings 0.';
@@ -68,7 +69,7 @@ const BASH_PATTERNS = [
   { pattern: /\bLEFTHOOK=0\b/u, reply: REPLY_COMMIT },
   {
     pattern: /core\.hooksPath/u,
-    reply: 'Keep the git hooks path. Fix the error that the hook reports.',
+    reply: 'Keep the git hooks path and fix the error that the hook reports.',
   },
   {
     pattern: /--rule\b/u,
@@ -81,6 +82,8 @@ const BASH_PATTERNS = [
 ];
 const MAX_WARNINGS = /--max-warnings(?:=|\s*)(?<value>\S*)/gu;
 const FILE_COMMANDS = /\b(?:sed|tee|mv|rm|cp)\b/u;
+// A redirect operator. `2>&1`, `=>`, and `->` are not redirects.
+const REDIRECT = /(?<![=\-])>(?!&)/u;
 
 /**
 @param {unknown} value
@@ -226,7 +229,7 @@ function checkBash(command) {
   if (hasSuppressionComment(command)) {
     return REPLY_SUPPRESSION;
   }
-  const isFileWrite = FILE_COMMANDS.test(command) || command.includes('>');
+  const isFileWrite = FILE_COMMANDS.test(command) || REDIRECT.test(command);
   const hasGuardedName = [...GUARDED_FILES, ...GUARDED_FOLDERS].some((name) =>
     command.includes(name),
   );
