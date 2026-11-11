@@ -1,8 +1,12 @@
 import type { ProductDetails } from '@grocy-next/inventory-products';
+import type { EntityManager } from 'typeorm';
+
+import { In } from 'typeorm';
 
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
 import { codeForms } from './code-forms.ts';
+import { storedNutritionFactsSchema } from './storage/stored-nutrition-facts.ts';
 
 // This function returns the product id of an update that sets a product on
 // a row that had none, or changes it. Every other update returns null.
@@ -41,4 +45,26 @@ export function withProduct(
     quantityUnitId: null,
     writeInName: null,
   };
+}
+
+// This function links every nutrition facts record of the code of the row to
+// the product and to the product barcode that the update added. A row with
+// no code has no record. The link is part of the transaction that stores the
+// row.
+export async function linkNutritionFacts(
+  manager: EntityManager,
+  row: StoredPendingScan,
+): Promise<void> {
+  if (row.code === null || row.productId === null) {
+    return;
+  }
+  await manager.update(
+    storedNutritionFactsSchema,
+    { code: In(codeForms(row.code)) },
+    {
+      productBarcodeId: row.productBarcodeId,
+      productId: row.productId,
+      updatedAt: row.updatedAt,
+    },
+  );
 }

@@ -1,5 +1,8 @@
+import { storedNutritionFactsSchema } from '@grocy-next/inventory-review-queue';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { setTimeout as wait } from 'node:timers/promises';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module.ts';
 import { configureApp } from './configure-app.ts';
 
@@ -14,6 +17,7 @@ vi.hoisted(() => {
 interface PendingScanBody {
   code: null | string;
   id: number;
+  lastLookupAt: null | string;
   productBarcodeId: null | number;
   productId: null | number;
   quantityUnitId: null | number;
@@ -30,6 +34,15 @@ const NEW_PRODUCT_BARCODE_ID = 5;
 // The code that the Grocy mock refuses as a product barcode, with the error
 // of a code that another product already has.
 const TAKEN_CODE = '5000112637922';
+// The unknown fixture code, Nutella 400 g. The Open Food Facts mock holds its
+// record, so the lookup worker stores a lookup result and one nutrition facts
+// record for it.
+const UNKNOWN_CODE = '3017620422003';
+
+// The worker answers within a few hundred milliseconds. The poll stops well
+// before the Vitest timeout, so a failure names the row.
+const LOOKUP_TIMEOUT_MS = 15_000;
+const POLL_MS = 100;
 
 describe('the update of a pending scan that sets a product', () => {
   let app: INestApplication;
@@ -67,6 +80,22 @@ describe('the update of a pending scan that sets a product', () => {
     return (await response.json()) as PendingScanBody;
   }
 
+  // The test reaches the worker through the HTTP boundary only: it polls the
+  // row until the lookup set the fields.
+  async function pollUntilLookedUp(id: number): Promise<PendingScanBody> {
+    const deadline = Date.now() + LOOKUP_TIMEOUT_MS;
+    let row = await read(id);
+    while (row.lastLookupAt === null && Date.now() < deadline) {
+      await wait(POLL_MS);
+      row = await read(id);
+    }
+    return row;
+  }
+
+  function nutritionFacts() {
+    return app.get(DataSource).getRepository(storedNutritionFactsSchema);
+  }
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -76,8 +105,10 @@ describe('the update of a pending scan that sets a product', () => {
     baseUrl = await app.getUrl();
   });
 
-  // Every test starts with an empty queue, so a create of a fixture code in
-  // one test never merges into a row of another test.
+  // Every test starts with an empty queue and no nutrition facts, so a create
+  // of a fixture code in one test never merges into a row of another test.
+  // No Next API operation reads the nutrition facts, so the test clears the
+  // storage.
   beforeEach(async () => {
     const response = await fetch(`${baseUrl}/api/v2/pending-scans`);
     const { items } = (await response.json()) as { items: PendingScanBody[] };
@@ -86,6 +117,7 @@ describe('the update of a pending scan that sets a product', () => {
         method: 'DELETE',
       });
     }
+    await nutritionFacts().clear();
   });
 
   afterAll(async () => {
@@ -198,6 +230,29 @@ describe('the update of a pending scan that sets a product', () => {
       type: '/problems/unknown-id',
     });
     expect(await read(created.id)).toEqual(created);
+  });
+
+  // No Next API operation reads the nutrition facts, so the test reads the
+  // record from the storage.
+  it('links the nutrition facts record of the code to the product and the new product barcode', async () => {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: UNKNOWN_CODE,
+    });
+    await pollUntilLookedUp(created.id);
+    expect(await nutritionFacts().findBy({ code: UNKNOWN_CODE })).toMatchObject(
+      [{ productBarcodeId: null, productId: null }],
+    );
+
+    const body = await updateAndRead(created.id, { productId: 2 });
+
+    expect(body).toMatchObject({
+      productBarcodeId: NEW_PRODUCT_BARCODE_ID,
+      productId: 2,
+    });
+    expect(await nutritionFacts().findBy({ code: UNKNOWN_CODE })).toMatchObject(
+      [{ productBarcodeId: NEW_PRODUCT_BARCODE_ID, productId: 2 }],
+    );
   });
 
   // An update that repeats the product of the row writes nothing to Grocy

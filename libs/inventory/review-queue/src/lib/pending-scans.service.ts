@@ -21,7 +21,12 @@ import { updatedPendingScan } from './pending-scan-update.ts';
 import { readActiveProduct } from './read-product.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
 import { resolveCode } from './resolve-code.ts';
-import { changedProductIdOf, hasBarcode, withProduct } from './set-product.ts';
+import {
+  changedProductIdOf,
+  hasBarcode,
+  linkNutritionFacts,
+  withProduct,
+} from './set-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
 
@@ -45,16 +50,20 @@ export class PendingScansService {
 
   // The update that sets a product, as the spec decided: the Grocy writes
   // first, in order, and the update stops on the first failure with the
-  // Grocy problem. Then the row takes the rules of the product set.
+  // Grocy problem. Then one transaction links the nutrition facts records
+  // of the code to the product and stores the row with the rules of the
+  // product set.
   private async setProduct(
     updated: StoredPendingScan,
     productId: number,
   ): Promise<PendingScan> {
     const product = await readActiveProduct(this.grocy, productId);
     const productBarcodeId = await this.addBarcode(product, updated.code);
-    return this.pendingScans.save(
-      withProduct(updated, product, productBarcodeId),
-    );
+    const row = withProduct(updated, product, productBarcodeId);
+    return this.pendingScans.manager.transaction(async (manager) => {
+      await linkNutritionFacts(manager, row);
+      return manager.save(storedPendingScanSchema, row);
+    });
   }
 
   // The code goes to the product as a product barcode when the row has a
