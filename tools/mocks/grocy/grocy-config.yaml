@@ -28,9 +28,13 @@
 #   be affected". The code uses the last store. A description is not
 #   validated.
 #
-# The native engine has one validation switch for the whole mock and no
-# switch per resource. A difference that fails the validation in a later
-# Grocy version needs a fix in this file and in ADR 0015.
+# A fifth place fails the validation: the body of the generic object create
+# and the generic object update is a `oneOf` over nine entity shapes, and no
+# shape names a required field, so every body matches all nine shapes. The
+# native engine has one validation switch for the whole mock and no switch
+# per resource, so the script `../src/complete-grocy-spec.mjs` changes that
+# `oneOf` to an `anyOf` in the copy. A difference that fails the validation
+# in a later Grocy version needs a fix in that script and in ADR 0015.
 #
 # Each resource is one static response file, matched on the path and the
 # query. The paths start with the Grocy API base path `/api`. A resource with
@@ -78,6 +82,24 @@ resources:
     method: GET
     response:
       file: responses/objects-product-barcodes.json
+
+  # The product barcode create. An update of a pending scan that sets a
+  # product adds the code to the product. Grocy answers the id of the new
+  # row. The code 5000112637922 gets the Grocy error of a code that another
+  # product already has, as the database answers it. The mock changes
+  # nothing, so the product details never show the new product barcode.
+  - path: /api/objects/product_barcodes
+    method: POST
+    requestBody:
+      jsonPath: $.barcode
+      value: '5000112637922'
+    response:
+      statusCode: 400
+      content: '{"error_message": "UNIQUE constraint failed: product_barcodes.barcode"}'
+  - path: /api/objects/product_barcodes
+    method: POST
+    response:
+      file: responses/objects-product-barcodes-created.json
 
   # The resolved conversions of one product. Each fixture product has the
   # row from the stock unit to itself with factor 1. Product 3 also has the
@@ -206,3 +228,18 @@ resources:
     method: POST
     response:
       file: responses/stock-log-inventory.json
+
+  # The product picture. An update of a pending scan that sets a product with
+  # no picture uploads the lookup image as a product picture, then sets the
+  # picture name on the product. Grocy answers both with 204 and no body. The
+  # mock changes nothing, so the product details never show the picture.
+  - path: /api/files/{group}/{fileName}
+    method: PUT
+    pathParams:
+      group: productpictures
+    response:
+      statusCode: 204
+  - path: /api/objects/products/{objectId}
+    method: PUT
+    response:
+      statusCode: 204

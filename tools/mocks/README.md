@@ -38,7 +38,10 @@ Request validation is on for every request. A request that does not match
 the specification gets status 400 with the validation errors in the body. The
 comment at the top of `grocy/grocy-config.yaml` lists the four places where
 the specification differs from the Grocy code, and why none of them fails the
-validation.
+validation. It also names the one place that fails the validation: the body
+of the generic object create and the generic object update is a `oneOf` over
+nine entity shapes with no required field, so the script changes it to an
+`anyOf` in the copy.
 
 Each Grocy call has one static response file under `grocy/responses`, matched
 on the path, the query, or a value in the body. The mock holds no state. An
@@ -48,7 +51,11 @@ request, and the price of the request when the request has one. The other
 fields of the row are fixed. The two purchase files are templates, not JSON
 files, because the placeholders are not JSON. A purchase with the inactive
 location 4 and no due date gets the Grocy error `Location does not exist`,
-as Grocy answers it.
+as Grocy answers it. A product barcode create answers the id 5 for every
+code except 5000112637922, which gets the Grocy error of a code that
+another product already has. A product picture upload and a product update
+answer 204. The product details never show the new product barcode or the
+picture, because the mock holds no state.
 
 A request that no resource matches gets the example from the specification,
 not an error. A response that shows Grocy demo data, such as the product

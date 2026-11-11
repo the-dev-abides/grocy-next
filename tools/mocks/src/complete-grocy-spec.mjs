@@ -1,11 +1,12 @@
 // Grocy writes five entity enums and the server address into its OpenAPI
 // document when it serves the document. The copy in the reference folder
 // refers to the five schemas, but does not hold them, so a validator cannot
-// load the copy. This script writes the copy with the five schemas and the
-// server path into the Grocy mock folder. The Grocy mock starts after this
-// script. The Grocy source of the five schemas and the server path is the
-// method `DocumentationSpec` in `controllers/Api/OpenApiController.php`.
-// The script has no dependency. Run it with Node from any folder.
+// load the copy. This script writes the copy with the five schemas, the
+// server path, and one body fix into the Grocy mock folder. The Grocy mock
+// starts after this script. The Grocy source of the five schemas and the
+// server path is the method `DocumentationSpec` in
+// `controllers/Api/OpenApiController.php`. The script has no dependency. Run
+// it with Node from any folder.
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -141,9 +142,60 @@ function addEntitySchemas(schemas) {
 }
 
 /**
+The JSON body schema of one operation, or null when the path or the method is missing.
+@param {Record<string, unknown>} paths
+@param {string} pathName
+@param {string} method
+@returns {Record<string, unknown> | null}
+*/
+function bodySchemaOf(paths, pathName, method) {
+  const pathItem = paths[pathName];
+  const operation = isRecord(pathItem) ? pathItem[method] : undefined;
+  const requestBody = isRecord(operation)
+    ? operation['requestBody']
+    : undefined;
+  const content = isRecord(requestBody) ? requestBody['content'] : undefined;
+  const json = isRecord(content) ? content['application/json'] : undefined;
+  const schema = isRecord(json) ? json['schema'] : undefined;
+  return isRecord(schema) ? schema : null;
+}
+
+/**
+Changes the `oneOf` of the generic object create body and the generic object
+update body to an `anyOf`. No entity shape of the Grocy document names a
+required field or forbids an unknown field, so every body matches all nine
+shapes, and a `oneOf` can never pass. Grocy itself checks the body against
+the one entity of the path. With the `anyOf`, the validator still checks
+that the body is an object with the field types of the shapes.
+@param {unknown} document
+@returns {void}
+*/
+function relaxObjectBodies(document) {
+  if (!isRecord(document) || !isRecord(document['paths'])) {
+    throw new Error(`${REFERENCE_FILE} has no paths object.`);
+  }
+  const paths = document['paths'];
+  const operations = [
+    { method: 'post', pathName: '/objects/{entity}' },
+    { method: 'put', pathName: '/objects/{entity}/{objectId}' },
+  ];
+  for (const { method, pathName } of operations) {
+    const schema = bodySchemaOf(paths, pathName, method);
+    if (schema === null || !Array.isArray(schema['oneOf'])) {
+      throw new Error(
+        `The ${method} body of ${pathName} with a oneOf list is missing in ${REFERENCE_FILE}.`,
+      );
+    }
+    schema['anyOf'] = schema['oneOf'];
+    delete schema['oneOf'];
+  }
+}
+
+/**
 @type {unknown}
 */
 const document = JSON.parse(readFileSync(REFERENCE_FILE, 'utf8'));
 addEntitySchemas(schemasOf(document));
 setServerPath(document);
+relaxObjectBodies(document);
 writeFileSync(OUTPUT_FILE, `${JSON.stringify(document, null, 2)}\n`);
