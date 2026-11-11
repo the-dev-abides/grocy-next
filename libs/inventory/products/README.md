@@ -13,8 +13,9 @@ conversion row that the Grocy trigger created. Each master data list holds
 the id and the name of every active row of the Grocy table. The Grocy API
 client also adds a product barcode, uploads a product picture, and sets the
 picture name on a product for the update that sets a product on a pending
-scan. The Grocy stock client books a purchase for the accept of the review
-queue and reads the resolved conversions of a product. Every call of the
+scan. The Grocy stock client books a purchase and an inventory for the
+accept of the review queue and reads the resolved conversions of a product.
+Every call of the
 stock client goes through the Grocy API client, which maps the Grocy errors
 to the problems of ADR 0014. The API app imports `ProductsModule`. The
 operations follow the conventions of `shared-next-api`. The unit tests of

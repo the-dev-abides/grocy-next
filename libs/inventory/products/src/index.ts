@@ -1,5 +1,6 @@
 export { GrocyClient } from './lib/grocy/grocy-client.ts';
 export { GrocyStockClient } from './lib/grocy/grocy-stock-client.ts';
+export type { Inventory } from './lib/inventory.ts';
 export type {
   ProductBarcode,
   ProductDetails,
@@ -7,4 +8,4 @@ export type {
 } from './lib/product-details.ts';
 export { ProductsModule } from './lib/products.module.ts';
 export type { Purchase } from './lib/purchase.ts';
-export type { StockLogRow } from './lib/stock-log-row.ts';
+export type { BookingResult, StockLogRow } from './lib/stock-log-row.ts';

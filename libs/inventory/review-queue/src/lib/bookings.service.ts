@@ -1,14 +1,18 @@
-import type { StockLogRow } from '@grocy-next/inventory-products';
+import type {
+  BookingResult,
+  StockLogRow,
+} from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
 
 import { GrocyClient, GrocyStockClient } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import type { Booking, CreateBooking, StockLogRowItem } from './booking.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
+import { isNoChange } from './inventory-change.ts';
 import { PendingScansService } from './pending-scans.service.ts';
 import { toStockUnit } from './purchase-conversion.ts';
 import { readActiveProduct } from './read-product.ts';
@@ -97,9 +101,8 @@ export class BookingsService {
 
   // The Purchase accept: convert the amount and the price to the stock unit
   // with the resolved conversions of the product, then book the purchase in
-  // Grocy. On success the row goes and the response is the booking. On a
-  // Grocy refusal the row stays with the Grocy message as its error. On a
-  // Grocy 500 or no answer the row stays unchanged and the client throws.
+  // Grocy. On a Grocy 500 or no answer the row stays unchanged and the
+  // client throws.
   private async acceptPurchase(
     row: StoredPendingScan,
     productId: number,
@@ -128,6 +131,44 @@ export class BookingsService {
       price: stock.price,
       storeId: row.storeId,
     });
+    return this.finish(row, productId, result);
+  }
+
+  // The Inventory accept: the amount is the new own stock in the stock unit.
+  // A count equal to the stock is no change: no Grocy call, the row goes, and
+  // the booking has no transaction and no rows. Any other count books the
+  // inventory in Grocy with the fields of the added stock, and the paths
+  // after the Grocy call are the paths of the Purchase accept.
+  private async acceptInventory(
+    row: StoredPendingScan,
+    productId: number,
+  ): Promise<Booking> {
+    const amount = inventoryAmountOf(row);
+    const product = await readActiveProduct(this.grocy, productId);
+    if (isNoChange(amount, product)) {
+      await this.rows.delete({ id: row.id });
+      return toBooking(row, productId, []);
+    }
+    const result = await this.stock.inventory(productId, {
+      amount,
+      dueDate: row.dueDate,
+      locationId: row.locationId,
+      note: row.note,
+      price: row.price,
+      storeId: row.storeId,
+    });
+    return this.finish(row, productId, result);
+  }
+
+  // The end of an accept after the Grocy call. On success the row goes and
+  // the response is the booking. On a Grocy refusal the row stays with the
+  // Grocy message as its error, and the response is the grocy-refused
+  // problem.
+  private async finish(
+    row: StoredPendingScan,
+    productId: number,
+    result: BookingResult,
+  ): Promise<Booking> {
     if (result.isRefused) {
       await this.rows.update(
         { id: row.id },
@@ -143,23 +184,13 @@ export class BookingsService {
     return toBooking(row, productId, result.rows);
   }
 
-  // The Inventory accept comes in a later ticket. This run refuses a row
-  // with no amount, as ADR 0010 decided, and answers 501 for every other
-  // Inventory row.
-  private acceptInventory(row: StoredPendingScan): never {
-    inventoryAmountOf(row);
-    throw new NotImplementedException(
-      'The Inventory accept comes in a later ticket.',
-    );
-  }
-
   // The accept reads the pending scan, refuses a row with no product, and
   // then books the booking type of the row.
   async create(body: CreateBooking): Promise<Booking> {
     const row = await this.pendingScans.read(body.pendingScanId);
     const productId = productIdOf(row);
     return row.bookingType === 'inventory'
-      ? this.acceptInventory(row)
+      ? this.acceptInventory(row, productId)
       : this.acceptPurchase(row, productId);
   }
 }

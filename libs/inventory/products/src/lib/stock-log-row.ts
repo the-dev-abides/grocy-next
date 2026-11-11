@@ -1,3 +1,5 @@
+import type { GrocyRefusal } from '@grocy-next/shared-next-api';
+
 // One stock log row of Grocy mapped to Next API fields: one booking that
 // Grocy recorded. The amount is in the stock unit. The stock entry id is
 // the row id of the stock entry when Grocy wrote it, which Grocy does on a
@@ -16,3 +18,9 @@ export interface StockLogRow {
   transactionId: string;
   transactionType: string;
 }
+
+// The result of a booking: the stock log rows of the new transaction, or
+// the refusal that Grocy answered with 400.
+export type BookingResult =
+  | { grocy: GrocyRefusal; isRefused: true }
+  | { isRefused: false; rows: StockLogRow[] };

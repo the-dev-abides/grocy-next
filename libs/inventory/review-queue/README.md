@@ -7,14 +7,19 @@ operations of the Next API: the create, the list, the read, the update, and
 the delete, and the accept as the creation of a booking. The accept of a
 Purchase converts the amount and the price to the stock unit with the
 resolved conversions of the product, books the purchase in Grocy, deletes the
-row, and returns the stock log rows of the transaction. A Grocy refusal
-stays on the row as its error. An update that sets a product on a row adds
-the code to the product in Grocy, sets the lookup image as the product
-picture when the product has none, and links the nutrition facts of the
-code to the product. The create applies the repeat rule of ADR 0010 when the caller
-asks for a merge, and queues the online barcode lookup of ADR 0011 for a new
-row with no product, no write-in name, and a code of 8, 12, 13, or 14
-digits. The lookup worker runs the lookups in the process with a plain
+row, and returns the stock log rows of the transaction. The accept of an
+Inventory compares the amount, the new own stock in the stock unit, with the
+own stock of the product. An equal amount is no change: the accept calls no
+Grocy, deletes the row, and returns a booking with no transaction and no
+rows. Any other amount books the inventory in Grocy with the due date, the
+location, the price, the store, and the note of the row for the added stock.
+A Grocy refusal stays on the row as its error. An update that sets a product
+on a row adds the code to the product in Grocy, sets the lookup image as the
+product picture when the product has none, and links the nutrition facts of
+the code to the product. The create applies the repeat rule of ADR 0010 when
+the caller asks for a merge, and queues the online barcode lookup of ADR 0011
+for a new row with no product, no write-in name, and a code of 8, 12, 13, or
+14 digits. The lookup worker runs the lookups in the process with a plain
 timer, one at a time and within the rate budget of the provider. The one
 lookup provider is the Open Facts family. The API app imports
 `ReviewQueueModule.forRoot` with the version of the API package and lists

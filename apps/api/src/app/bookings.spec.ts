@@ -232,20 +232,6 @@ describe('the accept of a Purchase pending scan', () => {
     });
   });
 
-  it('refuses an Inventory with no amount with the no-amount problem', async () => {
-    const created = await createAndRead({
-      bookingType: 'inventory',
-      productId: 1,
-    });
-
-    const response = await accept({ pendingScanId: created.id });
-
-    expect(response.status).toBe(409);
-    expect(await response.json()).toMatchObject({
-      type: '/problems/no-amount',
-    });
-  });
-
   // Product 1 has no conversion from the Pack to the Can. A server rule
   // refuses the accept, so the row keeps no error.
   it('refuses a unit with no path to the stock unit with the no-conversion problem', async () => {

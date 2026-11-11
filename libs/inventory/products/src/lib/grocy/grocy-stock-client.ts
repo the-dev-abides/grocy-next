@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
+import type { Inventory } from '../inventory.ts';
 import type { QuantityUnitConversion } from '../product-details.ts';
-import type { Purchase, PurchaseResult } from '../purchase.ts';
+import type { Purchase } from '../purchase.ts';
+import type { BookingResult } from '../stock-log-row.ts';
 
 import { resultOf } from './grocy-answers.ts';
 import { GrocyClient } from './grocy-client.ts';
 import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
+import { toGrocyInventoryBody } from './grocy-inventory.ts';
 import { toGrocyPurchaseBody } from './grocy-purchase.ts';
 import { stockLogRowsOf } from './grocy-stock-log.ts';
 
@@ -18,11 +21,26 @@ import { stockLogRowsOf } from './grocy-stock-log.ts';
 export class GrocyStockClient {
   constructor(private readonly grocy: GrocyClient) {}
 
+  // This method books an inventory of one product: the new own stock. Grocy
+  // books the difference as added stock or as a consume in the Grocy order,
+  // and refuses a new amount that equals the stock, so the caller sends no
+  // inventory in that case.
+  async inventory(
+    productId: number,
+    inventory: Inventory,
+  ): Promise<BookingResult> {
+    const answer = await this.grocy.post(
+      `/api/stock/products/${String(productId)}/inventory`,
+      toGrocyInventoryBody(inventory),
+    );
+    return resultOf(answer, stockLogRowsOf);
+  }
+
   // This method books a purchase of one product.
   async purchase(
     productId: number,
     purchase: Purchase,
-  ): Promise<PurchaseResult> {
+  ): Promise<BookingResult> {
     const answer = await this.grocy.post(
       `/api/stock/products/${String(productId)}/add`,
       toGrocyPurchaseBody(purchase),
