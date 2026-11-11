@@ -16,6 +16,8 @@
   },
   "include": [
     "vitest.config.mts",
+    "vitest.global-setup.mts",
+    "imposter-options.ts",
     "rspack.config.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts"

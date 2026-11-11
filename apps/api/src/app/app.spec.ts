@@ -6,11 +6,10 @@ import { configureApp } from './configure-app.ts';
 
 // The test runs on SQLite in memory. The test writes no file. The storage
 // module reads the variable when the imports load, so this block runs first.
-// The Grocy variables hold placeholder values. No test calls Grocy.
+// The Grocy variables point at the Grocy mock that the Vitest global setup
+// starts. The vitest configuration sets them.
 vi.hoisted(() => {
   process.env['DB_FILE'] = ':memory:';
-  process.env['GROCY_URL'] = 'http://grocy.invalid';
-  process.env['GROCY_API_KEY'] = 'placeholder';
 });
 
 describe('the API at its HTTP boundary', () => {
@@ -55,6 +54,17 @@ describe('the API at its HTTP boundary', () => {
       status: 'ok',
       info: { database: { status: 'up' } },
     });
+  });
+
+  it('lists the three fixture products through the Grocy mock', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([
+      { description: null, id: 1, name: 'Coca-Cola Original 330 ml' },
+      { description: null, id: 2, name: 'Philadelphia Original 150 g' },
+      { description: null, id: 3, name: 'Nutella Biscuits 304 g' },
+    ]);
   });
 
   it('serves the OpenAPI document with the product list and the health checks', async () => {
