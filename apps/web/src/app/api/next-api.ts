@@ -99,7 +99,7 @@ interface LocationList {
   // Every active location.
   items: Location[];
 }
-interface Store {
+export interface Store {
   // The id of the store.
   id: number;
   // The name of the store.
@@ -109,7 +109,7 @@ interface StoreList {
   // Every active store.
   items: Store[];
 }
-interface ProductGroup {
+export interface ProductGroup {
   // The id of the product group.
   id: number;
   // The name of the product group.
@@ -130,7 +130,7 @@ interface QuantityUnitList {
   items: QuantityUnit[];
 }
 export type BookingType = 'inventory' | 'purchase';
-type PriceType = 'total' | 'unit';
+export type PriceType = 'total' | 'unit';
 interface LookupResult {
   // The brand.
   brand: null | string;
@@ -197,7 +197,7 @@ interface PendingScanList {
   // Every pending scan, most recent first.
   items: PendingScan[];
 }
-interface CreatePendingScan {
+export interface CreatePendingScan {
   // The amount.
   amount?: number;
   // The booking that the accept makes.
@@ -258,7 +258,9 @@ export const {
   useDeletePendingScanMutation,
   useListLocationsQuery,
   useListPendingScansQuery,
+  useListProductGroupsQuery,
   useListProductsQuery,
   useListQuantityUnitsQuery,
+  useListStoresQuery,
   useUpdatePendingScanMutation,
 } = injectedRtkApi;

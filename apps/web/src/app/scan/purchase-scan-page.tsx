@@ -10,6 +10,8 @@ import type { ScanFeedback } from './use-scan-feedback';
 import type { ScannerHandle } from './use-scanner';
 
 import { CameraView } from './camera-view';
+import { DefaultsSection } from './defaults-section';
+import { PriceField } from './price-field';
 import { bannerOf } from './scan-outcome';
 import { ScanRow } from './scan-row';
 import { SwipeRow } from './swipe-row';
@@ -88,39 +90,77 @@ function ScanFooter({
   );
 }
 
-// The camera strip of the left column, with the feedback of the last scan
-// on it.
-function ScanCamera({
+// The left column, which stays at the top: the defaults section, the camera
+// view with the feedback of the last scan, the price for the next scan, and
+// from `lg` up the typed code field.
+function ScanControls({
   feedback,
+  onCode,
   scanner,
-}: Readonly<{ feedback: ScanFeedback; scanner: ScannerHandle }>) {
+  session,
+}: Readonly<{
+  feedback: ScanFeedback;
+  onCode: (code: string) => void;
+  scanner: ScannerHandle;
+  session: PurchaseSession;
+}>) {
+  const { hasFailed, lists, scanDefaults } = session;
   return (
-    <CameraView
+    <div
       className="
-        h-40
-        lg:aspect-4/3 lg:h-auto
+        sticky top-13 z-20 bg-background
+        lg:h-[calc(100svh-3.25rem)] lg:overflow-y-auto lg:border-r
       "
-      attachVideo={scanner.attachVideo}
-      banner={feedback.banner}
-      flash={feedback.flash}
-      isAudioUnlocked={scanner.isAudioUnlocked}
-      status={scanner.status}
-      onRetry={scanner.retry}
-    />
+    >
+      <h1 className="px-3 pt-3 pb-2 text-2xl font-medium">Purchase</h1>
+      <DefaultsSection
+        defaults={scanDefaults.defaults}
+        lists={lists}
+        onChange={scanDefaults.setDefaults}
+        onReset={scanDefaults.resetDefaults}
+      />
+      <CameraView
+        className="
+          h-40
+          lg:aspect-4/3 lg:h-auto
+        "
+        attachVideo={scanner.attachVideo}
+        banner={feedback.banner}
+        flash={feedback.flash}
+        isAudioUnlocked={scanner.isAudioUnlocked}
+        status={scanner.status}
+        onRetry={scanner.retry}
+      />
+      {hasFailed && (
+        <p role="alert" className="px-3 py-2 text-destructive">
+          The code did not become a pending scan. Check that the API runs.
+        </p>
+      )}
+      <PriceField
+        nextPrice={scanDefaults.nextPrice}
+        onChange={scanDefaults.setNextPrice}
+      />
+      <div
+        className="
+          hidden
+          lg:block
+        "
+      >
+        <TypeCodeField onSubmit={onCode} />
+      </div>
+    </div>
   );
 }
 
 // The Purchase scan screen, in the layout of the prototype: a left column
-// that stays at the top with the camera view and the typed code field, and
-// the scans of the session as the page, most recent at the top. A camera
-// scan and a typed code send the same create call and get the same
-// feedback. The defaults section and the price row for the next scan come
-// with later tickets and go into the left column.
+// that stays at the top with the defaults section, the camera view, the
+// price for the next scan, and the typed code field, and the scans of the
+// session as the page, most recent at the top. A camera scan and a typed
+// code send the same create call and get the same feedback.
 export function PurchaseScanPage() {
   const navigate = useNavigate();
   const session = usePurchaseSession();
   const feedback = useScanFeedback();
-  const { hasFailed, rows } = session;
 
   async function scan(code: string): Promise<void> {
     const row = await session.addCode(code);
@@ -135,32 +175,16 @@ export function PurchaseScanPage() {
 
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
-      <div
-        className="
-          sticky top-13 z-20 bg-background
-          lg:h-[calc(100svh-3.25rem)] lg:overflow-y-auto lg:border-r
-        "
-      >
-        <h1 className="px-3 pt-3 pb-2 text-2xl font-medium">Purchase</h1>
-        <ScanCamera feedback={feedback} scanner={scanner} />
-        {hasFailed && (
-          <p role="alert" className="px-3 py-2 text-destructive">
-            The code did not become a pending scan. Check that the API runs.
-          </p>
-        )}
-        <div
-          className="
-            hidden
-            lg:block
-          "
-        >
-          <TypeCodeField onSubmit={addCode} />
-        </div>
-      </div>
+      <ScanControls
+        feedback={feedback}
+        scanner={scanner}
+        session={session}
+        onCode={addCode}
+      />
       <div className="flex min-h-[calc(100svh-3.25rem)] flex-col">
-        <SessionList rows={rows} session={session} />
+        <SessionList rows={session.rows} session={session} />
         <ScanFooter
-          count={rows.length}
+          count={session.rows.length}
           onCode={addCode}
           onDone={() => {
             void navigate('/review-queue');
