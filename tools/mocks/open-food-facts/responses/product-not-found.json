@@ -1,0 +1,28 @@
+{
+  "code": "${context.request.pathParams.code}",
+  "errors": [
+    {
+      "field": {
+        "id": "code",
+        "value": "${context.request.pathParams.code}"
+      },
+      "impact": {
+        "id": "failure",
+        "lc_name": "Failure",
+        "name": "Failure"
+      },
+      "message": {
+        "id": "product_not_found",
+        "lc_name": "Product not found",
+        "name": "Product not found"
+      }
+    }
+  ],
+  "result": {
+    "id": "product_not_found",
+    "lc_name": "Product not found",
+    "name": "Product not found"
+  },
+  "status": "failure",
+  "warnings": []
+}

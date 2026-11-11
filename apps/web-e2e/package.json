@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "scripts": {
+    "camera-files": "node src/camera/write-camera-files.ts"
+  },
   "nx": {
     "name": "web-e2e",
     "tags": [
@@ -11,6 +14,14 @@
     ],
     "implicitDependencies": [
       "web"
-    ]
+    ],
+    "targets": {
+      "e2e": {
+        "dependsOn": []
+      }
+    }
+  },
+  "devDependencies": {
+    "zxing-wasm": "^3.1.6"
   }
 }

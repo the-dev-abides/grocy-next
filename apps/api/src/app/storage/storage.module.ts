@@ -1,3 +1,9 @@
+import {
+  CreateNutritionFacts1794456000000,
+  CreatePendingScan1794369600000,
+  storedNutritionFactsSchema,
+  storedPendingScanSchema,
+} from '@grocy-next/inventory-review-queue';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,8 +13,16 @@ import type { EnvironmentVariables } from './storage-options.ts';
 import { Empty1793756181772 } from './migrations/1793756181772-empty.ts';
 import { readStorageOptions } from './storage-options.ts';
 
+// This list holds the entities of the domain libraries. Add a new entity
+// here.
+const ENTITIES = [storedPendingScanSchema, storedNutritionFactsSchema];
+
 // This list holds the migrations. Add a new migration here.
-const MIGRATIONS = [Empty1793756181772];
+const MIGRATIONS = [
+  Empty1793756181772,
+  CreatePendingScan1794369600000,
+  CreateNutritionFacts1794456000000,
+];
 
 // The config module reads the `.env` file into the process environment and
 // checks the storage variables at start.
@@ -29,7 +43,7 @@ function validateStorageVariables(
       useFactory: () => {
         return {
           ...readStorageOptions(),
-          entities: [],
+          entities: ENTITIES,
           migrations: MIGRATIONS,
           migrationsRun: true,
           synchronize: false,

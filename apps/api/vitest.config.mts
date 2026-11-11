@@ -1,6 +1,8 @@
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
+import { GROCY_MOCK_URL, OPEN_FACTS_MOCK_URL } from './vitest.global-setup.mts';
+
 export default defineConfig(() => {
   return {
     cacheDir: '../../node_modules/.vite/apps/api',
@@ -22,14 +24,17 @@ export default defineConfig(() => {
         reportsDirectory: './test-output/vitest/coverage',
       },
       // The tests run on SQLite in memory and write no file. The Grocy
-      // variables hold placeholder values. No test calls Grocy.
+      // variables and the Open Facts variable point at the two Imposter
+      // mocks that the global setup starts.
       env: {
         DB_FILE: ':memory:',
-        GROCY_API_KEY: 'placeholder',
-        GROCY_URL: 'https://grocy.invalid',
+        GROCY_API_KEY: 'test',
+        GROCY_URL: GROCY_MOCK_URL,
+        OPEN_FACTS_URL: OPEN_FACTS_MOCK_URL,
       },
       environment: 'node',
       globals: true,
+      globalSetup: './vitest.global-setup.mts',
       include: ['src/**/*.spec.ts'],
       name: 'api',
       reporters: ['default'],

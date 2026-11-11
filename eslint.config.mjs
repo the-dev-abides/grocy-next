@@ -228,6 +228,9 @@ const config = [
       '**/vitest.config.*.timestamp*',
       '**/vite.config.*.timestamp*',
       '.nx',
+      // The RTK Query OpenAPI code generator writes this file. No person
+      // edits it. The target `web:generate-api` writes it again.
+      'apps/web/src/app/api/next-api.ts',
     ],
   },
 

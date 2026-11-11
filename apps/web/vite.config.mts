@@ -3,14 +3,18 @@ import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 
-// The API listens on port 3000 on the host. The dev server forwards every
-// request under `/api` to it, so the web app and the API share one origin
-// in development.
-const API_URL = 'http://localhost:3000';
+// The dev server forwards every request under `/api` to the API, so the web
+// app and the API share one origin in development. The variable `API_URL`
+// sets the address of the API. Unset means port 3000 on the host. The
+// end-to-end tests set the address of the API of the test run.
+const API_URL = 'API_URL';
+const DEFAULT_API_URL = 'http://localhost:3000';
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const apiUrl =
+    loadEnv(mode, import.meta.dirname, API_URL)[API_URL] ?? DEFAULT_API_URL;
   return {
     build: {
       emptyOutDir: true,
@@ -34,7 +38,7 @@ export default defineConfig(() => {
       host: 'localhost',
       port: 4200,
       proxy: {
-        '/api': API_URL,
+        '/api': apiUrl,
       },
     },
     test: {

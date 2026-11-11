@@ -21,10 +21,13 @@
     ]
   },
   "dependencies": {
+    "@grocy-next/shared-next-api": "workspace:*",
     "@nestjs/axios": "^12.0.1",
     "@nestjs/common": "^12.3.2",
     "@nestjs/swagger": "^12.1.0",
     "axios": "^1.21.0",
-    "rxjs": "^7.8.2"
+    "nestjs-zod": "^5.6.0",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.7"
   }
 }

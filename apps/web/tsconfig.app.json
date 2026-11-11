@@ -5,7 +5,7 @@
     "tsBuildInfoFile": "out-tsc/web/tsconfig.app.tsbuildinfo",
     "jsx": "react-jsx",
     "erasableSyntaxOnly": true,
-    "lib": ["dom"],
+    "lib": ["dom", "es2023", "esnext.temporal"],
     "types": [
       "node",
       "@nx/react/typings/cssmodule.d.ts",

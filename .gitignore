@@ -44,3 +44,7 @@ vite.config.*.timestamp*
 
 # SQLite files of a developer host
 *.db
+
+# The Grocy mock specification. The script tools/mocks/src/complete-grocy-spec.mjs
+# writes it from the reference copy before the mock starts.
+tools/mocks/grocy/grocy-openapi.json

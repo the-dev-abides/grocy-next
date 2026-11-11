@@ -1,0 +1,13 @@
+{
+  "name": "@grocy-next/mocks",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "nx": {
+    "name": "mocks",
+    "tags": [
+      "scope:shared",
+      "type:util"
+    ]
+  }
+}

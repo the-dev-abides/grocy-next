@@ -64,8 +64,14 @@ booking.
   the count and the stock unreadable.
 - The price is stored as entered, with a price type: unit price or total
   price. The default price type is unit price, or the product default price
-  type when the product sets one. A barcode last price enters as a total
-  price. The server converts to a price per stock unit at accept.
+  type when the product sets one. The server converts to a price per stock
+  unit at accept. Amended by the code review of the scan screens: a barcode
+  last price enters as a unit price in the unit of the product barcode. The
+  last price is the price of one product barcode amount, so the unit price
+  is the last price divided by the product barcode amount when the product
+  barcode has one. The first version entered the last price as a total
+  price, and a repeat scan that added to the amount kept that total, so the
+  accept booked a wrong price per stock unit.
 - The due date is a date or none. The screen turns its due date rule into a
   date at scan time: none, a fixed date, or a number of days from today.
   Grocy applies the product default when the date is none.

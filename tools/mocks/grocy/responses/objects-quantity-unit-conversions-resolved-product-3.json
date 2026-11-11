@@ -1,0 +1,46 @@
+[
+  {
+    "product_id": 3,
+    "from_qu_id": 2,
+    "from_qu_name": "Pack",
+    "from_qu_name_plural": "Packs",
+    "to_qu_id": 2,
+    "to_qu_name": "Pack",
+    "to_qu_name_plural": "Packs",
+    "factor": 1,
+    "path": "/2/"
+  },
+  {
+    "product_id": 3,
+    "from_qu_id": 3,
+    "from_qu_name": "Box",
+    "from_qu_name_plural": "Boxes",
+    "to_qu_id": 2,
+    "to_qu_name": "Pack",
+    "to_qu_name_plural": "Packs",
+    "factor": 6,
+    "path": "/3/2/"
+  },
+  {
+    "product_id": 3,
+    "from_qu_id": 2,
+    "from_qu_name": "Pack",
+    "from_qu_name_plural": "Packs",
+    "to_qu_id": 3,
+    "to_qu_name": "Box",
+    "to_qu_name_plural": "Boxes",
+    "factor": 0.16666666666666666,
+    "path": "/2/3/"
+  },
+  {
+    "product_id": 3,
+    "from_qu_id": 3,
+    "from_qu_name": "Box",
+    "from_qu_name_plural": "Boxes",
+    "to_qu_id": 3,
+    "to_qu_name": "Box",
+    "to_qu_name_plural": "Boxes",
+    "factor": 1,
+    "path": "/3/"
+  }
+]

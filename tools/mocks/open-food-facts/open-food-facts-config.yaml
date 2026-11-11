@@ -1,0 +1,98 @@
+# The Open Food Facts mock. ADR 0015 and ADR 0011 record the decision. The
+# mock answers the v3 product read for the six fixture codes with the live
+# records of Open Food Facts, stored one time. Every other code gets the
+# failure answer of Open Food Facts. The mock holds no state.
+#
+# The API sends `GET /api/v3/product/{code}?product_type=all&fields=...`.
+# The match is on the path only, so the field list does not matter. The live
+# service redirects a code that another Open Facts service holds. The six
+# fixture codes are Open Food Facts codes, so the mock sends no redirect.
+plugin: rest
+resources:
+  # The unknown test code, Nutella 400 g. No product barcode in the fixture
+  # household has this code, so the lookup runs for it.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '3017620422003'
+    response:
+      file: responses/product-3017620422003.json
+
+  # The second unknown test code, Barilla Basilico 400 g. The end-to-end
+  # test of the lookup result on the Purchase scan screen types this code.
+  # The camera tests own the first unknown code, and a typed code merges
+  # into an open row of the same code, so the two tests need two codes.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '8076809513722'
+    response:
+      file: responses/product-8076809513722.json
+
+  # The third unknown test code, Heinz Beanz 415 g. The end-to-end test of
+  # the short product form creates a row of this code through the API. The
+  # update that sets the new product downloads the front image, so the image
+  # URL in this record names the end-to-end Open Food Facts mock, not the
+  # real image host, and no test reaches the network.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '5000157024671'
+    response:
+      file: responses/product-5000157024671.json
+
+  # The three fixture product codes. A product barcode resolves each of them
+  # in Grocy, so the lookup does not run for them. The records are here for
+  # a test that needs the lookup of a known code.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '5449000000996'
+    response:
+      file: responses/product-5449000000996.json
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '7622300441937'
+    response:
+      file: responses/product-7622300441937.json
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '8000500310427'
+    response:
+      file: responses/product-8000500310427.json
+
+  # Every other code. The body has the shape of the live failure answer.
+  - path: /api/v3/product/{code}
+    method: GET
+    response:
+      statusCode: 404
+      template: true
+      file: responses/product-not-found.json
+
+  # The front image of the unknown test code, as the Open Facts image host
+  # serves it at 400 px height. The record of the code names the real image
+  # host, so a test that needs the image points the image URL of the row at
+  # this path. The file is one small JPEG, not the real image. The second
+  # path answers 500, for a test of a failed image download.
+  - path: /images/products/301/762/042/2003/front_en.879.400.jpg
+    method: GET
+    response:
+      file: responses/front-3017620422003.jpg
+      headers:
+        Content-Type: image/jpeg
+  - path: /images/products/301/762/042/2003/front_en.failing.400.jpg
+    method: GET
+    response:
+      statusCode: 500
+      content: 'The image store did not answer.'
+
+  # The front image of the third unknown test code, at the path that its
+  # record names. The file is the same small JPEG.
+  - path: /images/products/500/015/702/4671/front_en.459.400.jpg
+    method: GET
+    response:
+      file: responses/front-3017620422003.jpg
+      headers:
+        Content-Type: image/jpeg

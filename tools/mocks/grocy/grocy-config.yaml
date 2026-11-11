@@ -1,0 +1,553 @@
+# The Grocy mock. ADR 0015 records the decision. The mock is the one stand-in
+# for Grocy in the end-to-end tests and in the API tests. It serves the
+# fixture household: three active locations and one inactive location, one
+# store, two product groups, four quantity units, and six products: three
+# plain products with one product barcode and some stock each, a parent
+# product with one child, and a tare weight product. The mock holds no
+# state. A booking returns a fixed stock log row and changes nothing.
+#
+# The specification is the Grocy OpenAPI file from the reference folder, with
+# the five entity enums and the server path `/api` that Grocy writes into the
+# file when it serves it. The script `../src/complete-grocy-spec.mjs` writes
+# `grocy-openapi.json` before the mock starts. Git ignores that file.
+#
+# Request validation is on for every request. A request that does not match
+# the specification gets status 400. The Grocy API research found four
+# places where the specification differs from the Grocy code. None of them
+# fails the validation, so no resource turns the validation off:
+#
+# - The purchase due date default. The description of `best_before_date`
+#   says "the current date". The code uses the product default days. A
+#   description is not validated.
+# - The `stock_label_type` values. The description says `1`, `2`, `3`. The
+#   code uses `0`, `1`, `2`. The schema says integer with no enum, so `0`
+#   passes.
+# - The `purchased_date` field of a purchase and an inventory. The field is
+#   not in the request schema. The schema does not forbid an unknown field,
+#   so the field passes.
+# - The store default on an inventory. The description says "no store will
+#   be affected". The code uses the last store. A description is not
+#   validated.
+#
+# A fifth place fails the validation: the body of the generic object create
+# and the generic object update is a `oneOf` over nine entity shapes, and no
+# shape names a required field, so every body matches all nine shapes. The
+# native engine has one validation switch for the whole mock and no switch
+# per resource, so the script `../src/complete-grocy-spec.mjs` changes that
+# `oneOf` to an `anyOf` in the copy. A difference that fails the validation
+# in a later Grocy version needs a fix in that script and in ADR 0015.
+#
+# Each resource is one static response file, matched on the path and the
+# query. The paths start with the Grocy API base path `/api`. A resource with
+# a path parameter value serves one product. The resource after it, with no
+# path parameter value, serves the Grocy error for every other value. A
+# request that no resource matches gets the example from the specification,
+# so a missing resource shows as Grocy demo data, not as an error.
+plugin: openapi
+specFile: grocy-openapi.json
+validation:
+  request: fail
+resources:
+  # The master data lists. The Next API filters the active rows with
+  # `query[]=active=1`. The locations hold one inactive row, the Garage, and
+  # the products hold one inactive row, product 8, so for these two tables
+  # the filtered list differs from the full list. Every other table holds
+  # only active rows, so one file serves the list with and without the
+  # filter. The product list of the Next API uses the same filter.
+  - path: /api/objects/products
+    method: GET
+    queryParams:
+      query[]: active=1
+    response:
+      file: responses/objects-products-active.json
+  - path: /api/objects/products
+    method: GET
+    response:
+      file: responses/objects-products.json
+  - path: /api/objects/locations
+    method: GET
+    queryParams:
+      query[]: active=1
+    response:
+      file: responses/objects-locations-active.json
+  - path: /api/objects/locations
+    method: GET
+    response:
+      file: responses/objects-locations.json
+  - path: /api/objects/shopping_locations
+    method: GET
+    response:
+      file: responses/objects-shopping-locations.json
+  - path: /api/objects/product_groups
+    method: GET
+    response:
+      file: responses/objects-product-groups.json
+  - path: /api/objects/quantity_units
+    method: GET
+    response:
+      file: responses/objects-quantity-units.json
+  - path: /api/objects/product_barcodes
+    method: GET
+    response:
+      file: responses/objects-product-barcodes.json
+
+  # The product barcode create. An update of a pending scan that sets a
+  # product adds the code to the product. Grocy answers the id of the new
+  # row. The code 5000112637922 gets the Grocy error of a code that another
+  # product already has, as the database answers it. The mock changes
+  # nothing, so the product details never show the new product barcode.
+  - path: /api/objects/product_barcodes
+    method: POST
+    requestBody:
+      jsonPath: $.barcode
+      value: '5000112637922'
+    response:
+      statusCode: 400
+      content: '{"error_message": "UNIQUE constraint failed: product_barcodes.barcode"}'
+  - path: /api/objects/product_barcodes
+    method: POST
+    response:
+      file: responses/objects-product-barcodes-created.json
+
+  # The product create. The short product form creates the product in Grocy.
+  # Grocy answers the id of the new row. The name of product 1 gets the Grocy
+  # error of a name that another product already has, as the database
+  # answers it. The mock holds no state, so the create captures the fields of
+  # the request into the store `product`, and the details read of product 4
+  # below answers them. The factor from the purchase unit to the stock unit
+  # starts at 1, as the Grocy trigger sets it on the conversion row, and the
+  # conversion row update below changes it. A captured field that the request
+  # left out renders as `<nil>`, so the description and the product group are
+  # not captured, and the details read answers null for both.
+  - path: /api/objects/products
+    method: POST
+    requestBody:
+      jsonPath: $.name
+      value: 'Coca-Cola Original 330 ml'
+    response:
+      statusCode: 400
+      content: '{"error_message": "UNIQUE constraint failed: products.name"}'
+  - path: /api/objects/products
+    method: POST
+    capture:
+      name:
+        store: product
+        requestBody:
+          jsonPath: $.name
+      location_id:
+        store: product
+        requestBody:
+          jsonPath: $.location_id
+      qu_id_purchase:
+        store: product
+        requestBody:
+          jsonPath: $.qu_id_purchase
+      qu_id_stock:
+        store: product
+        requestBody:
+          jsonPath: $.qu_id_stock
+      min_stock_amount:
+        store: product
+        requestBody:
+          jsonPath: $.min_stock_amount
+      default_best_before_days:
+        store: product
+        requestBody:
+          jsonPath: $.default_best_before_days
+      factor:
+        store: product
+        const: '1'
+    response:
+      file: responses/objects-products-created.json
+
+  # The product conversions of the new product 4: the one row that the Grocy
+  # trigger created from the purchase unit to the stock unit with factor 1.
+  # The row id is 7. The update of that row captures the factor into the
+  # store `product`, so the details read of product 4 shows it. Grocy answers
+  # the update with 204 and no body.
+  - path: /api/objects/quantity_unit_conversions
+    method: GET
+    queryParams:
+      query[]: product_id=4
+    response:
+      template: true
+      file: responses/objects-quantity-unit-conversions-product-4.json.template
+      headers:
+        Content-Type: application/json
+  # The full conversion table with no filter. It holds the household
+  # conversion 1 Box = 24 Cans, with no product, and the conversion
+  # 1 Box = 6 Packs of product 3. No row converts to the Gram, so the stock
+  # unit proposal of a lookup result in g stays the Gram. The household conversion list of the Next
+  # API reads the table with no filter and leaves out the rows of a product.
+  - path: /api/objects/quantity_unit_conversions
+    method: GET
+    response:
+      file: responses/objects-quantity-unit-conversions.json
+  - path: /api/objects/quantity_unit_conversions/{objectId}
+    method: PUT
+    capture:
+      factor:
+        store: product
+        requestBody:
+          jsonPath: $.factor
+    response:
+      statusCode: 204
+
+  # The resolved conversions of one product. Each fixture product has the
+  # row from the stock unit to itself with factor 1. Product 3 also has the
+  # conversion between the Box and the Pack, so a Purchase in Boxes converts
+  # to the stock unit. Product 1 has no conversion from the Pack to the Can,
+  # so a Purchase of it in Packs has no path to the stock unit.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=1
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-1.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=2
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-2.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=3
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-3.json
+  # The resolved conversions of the new product 4 hold one row, from the
+  # purchase unit to the stock unit with the factor of the store `product`.
+  # When the two units are equal, that row is the row from the stock unit to
+  # itself with factor 1, as Grocy resolves it. The template cannot leave a
+  # row out, so the product has no other row.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=4
+    response:
+      template: true
+      file: responses/objects-quantity-unit-conversions-resolved-product-4.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=5
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-5.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=6
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-6.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=7
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-7.json
+
+  # The product details by barcode. The three fixture codes and the second
+  # product barcode of product 1 resolve. Every other code gets the Grocy
+  # error.
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '5449000000996'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '0049000006346'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '7622300441937'
+    response:
+      file: responses/stock-product-2.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '8000500310427'
+    response:
+      file: responses/stock-product-3.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    response:
+      statusCode: 400
+      template: true
+      content: '{"error_message": "No product with barcode ${context.request.pathParams.barcode} found"}'
+
+  # The product details by id. The same three files. Product 4 is the product
+  # that the product create answered. Its template reads the store `product`,
+  # so the details show the fields of the create request and the factor of
+  # the conversion row update. The template holds no quantity unit object
+  # and no location object, because the store holds the ids only. Product 5
+  # is the parent product Yoghurt with no own stock and `has_childs` true,
+  # product 6 is its child with three packs, and product 7 is the tare weight
+  # product Rice jar with tare weight handling on, the tare weight 250, and
+  # 500 grams in stock. Every other id gets the Grocy error.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '2'
+    response:
+      file: responses/stock-product-2.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '3'
+    response:
+      file: responses/stock-product-3.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '4'
+    response:
+      template: true
+      file: responses/stock-product-4.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '5'
+    response:
+      file: responses/stock-product-5.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '6'
+    response:
+      file: responses/stock-product-6.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '7'
+    response:
+      file: responses/stock-product-7.json
+  # Product 8 is inactive. Grocy refuses the details read of an inactive
+  # product with the same error as an unknown id.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '8'
+    response:
+      statusCode: 400
+      content: '{"error_message": "Product does not exist or is inactive"}'
+  - path: /api/stock/products/{productId}
+    method: GET
+    response:
+      statusCode: 400
+      content: '{"error_message": "Product does not exist or is inactive"}'
+
+  # The stock entries of one product. Grocy reads them from the view
+  # `stock_next_use`, which sorts them in the consume order: the stock
+  # entries at the default consume location of the product first, then the
+  # open stock entries, then the earliest due date, then the earliest
+  # purchase date. Each file holds the rows in that order. Product 1 has five
+  # stock entries in two locations, with the Fridge as its default consume
+  # location, so each rule of the order moves one row. The two stock entries
+  # that the inventory decrease of product 1 below takes from are the first
+  # two rows. The parent product 5 has no own stock entry. Grocy answers an
+  # empty list for an unknown product, as does the mock.
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-product-1-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '2'
+    response:
+      file: responses/stock-product-2-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '3'
+    response:
+      file: responses/stock-product-3-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '6'
+    response:
+      file: responses/stock-product-6-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '7'
+    response:
+      file: responses/stock-product-7-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    response:
+      file: responses/stock-product-entries-none.json
+
+  # The purchase. Grocy refuses a purchase into an inactive location when the
+  # request has no due date. The Garage is the one inactive location, so a
+  # purchase with location 4 and no due date gets that Grocy error. Every
+  # other purchase returns one stock log row with the product of the path,
+  # the amount of the request, and the price of the request when the request
+  # has one. The other fields of the row are fixed. The mock changes nothing.
+  # The two templates are not JSON files, because the placeholders are not
+  # JSON, so the resource names the content type.
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.location_id
+          value: 4
+        - jsonPath: $.best_before_date
+          operator: NotExists
+    response:
+      statusCode: 400
+      content: '{"error_message": "Location does not exist"}'
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    requestBody:
+      jsonPath: $.price
+      operator: Exists
+    response:
+      template: true
+      file: responses/stock-log-purchase.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    response:
+      template: true
+      file: responses/stock-log-purchase-no-price.json.template
+      headers:
+        Content-Type: application/json
+
+  # The inventory. Grocy refuses a new amount that equals the stock of the
+  # product, and the Next API calls no Grocy in that case, so a new amount
+  # equal to the fixture stock gets that Grocy error, and a test of the
+  # no-change accept sees that the Next API did not call Grocy. For the tare
+  # weight product the fixture stock is the own stock plus the tare weight.
+  # Grocy refuses
+  # an increase into the inactive location 4 when the request has no due
+  # date, as on a purchase. The mock holds no stock, so it cannot book the
+  # difference. An inventory of product 1 answers a decrease: two stock log
+  # rows with negative amounts, one whole stock entry of two cans and one
+  # stock entry reduced by one, as Grocy answers a count of 3 on the stock 6.
+  # An inventory of every other product answers an increase of 3, as Grocy
+  # answers a count of 4 on the stock 1 of product 3: one stock log row with
+  # the product of the path. When the request has all of the due date, the
+  # location, the price, the store, and the note, the row carries those
+  # values of the request, else the Grocy defaults of product 3. The mock
+  # changes nothing.
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '1'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 6
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '2'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 2
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '3'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 1
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  # The tare weight product 7: the new amount is the gross weight, and Grocy
+  # compares it with the stock 500 plus the tare weight 250.
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '7'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 750
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.location_id
+          value: 4
+        - jsonPath: $.best_before_date
+          operator: NotExists
+    response:
+      statusCode: 400
+      content: '{"error_message": "Location does not exist"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-log-inventory-decrease.json
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.best_before_date
+          operator: Exists
+        - jsonPath: $.location_id
+          operator: Exists
+        - jsonPath: $.price
+          operator: Exists
+        - jsonPath: $.shopping_location_id
+          operator: Exists
+        - jsonPath: $.note
+          operator: Exists
+    response:
+      template: true
+      file: responses/stock-log-inventory-increase.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    response:
+      template: true
+      file: responses/stock-log-inventory-increase-defaults.json.template
+      headers:
+        Content-Type: application/json
+
+  # The product picture. An update of a pending scan that sets a product with
+  # no picture uploads the lookup image as a product picture, then sets the
+  # picture name on the product. Grocy answers both with 204 and no body. The
+  # mock changes nothing, so the product details never show the picture.
+  - path: /api/files/{group}/{fileName}
+    method: PUT
+    pathParams:
+      group: productpictures
+    response:
+      statusCode: 204
+  - path: /api/objects/products/{objectId}
+    method: PUT
+    response:
+      statusCode: 204

@@ -21,6 +21,12 @@
   "references": [
     {
       "path": "../../libs/inventory/products/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/inventory/review-queue/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/shared/next-api/tsconfig.lib.json"
     }
   ]
 }

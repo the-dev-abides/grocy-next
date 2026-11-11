@@ -1,0 +1,69 @@
+import type {
+  Location,
+  PendingScan,
+  ProductGroup,
+  ProductListItem,
+  QuantityUnit,
+  QuantityUnitConversion,
+  Store,
+} from '../api/next-api';
+
+import {
+  useListLocationsQuery,
+  useListPendingScansQuery,
+  useListProductGroupsQuery,
+  useListProductsQuery,
+  useListQuantityUnitConversionsQuery,
+  useListQuantityUnitsQuery,
+  useListStoresQuery,
+} from '../api/next-api';
+import { POLL_MS } from '../api/poll-interval';
+import { queueRows } from './queue-rows';
+
+// The master data lists that name the facts of a row and fill the selects of
+// the short product form. The household conversions take part in the stock
+// unit proposal of the short product form.
+export interface QueueLists {
+  locations: readonly Location[] | undefined;
+  productGroups: readonly ProductGroup[] | undefined;
+  products: readonly ProductListItem[] | undefined;
+  quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
+  quantityUnits: readonly QuantityUnit[] | undefined;
+  stores: readonly Store[] | undefined;
+}
+
+export interface ReviewQueue {
+  isError: boolean;
+  isLoading: boolean;
+  lists: QueueLists;
+  refetch: () => void;
+  rows: readonly PendingScan[] | undefined;
+}
+
+// The review queue. It holds every pending scan of both booking types, most
+// recent at the top, and the lists that name a row. It polls the list while the
+// screen is open. An accept and a reject refetch the list, so the row changes
+// before the next poll.
+export function useReviewQueue(): ReviewQueue {
+  const pendingScans = useListPendingScansQuery(undefined, {
+    pollingInterval: POLL_MS,
+  });
+  const items = pendingScans.data?.items;
+  return {
+    isError: pendingScans.isError,
+    isLoading: pendingScans.isLoading,
+    lists: {
+      locations: useListLocationsQuery(undefined).data?.items,
+      productGroups: useListProductGroupsQuery(undefined).data?.items,
+      products: useListProductsQuery(undefined).data?.items,
+      quantityUnitConversions:
+        useListQuantityUnitConversionsQuery(undefined).data?.items,
+      quantityUnits: useListQuantityUnitsQuery(undefined).data?.items,
+      stores: useListStoresQuery(undefined).data?.items,
+    },
+    refetch: () => {
+      void pendingScans.refetch();
+    },
+    rows: items === undefined ? undefined : queueRows(items),
+  };
+}

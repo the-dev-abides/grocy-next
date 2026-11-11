@@ -17,6 +17,9 @@
 # to a `DB_*` value after the first start does not change the database.
 # Remove the `postgres-data` volume and start again.
 #
+# The online barcode lookup is on. To turn it off, set `BARCODE_LOOKUP=off`.
+# To point the lookup at a mirror of Open Food Facts, set `OPEN_FACTS_URL`.
+#
 # The app listens on port 3000. PostgreSQL publishes no port.
 
 name: grocy-next-postgres
@@ -33,6 +36,8 @@ services:
       DB_NAME: ${DB_NAME:-grocy-next}
       DB_USER: ${DB_USER:-grocy-next}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD to a password for the database user}
+      BARCODE_LOOKUP: ${BARCODE_LOOKUP:-on}
+      OPEN_FACTS_URL: ${OPEN_FACTS_URL:-https://world.openfoodfacts.org}
     ports:
       - '3000:3000'
     depends_on:
