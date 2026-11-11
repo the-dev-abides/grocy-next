@@ -43,6 +43,7 @@ export interface ProductDetails extends Product {
 export function toProduct(details: ProductDetails): Product {
   return {
     description: details.description,
+    hasPicture: details.hasPicture,
     id: details.id,
     name: details.name,
     stockAmount: details.stockAmount,

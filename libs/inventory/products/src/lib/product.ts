@@ -27,6 +27,9 @@ const productListItemSchema = z
 const productSchema = z
   .strictObject({
     ...productFields,
+    hasPicture: z.boolean().meta({
+      description: 'Whether the product has a picture.',
+    }),
     stockAmount: z.number().meta({
       description: 'The own stock of the product in the stock unit.',
     }),

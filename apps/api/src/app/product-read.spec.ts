@@ -21,8 +21,8 @@ interface OpenApiDocument {
 }
 
 // The product read gives the scan screens and the review queue the facts of
-// one product at display time. In this ticket the product carries the
-// fields of the list and the own stock in the stock unit. A later ticket
+// one product at display time. The product carries the fields of the list,
+// the own stock in the stock unit, and the picture flag. A later ticket
 // widens it.
 describe('the product read of the Next API', () => {
   let app: INestApplication;
@@ -41,13 +41,15 @@ describe('the product read of the Next API', () => {
     await app.close();
   });
 
-  // The fixture household has six cans of product 1 in the Fridge.
-  it('reads one product with its stock amount through the Grocy mock', async () => {
+  // The fixture household has six cans of product 1 in the Fridge. No
+  // fixture product has a picture.
+  it('reads one product with its stock amount and its picture flag through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/1`);
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       description: null,
+      hasPicture: false,
       id: 1,
       name: 'Coca-Cola Original 330 ml',
       stockAmount: 6,
@@ -122,7 +124,7 @@ describe('the product read of the Next API', () => {
     ]);
     expect(document.components.schemas['Product']).toMatchObject({
       additionalProperties: false,
-      required: ['description', 'id', 'name', 'stockAmount'],
+      required: ['description', 'id', 'name', 'hasPicture', 'stockAmount'],
     });
     expect(document.components.schemas['ProductListItem']).toMatchObject({
       additionalProperties: false,
