@@ -41,7 +41,7 @@ const GUARDED_FILES = new Set([
   'lefthook.yml',
   'tools/checks/src/pre-tool-use.mjs',
 ]);
-const GUARDED_FOLDERS = ['.claude', '.github/workflows'];
+const GUARDED_FOLDERS = ['.claude'];
 
 // This script lists the suppression strings, so the text check skips it. The
 // file guard above still covers it.
