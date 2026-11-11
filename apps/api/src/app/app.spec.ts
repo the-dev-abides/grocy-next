@@ -113,10 +113,11 @@ describe('the API at its HTTP boundary', () => {
     });
   });
 
-  // The list carries the id, the name, and the description of every product
-  // and nothing else. The parent product and the tare weight product of the
-  // fixture household are plain items here.
-  it('lists the six fixture products through the Grocy mock', async () => {
+  // The list carries the id, the name, and the description of every active
+  // product and nothing else. The parent product and the tare weight product
+  // of the fixture household are plain items here. The inactive product 8 is
+  // in the Grocy products table, and the list leaves it out.
+  it('lists only the six active fixture products through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products`);
 
     expect(response.status).toBe(200);

@@ -124,7 +124,10 @@ not an error. A response that shows Grocy demo data, such as the product
 Product 8 is inactive. Grocy refuses the details read of an inactive
 product with the error `Product does not exist or is inactive`, the same
 error as for an unknown id, so the mock answers the details read of product
-8 with that error. Product 8 is not in the product list.
+8 with that error. Product 8, Instant coffee 200 g, is in the full product
+list of the Grocy table. The product list of the Next API filters with
+`query[]=active=1`, so the filtered list holds six rows and the full list
+holds seven.
 
 Product 4 is the product that the product create answers. It is not in the
 product list, because the mock holds no state.
@@ -171,7 +174,7 @@ Gram. It also holds the conversion 1 Box = 6 Packs of
 product 3. The household conversion list of the Next API reads the table
 with no filter and leaves out the row of product 3.
 
-The Garage is the one inactive row of the fixture household. The master data
+The Garage is the one inactive row of the master data. The master data
 lists of the Next API filter with `query[]=active=1`, so the location list
 with the filter holds three rows and the list without it holds four.
 

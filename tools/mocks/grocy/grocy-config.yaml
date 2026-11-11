@@ -49,10 +49,17 @@ validation:
   request: fail
 resources:
   # The master data lists. The Next API filters the active rows with
-  # `query[]=active=1`. The locations hold one inactive row, the Garage, so
+  # `query[]=active=1`. The locations hold one inactive row, the Garage, and
+  # the products hold one inactive row, product 8, so for these two tables
   # the filtered list differs from the full list. Every other table holds
   # only active rows, so one file serves the list with and without the
-  # filter.
+  # filter. The product list of the Next API uses the same filter.
+  - path: /api/objects/products
+    method: GET
+    queryParams:
+      query[]: active=1
+    response:
+      file: responses/objects-products-active.json
   - path: /api/objects/products
     method: GET
     response:

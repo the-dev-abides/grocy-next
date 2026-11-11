@@ -217,11 +217,13 @@ export class GrocyClient {
     return this.listActiveRows('shopping_locations');
   }
 
-  // The objects endpoint returns every product in one response. Grocy has no
-  // page size, so the list has no cut-off.
+  // The active products. The objects endpoint returns every product in one
+  // response. Grocy has no page size, so the list has no cut-off.
   async listProducts(): Promise<ProductListItem[]> {
     const response = await firstValueFrom(
-      this.http.get<GrocyProduct[]>('/api/objects/products'),
+      this.http.get<GrocyProduct[]>('/api/objects/products', {
+        params: { 'query[]': 'active=1' },
+      }),
     );
     return response.data.map((product) => {
       return {

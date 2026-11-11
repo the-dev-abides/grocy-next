@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 // The product list page reads the `items` envelope of the Next API through
-// the generated API slice. The Grocy mock holds the six fixture products.
+// the generated API slice. The Next API lists the six active fixture products
+// of the Grocy mock.
 test('the product list page shows the fixture products of the Grocy mock', async ({
   page,
 }) => {
