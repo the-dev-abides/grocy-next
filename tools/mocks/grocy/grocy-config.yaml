@@ -1,0 +1,158 @@
+# The Grocy mock. ADR 0015 records the decision. The mock is the one stand-in
+# for Grocy in the end-to-end tests and in the API tests. It serves the
+# fixture household: three locations, one store, two product groups, two
+# quantity units, and three products with one product barcode and some stock
+# each. The mock holds no state. A booking returns a fixed stock log row and
+# changes nothing.
+#
+# The specification is the Grocy OpenAPI file from the reference folder, with
+# the five entity enums and the server path `/api` that Grocy writes into the
+# file when it serves it. The script `../src/complete-grocy-spec.mjs` writes
+# `grocy-openapi.json` before the mock starts. Git ignores that file.
+#
+# Request validation is on for every request. A request that does not match
+# the specification gets status 400. The Grocy API research found four
+# places where the specification differs from the Grocy code. None of them
+# fails the validation, so no resource turns the validation off:
+#
+# - The purchase due date default. The description of `best_before_date`
+#   says "the current date". The code uses the product default days. A
+#   description is not validated.
+# - The `stock_label_type` values. The description says `1`, `2`, `3`. The
+#   code uses `0`, `1`, `2`. The schema says integer with no enum, so `0`
+#   passes.
+# - The `purchased_date` field of a purchase and an inventory. The field is
+#   not in the request schema. The schema does not forbid an unknown field,
+#   so the field passes.
+# - The store default on an inventory. The description says "no store will
+#   be affected". The code uses the last store. A description is not
+#   validated.
+#
+# The native engine has one validation switch for the whole mock and no
+# switch per resource. A difference that fails the validation in a later
+# Grocy version needs a fix in this file and in ADR 0015.
+#
+# Each resource is one static response file, matched on the path and the
+# query. The paths start with the Grocy API base path `/api`. A resource with
+# a path parameter value serves one product. The resource after it, with no
+# path parameter value, serves the Grocy error for every other value. A
+# request that no resource matches gets the example from the specification,
+# so a missing resource shows as Grocy demo data, not as an error.
+plugin: openapi
+specFile: grocy-openapi.json
+validation:
+  request: fail
+resources:
+  # The master data lists. The Grocy pages filter with `query[]=active=1`.
+  # Every fixture row is active, so one file serves the list with and
+  # without the filter.
+  - path: /api/objects/products
+    method: GET
+    response:
+      file: responses/objects-products.json
+  - path: /api/objects/locations
+    method: GET
+    response:
+      file: responses/objects-locations.json
+  - path: /api/objects/shopping_locations
+    method: GET
+    response:
+      file: responses/objects-shopping-locations.json
+  - path: /api/objects/product_groups
+    method: GET
+    response:
+      file: responses/objects-product-groups.json
+  - path: /api/objects/quantity_units
+    method: GET
+    response:
+      file: responses/objects-quantity-units.json
+  - path: /api/objects/product_barcodes
+    method: GET
+    response:
+      file: responses/objects-product-barcodes.json
+
+  # The resolved conversions of one product. Each fixture product has one
+  # row: the stock unit to itself with factor 1.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=1
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-1.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=2
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-2.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=3
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-3.json
+
+  # The product details by barcode. The three fixture codes resolve. Every
+  # other code gets the Grocy error.
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '5449000000996'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '7622300441937'
+    response:
+      file: responses/stock-product-2.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '8000500310427'
+    response:
+      file: responses/stock-product-3.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    response:
+      statusCode: 400
+      template: true
+      content: '{"error_message": "No product with barcode ${context.request.pathParams.barcode} found"}'
+
+  # The product details by id. The same three files. Every other id gets the
+  # Grocy error.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '2'
+    response:
+      file: responses/stock-product-2.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '3'
+    response:
+      file: responses/stock-product-3.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    response:
+      statusCode: 400
+      content: '{"error_message": "Product does not exist or is inactive"}'
+
+  # The bookings. A purchase and an inventory each return one fixed stock log
+  # row. The row names product 1 and amount 1 for every request. The mock
+  # changes nothing.
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    response:
+      file: responses/stock-log-purchase.json
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    response:
+      file: responses/stock-log-inventory.json

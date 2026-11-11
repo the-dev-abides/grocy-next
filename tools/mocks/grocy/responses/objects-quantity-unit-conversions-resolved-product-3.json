@@ -1,0 +1,13 @@
+[
+  {
+    "product_id": 3,
+    "from_qu_id": 2,
+    "from_qu_name": "Pack",
+    "from_qu_name_plural": "Packs",
+    "to_qu_id": 2,
+    "to_qu_name": "Pack",
+    "to_qu_name_plural": "Packs",
+    "factor": 1,
+    "path": "/2/"
+  }
+]
