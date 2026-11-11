@@ -15,8 +15,8 @@ export const api = createApi({
   endpoints: (builder) => {
     return {
       // The product list. A full list has no cut-off. The query takes no
-      // argument.
-      listProducts: builder.query<Product[], undefined>({
+      // argument. The list is an `items` envelope, as ADR 0014 decided.
+      listProducts: builder.query<{ items: Product[] }, undefined>({
         query: () => 'products',
       }),
     };

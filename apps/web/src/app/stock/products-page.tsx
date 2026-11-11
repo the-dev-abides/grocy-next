@@ -10,14 +10,12 @@ import type { Product } from '../api';
 import { useListProductsQuery } from '../api';
 import { Page } from '../shell/page';
 
-// The product list of milestone 1, under Stock in the shell. The grid has
-// one column on a phone, two on a tablet, and three on a large screen.
+// The product list of milestone 1, under Stock in the shell. The list comes
+// as an `items` envelope. The grid has one column on a phone, two on a
+// tablet, and three on a large screen.
 export function ProductsPage() {
-  const {
-    data: products,
-    isError,
-    isLoading,
-  } = useListProductsQuery(undefined);
+  const { data, isError, isLoading } = useListProductsQuery(undefined);
+  const products = data?.items;
 
   return (
     <Page title="Products">
