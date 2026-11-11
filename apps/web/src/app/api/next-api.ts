@@ -129,7 +129,7 @@ interface QuantityUnitList {
   // Every active quantity unit.
   items: QuantityUnit[];
 }
-type BookingType = 'inventory' | 'purchase';
+export type BookingType = 'inventory' | 'purchase';
 type PriceType = 'total' | 'unit';
 interface LookupResult {
   // The brand.

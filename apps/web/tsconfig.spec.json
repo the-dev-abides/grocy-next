@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "verbatimModuleSyntax": false,
+    "lib": ["dom", "es2023", "esnext.temporal"],
     "outDir": "./out-tsc/vitest",
     "types": [
       "vitest/globals",
