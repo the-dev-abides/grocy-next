@@ -46,6 +46,17 @@
       "qu_id": 1,
       "amount": null,
       "shopping_location_id": null,
+      "last_price": 0.85,
+      "row_created_timestamp": "2026-01-05 10:00:00",
+      "note": null
+    },
+    {
+      "id": 4,
+      "product_id": 1,
+      "barcode": "0049000006346",
+      "qu_id": 1,
+      "amount": null,
+      "shopping_location_id": null,
       "last_price": null,
       "row_created_timestamp": "2026-01-05 10:00:00",
       "note": null

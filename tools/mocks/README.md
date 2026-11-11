@@ -64,6 +64,11 @@ not an error. A response that shows Grocy demo data, such as the product
 | 2       | 7622300441937   | Pack       | 2     | Fridge   | Dairy         |
 | 3       | 8000500310427   | Pack       | 1     | Pantry   | Snacks        |
 
+The product barcode 5449000000996 has the last price 0.85. Product 1 has a
+second product barcode, 0049000006346: the UPC-A code 049000006346 of the
+can in its 13-digit form with a leading zero. A typed 12-digit code against
+that product barcode tests the code forms rule of ADR 0011.
+
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
 
 ### To add a Grocy call

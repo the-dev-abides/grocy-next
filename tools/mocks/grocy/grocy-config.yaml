@@ -92,12 +92,19 @@ resources:
     response:
       file: responses/objects-quantity-unit-conversions-resolved-product-3.json
 
-  # The product details by barcode. The three fixture codes resolve. Every
-  # other code gets the Grocy error.
+  # The product details by barcode. The three fixture codes and the second
+  # product barcode of product 1 resolve. Every other code gets the Grocy
+  # error.
   - path: /api/stock/products/by-barcode/{barcode}
     method: GET
     pathParams:
       barcode: '5449000000996'
+    response:
+      file: responses/stock-product-1.json
+  - path: /api/stock/products/by-barcode/{barcode}
+    method: GET
+    pathParams:
+      barcode: '0049000006346'
     response:
       file: responses/stock-product-1.json
   - path: /api/stock/products/by-barcode/{barcode}
