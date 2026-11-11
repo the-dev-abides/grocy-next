@@ -5,7 +5,7 @@ import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import type { ProductDetails } from '../product-details.ts';
-import type { Product } from '../product.ts';
+import type { ProductListItem } from '../product.ts';
 import type {
   GrocyMasterDataTable,
   MasterDataRow,
@@ -101,7 +101,7 @@ export class GrocyClient {
 
   // The objects endpoint returns every product in one response. Grocy has no
   // page size, so the list has no cut-off.
-  async listProducts(): Promise<Product[]> {
+  async listProducts(): Promise<ProductListItem[]> {
     const response = await firstValueFrom(
       this.http.get<GrocyProduct[]>('/api/objects/products'),
     );

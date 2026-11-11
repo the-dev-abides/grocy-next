@@ -17,17 +17,20 @@ const grocyProductBarcodeSchema = z.looseObject({
   shopping_location_id: grocyNullableNumber,
 });
 
-// The `ProductDetailsResponse` of Grocy 4.7.1, with the fields that the code
-// resolution reads. The response holds every product barcode of the
+// The `ProductDetailsResponse` of Grocy 4.7.1, with the fields that the
+// product read and the code resolution read. The stock amount is the own
+// stock in the stock unit. The response holds every product barcode of the
 // product, not only the one that matched. The schema is loose, because
 // Grocy returns many more fields than the client reads.
 export const grocyProductDetailsSchema = z.looseObject({
   product: z.looseObject({
     active: grocyNumber,
+    description: z.string().nullable(),
     id: grocyNumber,
     name: z.string(),
   }),
   product_barcodes: z.array(grocyProductBarcodeSchema),
+  stock_amount: grocyNumber,
 });
 
 type GrocyProductDetails = z.infer<typeof grocyProductDetailsSchema>;
@@ -45,8 +48,10 @@ export function toProductDetails(details: GrocyProductDetails): ProductDetails {
         storeId: row.shopping_location_id,
       };
     }),
+    description: details.product.description,
     id: details.product.id,
     isActive: details.product.active !== 0,
     name: details.product.name,
+    stockAmount: details.stock_amount,
   };
 }

@@ -215,14 +215,14 @@ describe('the API at its HTTP boundary', () => {
       properties: {
         items: {
           description: 'Every product.',
-          items: { $ref: '#/components/schemas/Product' },
+          items: { $ref: '#/components/schemas/ProductListItem' },
           type: 'array',
         },
       },
       required: ['items'],
       type: 'object',
     });
-    expect(document.components.schemas['Product']).toMatchObject({
+    expect(document.components.schemas['ProductListItem']).toMatchObject({
       additionalProperties: false,
       required: ['description', 'id', 'name'],
     });
