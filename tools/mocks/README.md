@@ -121,6 +121,11 @@ not an error. A response that shows Grocy demo data, such as the product
 | 6       | none            | Pack       | 3     | Fridge   | Dairy         | The child of product 5.                               |
 | 7       | none            | Gram       | 500   | Pantry   | none          | Tare weight handling is on. The tare weight is 250 g. |
 
+Product 8 is inactive. Grocy refuses the details read of an inactive
+product with the error `Product does not exist or is inactive`, the same
+error as for an unknown id, so the mock answers the details read of product
+8 with that error. Product 8 is not in the product list.
+
 Product 4 is the product that the product create answers. It is not in the
 product list, because the mock holds no state.
 

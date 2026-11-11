@@ -65,6 +65,7 @@ export class PendingScansController {
   @ApiProblemResponses(
     PROBLEM_TYPES.validation,
     PROBLEM_TYPES.notJson,
+    PROBLEM_TYPES.unknownId,
     PROBLEM_TYPES.grocyUnavailable,
   )
   @NoQuery()

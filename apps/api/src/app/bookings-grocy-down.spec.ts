@@ -1,5 +1,7 @@
+import { storedPendingScanSchema } from '@grocy-next/inventory-review-queue';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module.ts';
 import { configureApp } from './configure-app.ts';
 
@@ -17,9 +19,9 @@ interface PendingScanBody {
   [field: string]: unknown;
 }
 
-// The server creates a pending scan with a product and no code with no Grocy
-// read. Thus the queue holds a row that the accept can try against a Grocy that
-// does not answer.
+// The create of a pending scan with a product reads the product from Grocy,
+// so the test stores the row through the storage. Thus the queue holds a row
+// that the accept can try against a Grocy that does not answer.
 describe('the accept when Grocy does not answer', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -39,11 +41,35 @@ describe('the accept when Grocy does not answer', () => {
   });
 
   it('answers the grocy-unavailable problem and leaves the row unchanged', async () => {
-    const creation = await fetch(`${baseUrl}/api/v2/pending-scans`, {
-      body: JSON.stringify({ bookingType: 'purchase', productId: 1 }),
-      headers: { 'content-type': 'application/json' },
-      method: 'POST',
-    });
+    const time = '2026-11-11T12:00:00.000Z';
+    const stored = await app
+      .get(DataSource)
+      .getRepository(storedPendingScanSchema)
+      .save({
+        amount: 1,
+        bookingType: 'purchase',
+        code: null,
+        createdAt: time,
+        dueDate: null,
+        error: null,
+        lastLookupAt: null,
+        locationId: null,
+        lookupResult: null,
+        note: null,
+        price: null,
+        priceType: 'unit',
+        productBarcodeId: null,
+        productGroupId: null,
+        productId: 1,
+        quantityUnitId: null,
+        scannedAt: time,
+        storeId: null,
+        updatedAt: time,
+        writeInName: null,
+      });
+    const creation = await fetch(
+      `${baseUrl}/api/v2/pending-scans/${String(stored.id)}`,
+    );
     const created = (await creation.json()) as PendingScanBody;
 
     const response = await fetch(`${baseUrl}/api/v2/bookings`, {
@@ -64,5 +90,18 @@ describe('the accept when Grocy does not answer', () => {
       `${baseUrl}/api/v2/pending-scans/${String(created.id)}`,
     );
     expect(await read.json()).toEqual(created);
+  });
+
+  it('answers the grocy-unavailable problem on a create with a product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/pending-scans`, {
+      body: JSON.stringify({ bookingType: 'purchase', productId: 1 }),
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toMatchObject({
+      type: '/problems/grocy-unavailable',
+    });
   });
 });

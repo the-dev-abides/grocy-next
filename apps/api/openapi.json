@@ -1009,6 +1009,16 @@
             },
             "description": "The body is not JSON"
           },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "An id names nothing in Grocy"
+          },
           "502": {
             "content": {
               "application/problem+json": {

@@ -1,5 +1,7 @@
+import { storedPendingScanSchema } from '@grocy-next/inventory-review-queue';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module.ts';
 import { configureApp } from './configure-app.ts';
 
@@ -275,23 +277,37 @@ describe('the accept of a Purchase pending scan', () => {
     expect(await readRow(created.id)).toEqual(created);
   });
 
-  it('refuses a product id that names nothing in Grocy with the unknown-id problem', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      productId: 999,
-    });
+  // The create refuses a product id that names no active product. A row can
+  // still hold one when the product goes away or becomes inactive in Grocy
+  // after the create, so the test writes the product id into the stored
+  // row. Product 8 is inactive in the Grocy mock.
+  it.each([
+    { productId: 999, reason: 'names nothing in Grocy' },
+    { productId: 8, reason: 'names an inactive product' },
+  ])(
+    'refuses a product id that $reason with the unknown-id problem',
+    async ({ productId }) => {
+      const created = await createAndRead({
+        bookingType: 'purchase',
+        productId: 3,
+      });
+      await app
+        .get(DataSource)
+        .getRepository(storedPendingScanSchema)
+        .update({ id: created.id }, { productId });
 
-    const response = await accept({ pendingScanId: created.id });
+      const response = await accept({ pendingScanId: created.id });
 
-    expect(response.status).toBe(422);
-    expect(await response.json()).toEqual({
-      detail: 'No product has the id 999.',
-      instance: '/api/v2/bookings',
-      status: 422,
-      title: 'An id names nothing in Grocy',
-      type: '/problems/unknown-id',
-    });
-  });
+      expect(response.status).toBe(422);
+      expect(await response.json()).toEqual({
+        detail: `No product has the id ${String(productId)}.`,
+        instance: '/api/v2/bookings',
+        status: 422,
+        title: 'An id names nothing in Grocy',
+        type: '/problems/unknown-id',
+      });
+    },
+  );
 
   // Grocy refuses a purchase into the inactive location 4 with no due date.
   // The row stays, and its error is the Grocy message.

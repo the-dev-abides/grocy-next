@@ -252,21 +252,54 @@ describe('the update of a pending scan that sets a product', () => {
     expect(await read(created.id)).toEqual(created);
   });
 
-  it('refuses a product id that names nothing in Grocy with the unknown-id problem', async () => {
+  // Product 8 is inactive in the Grocy mock. Grocy refuses the read of an
+  // inactive product as it refuses an unknown id.
+  it.each([
+    { productId: 999, reason: 'names nothing in Grocy' },
+    { productId: 8, reason: 'names an inactive product' },
+  ])(
+    'refuses a product id that $reason with the unknown-id problem',
+    async ({ productId }) => {
+      const created = await createAndRead({
+        bookingType: 'purchase',
+        code: NEW_CODE,
+        writeInName: 'Pasta',
+      });
+
+      const response = await update(created.id, { productId });
+
+      expect(response.status).toBe(422);
+      expect(await response.json()).toMatchObject({
+        detail: `No product has the id ${String(productId)}.`,
+        type: '/problems/unknown-id',
+      });
+      expect(await read(created.id)).toEqual(created);
+    },
+  );
+
+  // The product of the row became inactive in Grocy after the create. The
+  // test writes the product id into the stored row, because the create
+  // refuses an inactive product. An update that repeats that product id is
+  // refused too.
+  it('refuses an update that repeats the product id of an inactive product', async () => {
     const created = await createAndRead({
       bookingType: 'purchase',
-      code: NEW_CODE,
-      writeInName: 'Pasta',
+      productId: 3,
     });
+    await app
+      .get(DataSource)
+      .getRepository(storedPendingScanSchema)
+      .update({ id: created.id }, { productId: 8 });
+    const stored = await read(created.id);
 
-    const response = await update(created.id, { productId: 999 });
+    const response = await update(created.id, { amount: 4, productId: 8 });
 
     expect(response.status).toBe(422);
     expect(await response.json()).toMatchObject({
-      detail: 'No product has the id 999.',
+      detail: 'No product has the id 8.',
       type: '/problems/unknown-id',
     });
-    expect(await read(created.id)).toEqual(created);
+    expect(await read(created.id)).toEqual(stored);
   });
 
   // No fixture product has a picture. Thus the update downloads the front image

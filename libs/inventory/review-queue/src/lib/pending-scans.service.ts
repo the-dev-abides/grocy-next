@@ -93,11 +93,15 @@ export class PendingScansService {
   // the transaction, so the worker reads a stored row. A repeat scan adds to
   // a row that the worker already took. A repeat Inventory scan writes
   // nothing and returns the open row. A lookup result is never in the
-  // create response.
+  // create response. A product id in the body must name an active product,
+  // else the create is the unknown-id problem.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
   ): Promise<CreateResult> {
+    if (body.productId !== undefined) {
+      await readActiveProduct(this.grocy, body.productId);
+    }
     const match =
       body.code === undefined ? null : await resolveCode(this.grocy, body.code);
     const row = pendingScanToStore(body, match, now());
@@ -147,14 +151,20 @@ export class PendingScansService {
 
   // The update of ADR 0014: a JSON merge patch on the writable fields. The
   // response is the row as stored. An update that sets a product on a row
-  // that had none, or changes it, also writes to Grocy.
+  // that had none, or changes it, also writes to Grocy. A product id in the
+  // body must name an active product, also when it repeats the product of
+  // the row.
   async update(id: number, body: UpdatePendingScan): Promise<PendingScan> {
     const row = await this.read(id);
     const updated = updatedPendingScan(row, body, now());
     const productId = changedProductIdOf(row, updated);
-    return productId === null
-      ? this.pendingScans.save(updated)
-      : this.setProduct(updated, productId);
+    if (productId !== null) {
+      return this.setProduct(updated, productId);
+    }
+    if (typeof body.productId === 'number') {
+      await readActiveProduct(this.grocy, body.productId);
+    }
+    return this.pendingScans.save(updated);
   }
 
   // The reject of ADR 0010. The response is the row as it was before the

@@ -330,6 +330,15 @@ resources:
       productId: '7'
     response:
       file: responses/stock-product-7.json
+  # Product 8 is inactive. Grocy refuses the details read of an inactive
+  # product with the same error as an unknown id.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '8'
+    response:
+      statusCode: 400
+      content: '{"error_message": "Product does not exist or is inactive"}'
   - path: /api/stock/products/{productId}
     method: GET
     response:

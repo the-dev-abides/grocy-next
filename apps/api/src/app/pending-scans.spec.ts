@@ -293,48 +293,31 @@ describe('the pending scans of the Next API', () => {
 
   // A scan screen sends the price that the user typed for the next scan. A
   // repeat scan with a price gives the merged row that price and its price
-  // type. The repeat scan above sends no price, so the row keeps its price.
-  it('gives the merged row the price and the price type of a repeat scan with a price', async () => {
-    const first = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-    });
+  // type, with the unit price as the default type. The repeat scan above
+  // sends no price, so the row keeps its price.
+  it.each([
+    { expected: 'total', priceType: 'total' },
+    { expected: 'unit', priceType: undefined },
+  ])(
+    'gives the merged row the price of a repeat scan with the price type $priceType',
+    async ({ expected, priceType }) => {
+      const scan = { bookingType: 'purchase', code: '7622300441937' };
+      const first = await createAndRead({
+        ...scan,
+        price: 3,
+        priceType: 'total',
+      });
 
-    const body = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-      price: 4.5,
-      priceType: 'total',
-    });
+      const body = await createAndRead({ ...scan, price: 1.25, priceType });
 
-    expect(body).toMatchObject({
-      amount: 2,
-      id: first.id,
-      price: 4.5,
-      priceType: 'total',
-    });
-  });
-
-  it('gives the merged row the unit price type when a repeat scan has a price and no price type', async () => {
-    const first = await createAndRead({
-      bookingType: 'purchase',
-      code: '7622300441937',
-      price: 3,
-      priceType: 'total',
-    });
-
-    const body = await createAndRead({
-      bookingType: 'purchase',
-      code: '7622300441937',
-      price: 1.25,
-    });
-
-    expect(body).toMatchObject({
-      id: first.id,
-      price: 1.25,
-      priceType: 'unit',
-    });
-  });
+      expect(body).toMatchObject({
+        amount: 2,
+        id: first.id,
+        price: 1.25,
+        priceType: expected,
+      });
+    },
+  );
 
   it('moves the merged row to the top of the list', async () => {
     const first = await createAndRead({
@@ -444,6 +427,28 @@ describe('the pending scans of the Next API', () => {
     expect(third.pendingScan.amount).toBe(2);
   });
 
+  // Product 8 is inactive in the Grocy mock. Grocy refuses the read of an
+  // inactive product as it refuses an unknown id.
+  it.each([
+    { productId: 999, reason: 'an unknown product' },
+    { productId: 8, reason: 'an inactive product' },
+  ])(
+    'refuses a create with the product id of $reason with the unknown-id problem',
+    async ({ productId }) => {
+      const response = await create({ bookingType: 'purchase', productId });
+
+      expect(response.status).toBe(422);
+      expect(await response.json()).toMatchObject({
+        instance: '/api/v2/pending-scans',
+        status: 422,
+        type: '/problems/unknown-id',
+      });
+      const list = await fetch(`${baseUrl}/api/v2/pending-scans`);
+      const { items } = (await list.json()) as { items: PendingScanBody[] };
+      expect(items).toEqual([]);
+    },
+  );
+
   it('refuses a body with no code and no product with a validation problem', async () => {
     const response = await create({ bookingType: 'purchase' });
 
@@ -547,7 +552,16 @@ describe('the pending scans of the Next API', () => {
 
     const document = (await response.json()) as {
       components: { schemas: Record<string, { required?: string[] }> };
-      paths: Record<string, Record<string, { operationId: string }>>;
+      paths: Record<
+        string,
+        Record<
+          string,
+          {
+            operationId: string;
+            responses: Record<string, { description: string }>;
+          }
+        >
+      >;
     };
     const operationIds: string[] = [];
     for (const [path, methods] of Object.entries(document.paths)) {
@@ -566,6 +580,14 @@ describe('the pending scans of the Next API', () => {
     );
     expect(document.components.schemas['PendingScan']?.required).toEqual(
       Object.keys(UNSET_FIELDS),
+    );
+    // A create with a product id that names no active product is refused.
+    const creation = document.paths['/api/v2/pending-scans']?.['post'];
+    expect(Object.keys(creation?.responses ?? {})).toEqual(
+      expect.arrayContaining(['422']),
+    );
+    expect(creation?.responses['422']?.description).toBe(
+      'An id names nothing in Grocy',
     );
   });
 });

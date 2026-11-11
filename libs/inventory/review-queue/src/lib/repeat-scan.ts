@@ -58,8 +58,8 @@ function queryRepeatTarget(
 // store, or null when the repeat changes nothing. Purchase: add the product
 // barcode amount when the product barcode has one, else one, and set the
 // scan time to now. When the body of the repeat scan has a price, the row
-// takes that price and its price type. Else the row keeps its price.
-// Inventory: change nothing. The Inventory scan screen makes the list of the
+// takes that price and its price type. Else the row keeps its price. For
+// Inventory, change nothing. The Inventory scan screen makes the list of the
 // products, and the review queue sets the amounts.
 export function mergedPendingScan(
   target: StoredPendingScan,
