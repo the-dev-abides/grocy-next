@@ -1,84 +1,25 @@
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Navigate, Route, Routes } from 'react-router';
 
-import type { Product } from './api';
+import { ReviewQueuePage } from './review-queue/review-queue-page';
+import { InventoryScanPage } from './scan/inventory-scan-page';
+import { PurchaseScanPage } from './scan/purchase-scan-page';
+import { Shell } from './shell/shell';
+import { ProductsPage } from './stock/products-page';
 
-import { useListProductsQuery } from './api';
-
-// The one page of milestone 1: the product list. The grid has one column on
-// a phone, two on a tablet, and three on a large screen.
+// The routes of the web app. The route `/` and an unknown path open the
+// review queue. The API serves `index.html` for every path outside `/api`,
+// so every route opens from a reload too.
 export function App() {
-  const {
-    data: products,
-    isError,
-    isLoading,
-  } = useListProductsQuery(undefined);
-
   return (
-    <main
-      className="
-        mx-auto flex min-h-svh w-full max-w-6xl flex-col gap-6 p-4
-        sm:p-6
-      "
-    >
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-medium">Grocy Next</h1>
-        <p className="text-sm text-muted-foreground">
-          The companion app for Grocy.
-        </p>
-      </header>
-      <section className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-xl font-medium">Products</h2>
-          {products && (
-            <p className="text-sm text-muted-foreground">
-              {products.length} products
-            </p>
-          )}
-        </div>
-        {isLoading && <p>The product list loads.</p>}
-        {isError && (
-          <p role="alert">
-            The product list did not load. Check that the API runs and that
-            Grocy answers.
-          </p>
-        )}
-        {products && <ProductList products={products} />}
-      </section>
-    </main>
-  );
-}
-
-function ProductList({ products }: Readonly<{ products: readonly Product[] }>) {
-  if (products.length === 0) {
-    return <p>Grocy has no products.</p>;
-  }
-  return (
-    <ul
-      className="
-        grid grid-cols-1 gap-3
-        sm:grid-cols-2
-        lg:grid-cols-3
-      "
-    >
-      {products.map((product) => {
-        return (
-          <li key={product.id}>
-            <Card size="sm" className="h-full">
-              <CardHeader>
-                <CardTitle>{product.name}</CardTitle>
-                {product.description && (
-                  <CardDescription>{product.description}</CardDescription>
-                )}
-              </CardHeader>
-            </Card>
-          </li>
-        );
-      })}
-    </ul>
+    <Shell>
+      <Routes>
+        <Route path="/" element={<Navigate replace to="/review-queue" />} />
+        <Route path="/scan/purchase" element={<PurchaseScanPage />} />
+        <Route path="/scan/inventory" element={<InventoryScanPage />} />
+        <Route path="/review-queue" element={<ReviewQueuePage />} />
+        <Route path="/stock" element={<ProductsPage />} />
+        <Route path="*" element={<Navigate replace to="/review-queue" />} />
+      </Routes>
+    </Shell>
   );
 }
