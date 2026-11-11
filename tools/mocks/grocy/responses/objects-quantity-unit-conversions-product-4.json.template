@@ -1,0 +1,10 @@
+[
+  {
+    "id": 7,
+    "from_qu_id": ${stores.product.qu_id_purchase},
+    "to_qu_id": ${stores.product.qu_id_stock},
+    "factor": ${stores.product.factor},
+    "row_created_timestamp": "2026-11-10 12:00:00",
+    "product_id": 4
+  }
+]

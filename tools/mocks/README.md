@@ -57,6 +57,19 @@ another product already has. A product picture upload and a product update
 answer 204. The product details never show the new product barcode or the
 picture, because the mock holds no state.
 
+A product create answers the id 4 for every name except the name of product
+1, which gets the Grocy error of a name that another product already has.
+The create captures the name, the location, the two units, the minimum
+stock amount, and the default due days of the request into the Imposter
+store `product`, and sets the factor in that store to 1. The product
+conversions of product 4 hold the one row that the Grocy trigger creates,
+from the purchase unit to the stock unit, with the id 7. An update of a
+conversion row captures the factor into the store. The details read of
+product 4 is a template that reads the store, so a test sees the fields of
+the create and the factor of the update. The description and the product
+group are not captured, because a field that the request left out renders
+as `<nil>`, so the details of product 4 answer null for both.
+
 A request that no resource matches gets the example from the specification,
 not an error. A response that shows Grocy demo data, such as the product
 "Cookies", means that the resource is missing.
@@ -101,6 +114,9 @@ with the filter holds three rows and the list without it holds four.
    real Grocy 4.7.1 answer. Grocy returns numbers as JSON numbers.
 2. Add one resource to `grocy/grocy-config.yaml` with the path, the method,
    and the query or the path parameter value that selects the file.
+   When a later read must show a value of the request, add a `capture` block
+   to the resource that stores the value, and read it in a template with
+   `${stores.<store>.<key>}`. The product create shows the form.
 3. Start the mock by hand and call the resource with `curl`. Send the header
    `GROCY-API-KEY` and, for a body, `Content-Type: application/json`.
 

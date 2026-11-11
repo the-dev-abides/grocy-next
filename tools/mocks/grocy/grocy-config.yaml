@@ -101,6 +101,81 @@ resources:
     response:
       file: responses/objects-product-barcodes-created.json
 
+  # The product create. The short product form creates the product in Grocy.
+  # Grocy answers the id of the new row. The name of product 1 gets the Grocy
+  # error of a name that another product already has, as the database
+  # answers it. The mock holds no state, so the create captures the fields of
+  # the request into the store `product`, and the details read of product 4
+  # below answers them. The factor from the purchase unit to the stock unit
+  # starts at 1, as the Grocy trigger sets it on the conversion row, and the
+  # conversion row update below changes it. A captured field that the request
+  # left out renders as `<nil>`, so the description and the product group are
+  # not captured, and the details read answers null for both.
+  - path: /api/objects/products
+    method: POST
+    requestBody:
+      jsonPath: $.name
+      value: 'Coca-Cola Original 330 ml'
+    response:
+      statusCode: 400
+      content: '{"error_message": "UNIQUE constraint failed: products.name"}'
+  - path: /api/objects/products
+    method: POST
+    capture:
+      name:
+        store: product
+        requestBody:
+          jsonPath: $.name
+      location_id:
+        store: product
+        requestBody:
+          jsonPath: $.location_id
+      qu_id_purchase:
+        store: product
+        requestBody:
+          jsonPath: $.qu_id_purchase
+      qu_id_stock:
+        store: product
+        requestBody:
+          jsonPath: $.qu_id_stock
+      min_stock_amount:
+        store: product
+        requestBody:
+          jsonPath: $.min_stock_amount
+      default_best_before_days:
+        store: product
+        requestBody:
+          jsonPath: $.default_best_before_days
+      factor:
+        store: product
+        const: '1'
+    response:
+      file: responses/objects-products-created.json
+
+  # The product conversions of the new product 4: the one row that the Grocy
+  # trigger created from the purchase unit to the stock unit with factor 1.
+  # The row id is 7. The update of that row captures the factor into the
+  # store `product`, so the details read of product 4 shows it. Grocy answers
+  # the update with 204 and no body.
+  - path: /api/objects/quantity_unit_conversions
+    method: GET
+    queryParams:
+      query[]: product_id=4
+    response:
+      template: true
+      file: responses/objects-quantity-unit-conversions-product-4.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/objects/quantity_unit_conversions/{objectId}
+    method: PUT
+    capture:
+      factor:
+        store: product
+        requestBody:
+          jsonPath: $.factor
+    response:
+      statusCode: 204
+
   # The resolved conversions of one product. Each fixture product has the
   # row from the stock unit to itself with factor 1. Product 3 also has the
   # conversion between the Box and the Pack, so a Purchase in Boxes converts
@@ -159,8 +234,12 @@ resources:
       template: true
       content: '{"error_message": "No product with barcode ${context.request.pathParams.barcode} found"}'
 
-  # The product details by id. The same three files. Every other id gets the
-  # Grocy error.
+  # The product details by id. The same three files. Product 4 is the product
+  # that the product create answered. Its template reads the store `product`,
+  # so the details show the fields of the create request and the factor of
+  # the conversion row update. The template holds no quantity unit object
+  # and no location object, because the store holds the ids only. Every
+  # other id gets the Grocy error.
   - path: /api/stock/products/{productId}
     method: GET
     pathParams:
@@ -179,6 +258,15 @@ resources:
       productId: '3'
     response:
       file: responses/stock-product-3.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '4'
+    response:
+      template: true
+      file: responses/stock-product-4.json.template
+      headers:
+        Content-Type: application/json
   - path: /api/stock/products/{productId}
     method: GET
     response:
