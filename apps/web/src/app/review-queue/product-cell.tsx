@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { cn } from 'cn';
 import { AlertTriangle } from 'lucide-react';
 
@@ -122,13 +124,16 @@ function ErrorLine({ error }: Readonly<{ error: null | string }>) {
 }
 
 // The product cell: the name, the meta line, the facts of the hidden
-// columns, the state below `md`, and the Grocy message of a failed accept.
+// columns, the state below `md`, the lines of the caller such as the
+// Inventory facts, and the Grocy message of a failed accept.
 export function ProductCell({
+  children,
   lists,
   name,
   scan,
   state,
 }: Readonly<{
+  children?: ReactNode;
   lists: QueueLists;
   name: string;
   scan: PendingScan;
@@ -147,6 +152,7 @@ export function ProductCell({
       >
         <StateBadge state={state} />
       </div>
+      {children}
       <ErrorLine error={scan.error} />
     </TableCell>
   );

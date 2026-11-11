@@ -12,10 +12,12 @@ import type { RowActions } from './use-row-actions';
 
 import { useGetProductQuery } from '../api/next-api';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
+import { AmountCell } from './amount-cell';
+import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { type RowState, stateOf } from './row-state';
-import { amountText, rowName } from './row-text';
+import { amountText, rowName, unitOf } from './row-text';
 import { useRowActions } from './use-row-actions';
 
 // The reject button on every row. The accept button on a ready row, and the
@@ -79,20 +81,24 @@ const FROM_MD = 'hidden md:table-cell';
 const FROM_XL = 'hidden xl:table-cell';
 const FROM_2XL = 'hidden 2xl:table-cell';
 
-// The fact cells after the product: the amount, the location, the due date,
+// The fact cells after the product: the amount with the count field of an
+// Inventory row from `md`, the location, the due date,
 // the price and the store of a Purchase row, the time, and the state.
 function FactCells({
   lists,
+  onCount,
   product,
   scan,
   state,
 }: Readonly<{
   lists: QueueLists;
+  onCount: (amount: null | number) => void;
   product: Product | undefined;
   scan: PendingScan;
   state: RowState;
 }>) {
   const isPurchase = scan.bookingType === 'purchase';
+  const text = amountText(scan, product, lists.quantityUnits);
   return (
     <>
       <TableCell
@@ -101,7 +107,21 @@ function FactCells({
           md:w-36
         "
       >
-        {amountText(scan, product, lists.quantityUnits)}
+        <span className="md:hidden">{text}</span>
+        <span
+          className="
+            hidden
+            md:block
+          "
+        >
+          <AmountCell
+            product={product}
+            scan={scan}
+            text={text}
+            unit={unitOf(scan, product, lists.quantityUnits)}
+            onCount={onCount}
+          />
+        </span>
       </TableCell>
       <TableCell className={FROM_MD}>
         {nameOf(lists.locations, scan.locationId, 'Product default')}
@@ -123,6 +143,16 @@ function FactCells({
   );
 }
 
+// The stock unit of the product, in which the result line names a booking.
+function stockUnitOf(
+  product: Product | undefined,
+  quantityUnits: QueueLists['quantityUnits'],
+): string {
+  return product === undefined
+    ? ''
+    : nameOf(quantityUnits, product.stockUnitId, '');
+}
+
 // One row of the review queue table. The columns of the prototype: the
 // product with its facts, the amount, the location from `md`, the due date
 // and the price from `xl`, the store and the time from `2xl`, the state from
@@ -142,6 +172,7 @@ export function QueueRow({
     scan.productId === null ? skipToken : { id: scan.productId },
   ).data;
   const state = stateOf(scan);
+  const unit = unitOf(scan, product, lists.quantityUnits);
   // The product read names a product that the product list does not hold
   // yet, such as a product that the short product form created.
   const name = product?.name ?? rowName(scan, lists.products);
@@ -151,10 +182,7 @@ export function QueueRow({
     onChanged,
     onResult,
     scan,
-    stockUnit:
-      product === undefined
-        ? ''
-        : nameOf(lists.quantityUnits, product.stockUnitId, ''),
+    stockUnit: stockUnitOf(product, lists.quantityUnits),
   });
   return (
     <TableRow
@@ -167,8 +195,21 @@ export function QueueRow({
         actions.isBusy && 'opacity-50',
       )}
     >
-      <ProductCell lists={lists} name={name} scan={scan} state={state} />
-      <FactCells lists={lists} product={product} scan={scan} state={state} />
+      <ProductCell lists={lists} name={name} scan={scan} state={state}>
+        <InventoryLines
+          lists={lists}
+          product={product}
+          scan={scan}
+          unit={unit}
+        />
+      </ProductCell>
+      <FactCells
+        lists={lists}
+        product={product}
+        scan={scan}
+        state={state}
+        onCount={actions.setCount}
+      />
       <TableCell className="text-right">
         <RowButtons actions={actions} lists={lists} scan={scan} state={state} />
       </TableCell>

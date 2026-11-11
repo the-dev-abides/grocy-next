@@ -12,6 +12,7 @@ export interface RowActions {
   accept: () => void;
   isBusy: boolean;
   reject: () => void;
+  setCount: (amount: null | number) => void;
   setProduct: (productId: number) => void;
 }
 
@@ -23,10 +24,10 @@ interface RowFacts {
 }
 
 // The product pick and the short product form send the update that sets the
-// product. The server adds the code to the product and sets the picture. A
+// product, and the count field sends the update that sets the count. The server adds the code to the product and sets the picture. A
 // failed update keeps the row as it was, so the result line shows the
 // problem.
-function useSetProduct({ name, onChanged, onResult, scan }: RowFacts) {
+function useRowUpdates({ name, onChanged, onResult, scan }: RowFacts) {
   const [updatePendingScan, updating] = useUpdatePendingScanMutation();
 
   async function setProduct(productId: number): Promise<void> {
@@ -41,8 +42,25 @@ function useSetProduct({ name, onChanged, onResult, scan }: RowFacts) {
     onChanged();
   }
 
+  // The count of an Inventory row is the amount of the row. A failed update
+  // keeps the row as it was, so the result line shows the problem.
+  async function setCount(amount: null | number): Promise<void> {
+    try {
+      await updatePendingScan({
+        id: scan.id,
+        updatePendingScan: { amount },
+      }).unwrap();
+    } catch (error) {
+      onResult({ isOk: false, message: failureText(error), name });
+    }
+    onChanged();
+  }
+
   return {
     isBusy: updating.isLoading,
+    setCount: (amount: null | number) => {
+      void setCount(amount);
+    },
     setProduct: (productId: number) => {
       void setProduct(productId);
     },
@@ -69,7 +87,7 @@ export function useRowActions({
 >): RowActions {
   const [createBooking, accepting] = useCreateBookingMutation();
   const [deletePendingScan, rejecting] = useDeletePendingScanMutation();
-  const product = useSetProduct({ name, onChanged, onResult, scan });
+  const updates = useRowUpdates({ name, onChanged, onResult, scan });
 
   async function accept(): Promise<void> {
     try {
@@ -102,10 +120,11 @@ export function useRowActions({
     accept: () => {
       void accept();
     },
-    isBusy: accepting.isLoading || rejecting.isLoading || product.isBusy,
+    isBusy: accepting.isLoading || rejecting.isLoading || updates.isBusy,
     reject: () => {
       void reject();
     },
-    setProduct: product.setProduct,
+    setCount: updates.setCount,
+    setProduct: updates.setProduct,
   };
 }
