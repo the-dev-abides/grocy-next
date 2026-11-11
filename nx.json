@@ -13,6 +13,13 @@
     ],
     "sharedGlobals": []
   },
+  "targetDefaults": {
+    "lint": {
+      "options": {
+        "command": "eslint . --max-warnings=0"
+      }
+    }
+  },
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
