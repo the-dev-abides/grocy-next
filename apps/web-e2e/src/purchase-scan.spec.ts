@@ -14,6 +14,14 @@ import {
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 
+// The Open Food Facts mock of the Playwright configuration. The lookup worker
+// of the API names the source URL after it.
+const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
+
+// The lookup worker answers within a few seconds. The row shows the result
+// at the next poll of the pending scan list.
+const LOOKUP_TIMEOUT_MS = 15_000;
+
 interface PendingScanRow {
   code: null | string;
   id: number;
@@ -252,4 +260,30 @@ test('a price typed before a scan lands on that row, the field clears, and the p
   await expect(row).toContainText('2.5 total');
   await expect(price).toHaveValue('');
   await expect(total).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('a typed unknown code shows its lookup result name and the service link within the poll', async ({
+  page,
+  request,
+}) => {
+  // The second unknown code of the Open Food Facts mock, Barilla Basilico
+  // 400 g. The camera tests own the first unknown code, and a typed code
+  // merges into an open row of the same code.
+  const code = '8076809513722';
+  await removeRowsWithCode(request, code);
+  await page.goto('/scan/purchase');
+
+  await typeCode(page, code);
+
+  // The row shows the bare code first, and the name of the lookup result
+  // after the lookup. The service name is a link to the product page.
+  const row = sessionRows(page).filter({ hasText: /8076809513722|Basilico/ });
+  await expect(row).toBeVisible();
+  const link = row.getByRole('link', { name: 'Open Food Facts' });
+  await expect(link).toBeVisible({ timeout: LOOKUP_TIMEOUT_MS });
+  await expect(row).toContainText('Basilico');
+  await expect(link).toHaveAttribute(
+    'href',
+    `${OPEN_FACTS_MOCK_URL}/product/${code}`,
+  );
 });
