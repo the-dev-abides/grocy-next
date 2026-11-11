@@ -88,8 +88,7 @@ QA regression test document for the paths that no test can reach.
   runtime, and both start slower than the native binary.
 - The online lookup off in the end-to-end tests. Rejected: the "New product"
   path then has no test.
-- The Playwright config as it was, with the reuse of the dev server on port
-  4200. Rejected: a dev server against a real Grocy would take the test
+- The Playwright config as it was, with the reuse of the dev server on port 4200. Rejected: a dev server against a real Grocy would take the test
   bookings.
 
 ## Consequences

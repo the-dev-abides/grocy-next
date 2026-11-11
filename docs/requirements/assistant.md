@@ -12,7 +12,7 @@ It describes **capabilities only**:
 ## 2. Tools in use today
 
 | Tool                  |                                                                               | What it is                                                                                                                                                                                                             |
-|-----------------------|-------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Grocy**             | thijserven/grocy-mcp                                                          | Direct access to Grocy's own API. Broad coverage of Grocy: any object type, stock actions, barcodes, shopping list, recipes, undo. Edits return no confirmation, and fields it doesn't recognise are silently dropped. |
 | **Grocy Mealie Sync** | [HarmEllis/grocy-mealie-sync](https://github.com/HarmEllis/grocy-mealie-sync) | Checked, confirmed operations on both Grocy and Mealie, plus the links between them. It is currently the **only** way to reach Mealie.                                                                                 |
 
@@ -27,13 +27,13 @@ Coverage tags used below:
 
 ### 3.1 General behaviour (applies to everything)
 
-1. Every change returns a **confirmation of what was actually changed**, showing the stored values afterwards. **[Sync]**; *[Defect] in Grocy, which returns nothing.*
-2. A field that cannot be set must cause a **clear error**, never be silently ignored. **[Missing]**; *Grocy drops unknown fields without warning.*
-3. Changing one field must **leave every other field untouched**. *[Defect]: editing a stock entry through the sync tool wipes its note and demands the amount and dates again.*
-4. A change must have **no hidden side effects**. Where one is unavoidable, it is stated before it happens. *[Defect]: linking a Mealie food to a Grocy product can rename the Grocy product.*
+1. Every change returns a **confirmation of what was actually changed**, showing the stored values afterwards. **[Sync]**; _[Defect] in Grocy, which returns nothing._
+2. A field that cannot be set must cause a **clear error**, never be silently ignored. **[Missing]**; _Grocy drops unknown fields without warning._
+3. Changing one field must **leave every other field untouched**. _[Defect]: editing a stock entry through the sync tool wipes its note and demands the amount and dates again._
+4. A change must have **no hidden side effects**. Where one is unavoidable, it is stated before it happens. _[Defect]: linking a Mealie food to a Grocy product can rename the Grocy product._
 5. Text is stored and returned **exactly as given**, accents included (e.g. jalapeño). **[Both]**
 6. Errors say **what failed and why**, including what blocks a delete. **[Sync]** (partial)
-7. Several changes made at the same time must all succeed or each report its own failure. *[Defect]: simultaneous changes sometimes fail with "database is locked".*
+7. Several changes made at the same time must all succeed or each report its own failure. _[Defect]: simultaneous changes sometimes fail with "database is locked"._
 
 ### 3.2 Bulk operations
 
@@ -44,7 +44,7 @@ Coverage tags used below:
 
 ### 3.3 Reading and searching
 
-1. List **everything** of any type, at any size, without results being cut off. *[Defect]: a full product list (~180 items) is truncated.*
+1. List **everything** of any type, at any size, without results being cut off. _[Defect]: a full product list (~180 items) is truncated._
 2. Filter lists by any attribute (location, group, unit, stock level, linked or not, has stock or not) and return only the fields requested. **[Sync]** (partial filters; no field selection)
 3. Search products and foods by name, alias, alternate name or barcode. **[Both]** (partial; no alternate-name search)
 4. View the full record of any single item, every field included. **[Grocy]**
@@ -58,7 +58,7 @@ Coverage tags used below:
    - minimum stock
    - shelf-life defaults: best-before, after opening, after freezing, after thawing
    - freezing rules, behaviour on open
-   - **purchase, stock, consume and price units** *([Defect]: consume and price units cannot be changed by either tool)*
+   - **purchase, stock, consume and price units** _([Defect]: consume and price units cannot be changed by either tool)_
    - **tare weight handling and container empty weight** **[Grocy]**
    - parent product
    - active or hidden flags
@@ -80,7 +80,7 @@ Coverage tags used below:
 1. List, create, update and remove links between products and foods, and between units. **[Sync]**
 2. List everything unlinked on either side, and suggest likely links. **[Sync]**
 3. Find **broken links** that point at something that no longer exists. **[Missing]**
-4. Creating a link must not rename either side unless asked. *[Defect]*
+4. Creating a link must not rename either side unless asked. _[Defect]_
 
 ### 3.7 Units and conversions
 
@@ -101,7 +101,7 @@ Coverage tags used below:
 2. Record a purchase with amount, unit, price, purchase date, store, location, best-before date and note. **[Both]** (store and price handling incomplete in sync tool)
 3. Consume, open, and set stock to a counted amount. **[Both]**
 4. **Move stock between locations**. **[Grocy]**; not in sync tool
-5. Edit any single field of a stock entry. *[Defect], see 3.1 item 3.*
+5. Edit any single field of a stock entry. _[Defect], see 3.1 item 3._
 6. Record stock by **gross weight** (container included), with the empty weight subtracted using the product's tare. **[Grocy]** (via Grocy's own tare handling)
 7. Act on stock by **barcode**. **[Grocy]**
 8. List low, expiring, overdue and expired stock. **[Both]** (partial)
@@ -123,7 +123,7 @@ Coverage tags used below:
 ## 4. Overlap: preference where both tools can do it
 
 | Capability                                          | Preference                                                                          | Why                                                                                                           |
-|-----------------------------------------------------|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Rename products; set location, group, minimum stock | **Grocy Mealie Sync**                                                               | Confirms what changed and keeps the linked Mealie food consistent. Grocy only for fields the sync tool lacks. |
 | Set units on a product                              | **Grocy Mealie Sync**                                                               | Confirms the change. Neither can set consume and price units today.                                           |
 | Tare weight                                         | **Grocy**                                                                           | Only Grocy can set it.                                                                                        |

@@ -65,7 +65,7 @@ the Next API bodies.
   wiring. The tool providers live in the domain libraries.
 - How the maintainer connects a client: one user documentation page,
   "Connect an assistant", with the recipes for Claude Code (`claude mcp add
-  --transport http` with the `--header`), claude.ai and Claude Desktop (a
+--transport http` with the `--header`), claude.ai and Claude Desktop (a
   custom connector with "No sign in" and the header under Request headers;
   the server must be reachable from the public internet), Open WebUI
   (type "MCP (Streamable HTTP)", auth mode Bearer), and the ChatGPT note.

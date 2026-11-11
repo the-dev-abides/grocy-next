@@ -31,14 +31,14 @@ and a poll for the changes that the lookup worker makes.
   one.
 - Error statuses:
 
-  | Status | Cause                                                                                                                                                      |
-  | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | 400    | The body, the query, or a path id fails the Zod schema. An unknown field is one entry in `errors` with its path and the message "unknown field".          |
-  | 404    | The id in the path names nothing.                                                                                                                          |
-  | 409    | A fact of the resource itself blocks the change: an accept of a pending scan with no product, or an Inventory accept with no amount.                      |
-  | 415    | The body is not JSON.                                                                                                                                      |
-  | 422    | A fact outside the resource blocks the change: Grocy refused it with a `400`, the product has no conversion, or an id in the body names nothing.          |
-  | 502    | Grocy answered `500`, or Grocy did not answer.                                                                                                             |
+  | Status | Cause                                                                                                                                            |
+  | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | 400    | The body, the query, or a path id fails the Zod schema. An unknown field is one entry in `errors` with its path and the message "unknown field". |
+  | 404    | The id in the path names nothing.                                                                                                                |
+  | 409    | A fact of the resource itself blocks the change: an accept of a pending scan with no product, or an Inventory accept with no amount.             |
+  | 415    | The body is not JSON.                                                                                                                            |
+  | 422    | A fact outside the resource blocks the change: Grocy refused it with a `400`, the product has no conversion, or an id in the body names nothing. |
+  | 502    | Grocy answered `500`, or Grocy did not answer.                                                                                                   |
 
   A `422` from Grocy carries the Grocy message as `detail` and the `grocy`
   field. A `422` from a server rule has no `grocy` field.
