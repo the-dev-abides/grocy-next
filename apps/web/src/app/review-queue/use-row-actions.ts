@@ -1,4 +1,4 @@
-import type { Location, PendingScan } from '../api/next-api';
+import type { Location, PendingScan, UpdatePendingScan } from '../api/next-api';
 import type { ResultLine } from './result-panel';
 
 import {
@@ -12,6 +12,7 @@ export interface RowActions {
   accept: () => void;
   isBusy: boolean;
   reject: () => void;
+  save: (body: UpdatePendingScan) => void;
   setCount: (amount: null | number) => void;
   setProduct: (productId: number) => void;
 }
@@ -24,45 +25,36 @@ interface RowFacts {
 }
 
 // The product pick and the short product form send the update that sets the
-// product, and the count field sends the update that sets the count. The server adds the code to the product and sets the picture. A
-// failed update keeps the row as it was, so the result line shows the
-// problem.
+// product, the count field sends the update that sets the count, and the full
+// form sends the update with every field. The server adds the code to the
+// product and sets the picture. A failed update keeps the row as it was, so
+// the result line shows the problem.
 function useRowUpdates({ name, onChanged, onResult, scan }: RowFacts) {
   const [updatePendingScan, updating] = useUpdatePendingScanMutation();
 
-  async function setProduct(productId: number): Promise<void> {
+  async function send(body: UpdatePendingScan): Promise<void> {
     try {
       await updatePendingScan({
         id: scan.id,
-        updatePendingScan: { productId },
+        updatePendingScan: body,
       }).unwrap();
     } catch (error) {
-      onResult({ isOk: false, message: failureText(error), name });
-    }
-    onChanged();
-  }
-
-  // The count of an Inventory row is the amount of the row. A failed update
-  // keeps the row as it was, so the result line shows the problem.
-  async function setCount(amount: null | number): Promise<void> {
-    try {
-      await updatePendingScan({
-        id: scan.id,
-        updatePendingScan: { amount },
-      }).unwrap();
-    } catch (error) {
-      onResult({ isOk: false, message: failureText(error), name });
+      onResult({ message: failureText(error), name, outcome: 'failed' });
     }
     onChanged();
   }
 
   return {
     isBusy: updating.isLoading,
+    save: (body: UpdatePendingScan) => {
+      void send(body);
+    },
+    // The count of an Inventory row is the amount of the row.
     setCount: (amount: null | number) => {
-      void setCount(amount);
+      void send({ amount });
     },
     setProduct: (productId: number) => {
-      void setProduct(productId);
+      void send({ productId });
     },
   };
 }
@@ -95,13 +87,13 @@ export function useRowActions({
         createBooking: { pendingScanId: scan.id },
       }).unwrap();
       onResult({
-        isOk: true,
         message: bookingText(booking, stockUnit, locations),
         name,
+        outcome: 'booked',
       });
     } catch (error) {
       if (!isGrocyRefused(error)) {
-        onResult({ isOk: false, message: failureText(error), name });
+        onResult({ message: failureText(error), name, outcome: 'failed' });
       }
     }
     onChanged();
@@ -111,7 +103,7 @@ export function useRowActions({
     try {
       await deletePendingScan({ id: scan.id }).unwrap();
     } catch (error) {
-      onResult({ isOk: false, message: failureText(error), name });
+      onResult({ message: failureText(error), name, outcome: 'failed' });
     }
     onChanged();
   }
@@ -124,6 +116,7 @@ export function useRowActions({
     reject: () => {
       void reject();
     },
+    save: updates.save,
     setCount: updates.setCount,
     setProduct: updates.setProduct,
   };

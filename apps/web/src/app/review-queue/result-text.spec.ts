@@ -118,9 +118,19 @@ describe('the failure line of an accept', () => {
 });
 
 describe('the summary of the result panel', () => {
-  it('counts the booked rows and the failed rows', () => {
-    expect(summaryText(1, 0)).toBe('1 booked');
-    expect(summaryText(2, 1)).toBe('2 booked, 1 failed');
-    expect(summaryText(0, 1)).toBe('0 booked, 1 failed');
+  it('counts the booked rows, the failed rows, and the skipped rows', () => {
+    expect(summaryText({ booked: 1, failed: 0, skipped: 0 })).toBe('1 booked');
+    expect(summaryText({ booked: 2, failed: 1, skipped: 0 })).toBe(
+      '2 booked, 1 failed',
+    );
+    expect(summaryText({ booked: 0, failed: 1, skipped: 0 })).toBe(
+      '0 booked, 1 failed',
+    );
+    expect(summaryText({ booked: 2, failed: 0, skipped: 3 })).toBe(
+      '2 booked, 3 skipped',
+    );
+    expect(summaryText({ booked: 1, failed: 1, skipped: 1 })).toBe(
+      '1 booked, 1 failed, 1 skipped',
+    );
   });
 });

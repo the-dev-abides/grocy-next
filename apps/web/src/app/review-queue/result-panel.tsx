@@ -1,21 +1,47 @@
-import { Check, X } from 'lucide-react';
+import { Check, Minus, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
 import { summaryText } from './result-text';
 
 // One line of the result panel: the name of the row and the booking facts,
-// or the problem. The key is unique on the page, because one row can fail
-// and then be accepted again.
+// the problem, or why the bulk accept skipped the row. The key is unique on
+// the page, because one row can fail and then be accepted again.
 export interface ResultLine {
-  isOk: boolean;
   key: number;
   message: string;
   name: string;
+  outcome: 'booked' | 'failed' | 'skipped';
+}
+
+function countOf(
+  lines: readonly ResultLine[],
+  outcome: ResultLine['outcome'],
+): number {
+  return lines.filter((line) => line.outcome === outcome).length;
+}
+
+// The icon of a line: a check for a booking, an X for a problem, and a dash
+// for a skipped row.
+function OutcomeIcon({ outcome }: Readonly<Pick<ResultLine, 'outcome'>>) {
+  if (outcome === 'booked') {
+    return (
+      <Check
+        className="
+          mt-px size-3.5 shrink-0 text-green-700
+          dark:text-green-400
+        "
+      />
+    );
+  }
+  if (outcome === 'skipped') {
+    return <Minus className="mt-px size-3.5 shrink-0 text-muted-foreground" />;
+  }
+  return <X className="mt-px size-3.5 shrink-0 text-destructive" />;
 }
 
 // The result panel above the list: one line per accepted or failed row,
-// most recent at the top, and the count of booked and failed rows.
+// most recent at the top, and the count of booked, failed, and skipped rows.
 export function ResultPanel({
   lines,
   onClose,
@@ -23,7 +49,6 @@ export function ResultPanel({
   if (lines.length === 0) {
     return null;
   }
-  const bookedCount = lines.filter((line) => line.isOk).length;
   return (
     <div
       role="status"
@@ -31,7 +56,11 @@ export function ResultPanel({
     >
       <div className="flex items-center gap-2">
         <span className="font-medium">
-          {summaryText(bookedCount, lines.length - bookedCount)}
+          {summaryText({
+            booked: countOf(lines, 'booked'),
+            failed: countOf(lines, 'failed'),
+            skipped: countOf(lines, 'skipped'),
+          })}
         </span>
         <Button variant="ghost" size="sm" className="ml-auto" onClick={onClose}>
           Close
@@ -41,16 +70,7 @@ export function ResultPanel({
         {lines.map((line) => {
           return (
             <li key={line.key} className="flex items-start gap-1.5">
-              {line.isOk ? (
-                <Check
-                  className="
-                    mt-px size-3.5 shrink-0 text-green-700
-                    dark:text-green-400
-                  "
-                />
-              ) : (
-                <X className="mt-px size-3.5 shrink-0 text-destructive" />
-              )}
+              <OutcomeIcon outcome={line.outcome} />
               <span>
                 <span className="font-medium">{line.name}</span>: {line.message}
               </span>

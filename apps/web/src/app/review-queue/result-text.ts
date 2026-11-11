@@ -73,11 +73,19 @@ export function isGrocyRefused(error: unknown): boolean {
   return problemOf(error)?.type === GROCY_REFUSED;
 }
 
-// The first line of the result panel: how many rows were booked and how
-// many failed.
-export function summaryText(bookedCount: number, failedCount: number): string {
-  const booked = `${String(bookedCount)} booked`;
-  return failedCount === 0
-    ? booked
-    : `${booked}, ${String(failedCount)} failed`;
+// The counts of the result panel.
+export interface ResultCounts {
+  booked: number;
+  failed: number;
+  skipped: number;
+}
+
+// The first line of the result panel: how many rows were booked, how many
+// failed, and how many the bulk accept skipped.
+export function summaryText({ booked, failed, skipped }: ResultCounts): string {
+  return [
+    `${String(booked)} booked`,
+    ...(failed === 0 ? [] : [`${String(failed)} failed`]),
+    ...(skipped === 0 ? [] : [`${String(skipped)} skipped`]),
+  ].join(', ');
 }
