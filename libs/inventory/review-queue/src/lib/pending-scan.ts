@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 // The booking type of a pending scan says which booking the accept makes.
 // The scan screen sets it at create.
-const BOOKING_TYPES = ['inventory', 'purchase'] as const;
+export const BOOKING_TYPES = ['inventory', 'purchase'] as const;
 export type BookingType = (typeof BOOKING_TYPES)[number];
 
 // The price of a pending scan is stored as entered, with its price type.

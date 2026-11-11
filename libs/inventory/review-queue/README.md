@@ -2,9 +2,13 @@
 
 The review queue subdomain of the Inventory domain. The library holds the
 pending scan entity, the nutrition facts entity, the two migrations that
-create their tables, the pending scan schemas, and the pending scan
+create their tables, the pending scan and booking schemas, the pending scan
 operations of the Next API: the create, the list, the read, the update, and
-the delete. The create applies the repeat rule of ADR 0010 when the caller
+the delete, and the accept as the creation of a booking. The accept of a
+Purchase converts the amount and the price to the stock unit with the
+resolved conversions of the product, books the purchase in Grocy, deletes the
+row, and returns the stock log rows of the transaction. A Grocy refusal
+stays on the row as its error. The create applies the repeat rule of ADR 0010 when the caller
 asks for a merge, and queues the online barcode lookup of ADR 0011 for a new
 row with no product, no write-in name, and a code of 8, 12, 13, or 14
 digits. The lookup worker runs the lookups in the process with a plain

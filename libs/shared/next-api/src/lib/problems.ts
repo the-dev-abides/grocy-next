@@ -79,7 +79,9 @@ const grocyRefusalSchema = z
     message: z
       .string()
       .meta({ description: 'The error message that Grocy returned.' }),
-    status: z.int().meta({ description: 'The HTTP status that Grocy returned.' }),
+    status: z
+      .int()
+      .meta({ description: 'The HTTP status that Grocy returned.' }),
   })
   .meta({ id: 'GrocyRefusal' });
 

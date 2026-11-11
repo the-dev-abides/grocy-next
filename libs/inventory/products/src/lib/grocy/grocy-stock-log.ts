@@ -7,9 +7,9 @@ import type { StockLogRow } from '../stock-log-row.ts';
 const grocyNumber = z.coerce.number();
 const grocyNullableNumber = grocyNumber.nullable();
 
-// One stock log row of Grocy 4.7.1, as a booking call returns it. The schema is loose, because Grocy returns more fields than the client reads.
-// The field `stock_row_id` is the row id of the stock entry on a stock edit
-// and null on a purchase.
+// One stock log row of Grocy 4.7.1, as a booking call returns it. The schema
+// is loose, because Grocy returns more fields than the client reads. Grocy
+// writes `stock_row_id` on a stock edit and not on a purchase.
 const grocyStockLogRowSchema = z.looseObject({
   amount: grocyNumber,
   best_before_date: z.string().nullable(),

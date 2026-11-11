@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import type { LookupOptions } from './lookup/lookup-options.ts';
 
+import { BookingsController } from './bookings.controller.ts';
+import { BookingsService } from './bookings.service.ts';
 import { LOOKUP_OPTIONS, readLookupOptions } from './lookup/lookup-options.ts';
 import { LOOKUP_PROVIDER } from './lookup/lookup-provider.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
@@ -22,15 +24,16 @@ export interface ReviewQueueOptions {
 }
 
 // The review queue subdomain of the Inventory domain. It holds the pending
-// scans and their operations, the lookup worker, and the nutrition facts. The
-// Products module gives it the Grocy API client for the code resolution. The
+// scans and their operations, the accept, the lookup worker, and the
+// nutrition facts. The Products module gives it the Grocy API client for the
+// code resolution and the booking. The
 // lookup options factory reads the two lookup variables at start, so a wrong
 // value stops the process before it listens.
 @Module({})
 export class ReviewQueueModule {
   static forRoot(options: ReviewQueueOptions): DynamicModule {
     return {
-      controllers: [PendingScansController],
+      controllers: [PendingScansController, BookingsController],
       imports: [
         ProductsModule,
         TypeOrmModule.forFeature([
@@ -41,6 +44,7 @@ export class ReviewQueueModule {
       module: this,
       providers: [
         PendingScansService,
+        BookingsService,
         LookupWorker,
         { provide: LOOKUP_OPTIONS, useFactory: () => readLookupOptions() },
         {
