@@ -142,7 +142,9 @@ export function QueueRow({
     scan.productId === null ? skipToken : { id: scan.productId },
   ).data;
   const state = stateOf(scan);
-  const name = rowName(scan, lists.products);
+  // The product read names a product that the product list does not hold
+  // yet, such as a product that the short product form created.
+  const name = product?.name ?? rowName(scan, lists.products);
   const actions = useRowActions({
     locations: lists.locations,
     name,

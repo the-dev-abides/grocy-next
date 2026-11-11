@@ -27,7 +27,7 @@ interface Named {
 }
 
 // One master data select with a row for no default on top.
-function RowSelect({
+export function RowSelect({
   label,
   none,
   onChange,
