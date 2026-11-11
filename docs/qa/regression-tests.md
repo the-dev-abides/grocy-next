@@ -21,6 +21,7 @@ different device or browser when they need one.
 | QA-003     | Scan with the native decoder on the test phone         | The test phone, in Chrome |
 | QA-004     | Decode in the worker at speed on the test phone        | The test phone, in Chrome |
 | QA-005     | Hear and feel the scan feedback after the permission   | The test phone, in Chrome |
+| QA-006     | See the Open Facts image in the browser on the phone   | The test phone, in Chrome |
 
 ## QA-001 Install the app from the manifest
 
@@ -193,3 +194,44 @@ Steps:
    Expected: the camera strip shows the message that the permission was
    refused, a `Retry` button, and the code field below it. A code typed into
    the field still becomes a row.
+
+## QA-006 See the Open Facts image in the browser on the phone
+
+Device or browser: the test phone, in Chrome.
+
+Preconditions:
+
+- The build under test runs, and the phone reaches it.
+- The API reaches the internet, and the online barcode lookup is on. The
+  variable `BARCODE_LOOKUP` is unset or `on`, and `OPEN_FACTS_URL` is unset
+  or the real Open Food Facts host.
+- The API reaches a Grocy with no product barcode `3017620422003`.
+- The phone reaches the internet over a network other than the network of
+  the build, such as the mobile network, so that a block of the image host
+  on one network shows.
+
+Steps:
+
+1. Open the Purchase scan screen from the sidebar.
+   Expected: the Purchase screen opens, with the code field above the footer.
+2. Type `3017620422003` into the code field and tap `Add`.
+   Expected: one row with the bare code `3017620422003` appears at the top of
+   the list, and the red banner reads `Unknown barcode`.
+3. Wait up to ten seconds and read the row.
+   Expected: the row reads `Nutella` with the words `New product`, and the
+   line under the name ends with the link `Open Food Facts`.
+4. Tap the link `Open Food Facts` on the row.
+   Expected: Chrome opens the product page of the code on the Open Food Facts
+   site in a new tab. Go back to the app.
+5. Tap `Done`.
+   Expected: the review queue page opens, and the row of the code shows the
+   name `Nutella`.
+6. Read the row of the code in the review queue.
+   Expected: the row shows the front picture of the product, loaded from the
+   Open Facts image host by the browser. The picture is not a broken image
+   icon and not blank. When the picture does not show, record the answer in
+   the test run: the image host refused the browser, and a follow-up ticket
+   decides a proxy.
+7. Swipe the row to the left past the middle of the screen on the Purchase
+   scan screen, or reject it in the review queue.
+   Expected: the row is gone. The test leaves no pending scan of the code.
