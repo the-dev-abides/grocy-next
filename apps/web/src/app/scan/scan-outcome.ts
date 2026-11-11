@@ -5,8 +5,11 @@ import type { ScanBanner } from './use-scan-feedback';
 
 import { nameOf } from './scan-text';
 
-// The outcome of one create call, from the stored row and from what the session knows: a merged Purchase repeat scan keeps its create time and gets a new scan time, and an Inventory repeat scan answers the open row with no change, so the row is a repeat when the session already holds it.
-// A new row with a product is a known product, else an unknown code.
+// The outcome of one create call, from the stored row and from what the session
+// knows. A merged Purchase repeat scan keeps its create time and gets a new
+// scan time. An Inventory repeat scan answers the open row with no change. Thus
+// the row is a repeat when the session already holds it. A new row with a
+// product is a known product, else an unknown code.
 export function outcomeOf(
   scan: PendingScan,
   wasInSession = false,
@@ -29,10 +32,10 @@ function amountText(scan: PendingScan, lists: ScanRowLists): string {
   return `${String(scan.amount ?? 1)} ${unit}`.trim();
 }
 
-// The banner of one create call: the words for an unknown code, else the
-// name of the product. A Purchase row shows its amount, and a repeat adds
-// the plus one pill. An Inventory row has no amount on the scan screen, so
-// it shows the code, and a repeat says that the product is in the list.
+// The banner of one create call: the words for an unknown code, else the name
+// of the product. A Purchase row shows its amount, and a repeat adds the plus
+// one pill. An Inventory row has no amount on the scan screen, so it shows the
+// code. A repeat says that the product is in the list.
 export function bannerOf(
   scan: PendingScan,
   lists: ScanRowLists,

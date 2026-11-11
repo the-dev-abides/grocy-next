@@ -99,10 +99,10 @@ export class BookingsService {
     private readonly stock: GrocyStockClient,
   ) {}
 
-  // The Purchase accept: convert the amount and the price to the stock unit
-  // with the resolved conversions of the product, then book the purchase in
-  // Grocy. On a Grocy 500 or no answer the row stays unchanged and the
-  // client throws.
+  // The Purchase accept converts the amount and the price to the stock unit
+  // with the resolved conversions of the product. Then it books the purchase in
+  // Grocy. On a Grocy 500 or no answer, the row stays unchanged and the client
+  // throws.
   private async acceptPurchase(
     row: StoredPendingScan,
     productId: number,
@@ -134,11 +134,11 @@ export class BookingsService {
     return this.finish(row, productId, result);
   }
 
-  // The Inventory accept: the amount is the new own stock in the stock unit.
-  // A count equal to the stock is no change: no Grocy call, the row goes, and
-  // the booking has no transaction and no rows. Any other count books the
-  // inventory in Grocy with the fields of the added stock, and the paths
-  // after the Grocy call are the paths of the Purchase accept.
+  // The Inventory accept: the amount is the new own stock in the stock unit. A
+  // count equal to the stock is no change: no Grocy call, the row goes, and the
+  // booking has no transaction and no rows. Any other count books the inventory
+  // in Grocy with the fields of the added stock. The paths after the Grocy call
+  // are the paths of the Purchase accept.
   private async acceptInventory(
     row: StoredPendingScan,
     productId: number,

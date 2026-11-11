@@ -25,10 +25,10 @@ interface RowFacts {
 }
 
 // The product pick and the short product form send the update that sets the
-// product, the count field sends the update that sets the count, and the full
-// form sends the update with every field. The server adds the code to the
-// product and sets the picture. A failed update keeps the row as it was, so
-// the result line shows the problem.
+// product. The count field sends the update that sets the count. The full form
+// sends the update with every field. The server adds the code to the product
+// and sets the picture. A failed update keeps the row as it was, so the result
+// line shows the problem.
 function useRowUpdates({ name, onChanged, onResult, scan }: RowFacts) {
   const [updatePendingScan, updating] = useUpdatePendingScanMutation();
 

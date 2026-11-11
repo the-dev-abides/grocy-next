@@ -17,11 +17,11 @@ interface IdCheck {
   rows: readonly MasterDataRow[];
 }
 
-// This function returns the detail text of the unknown-id problem for the
-// first id of a product create that names no active row, or null when every
-// id names one. Grocy does not check that the ids exist, so the server
-// checks them before the create. An inactive row counts as unknown, because
-// the master data lists of the Next API hold the active rows only.
+// This function returns the detail text of the unknown-id problem for the first
+// id of a product create that names no active row. It returns null when every
+// id names one. Grocy does not check that the ids exist, so the server checks
+// them before the create. An inactive row counts as unknown, because the master
+// data lists of the Next API hold the active rows only.
 export function unknownIdOf(
   product: CreateProduct,
   masterData: ProductMasterData,

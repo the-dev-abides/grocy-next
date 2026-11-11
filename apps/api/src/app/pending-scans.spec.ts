@@ -80,8 +80,8 @@ describe('the pending scans of the Next API', () => {
     baseUrl = await app.getUrl();
   });
 
-  // Every test starts with an empty queue, so a repeat scan of a fixture
-  // code in one test never merges into a row of another test.
+  // Every test starts with an empty queue. Thus a repeat scan of a fixture code
+  // in one test never merges into a row of another test.
   beforeEach(async () => {
     const response = await fetch(`${baseUrl}/api/v2/pending-scans`);
     const { items } = (await response.json()) as { items: PendingScanBody[] };

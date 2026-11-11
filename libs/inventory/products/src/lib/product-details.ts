@@ -13,18 +13,18 @@ export interface ProductBarcode {
   storeId: null | number;
 }
 
-// The stock facts of a product that come from two Grocy reads of their own:
-// the stock entries in the Grocy consume order and the resolved
+// The stock facts of a product that come from two Grocy reads of their
+// own. These are the stock entries in the Grocy consume order and the resolved
 // conversions.
 export interface ProductStock {
   conversions: QuantityUnitConversion[];
   stockEntries: StockEntry[];
 }
 
-// The details of one product as one Grocy read answers them: every field of
-// the product of the Next API except the stock facts above, the product
-// barcodes that the code resolution of the review queue reads, and the
-// active flag. The stock amount is the own stock in the stock unit.
+// The details of one product as one Grocy read answers them. They hold every
+// field of the product of the Next API except the stock facts above. They also
+// hold the product barcodes that the code resolution of the review queue reads,
+// and the active flag. The stock amount is the own stock in the stock unit.
 export interface ProductDetails extends Omit<Product, keyof ProductStock> {
   barcodes: ProductBarcode[];
   isActive: boolean;

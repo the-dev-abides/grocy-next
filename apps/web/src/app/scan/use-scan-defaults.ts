@@ -24,8 +24,8 @@ export interface ScanDefaults {
 
 // This hook holds the session defaults and the price for the next scan in
 // memory, as ADR 0010 decided. Nothing is stored. A scan takes the create
-// fields of the moment: the defaults with the due date rule turned into a
-// date, and on the Purchase screen the price. The price clears, and the
+// fields of the moment. These are the defaults with the due date rule turned
+// into a date, and on the Purchase screen the price. The price clears, and the
 // price type stays. The Inventory screen has no price and sends none.
 export function useScanDefaults(
   bookingType: PendingScan['bookingType'],

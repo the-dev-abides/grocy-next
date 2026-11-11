@@ -3,9 +3,9 @@ import type { PendingScan } from '../api/next-api';
 import { type RowState, stateOf } from './row-state';
 
 // The filter of the review queue, as the spec decided: a location, a product
-// group, and a state. A null part keeps every row. The location is the
-// location of the row, and the product group is the product group of the
-// row, which the scan screens copy from the session defaults.
+// group, and a state. A null part keeps every row. The location is the location
+// of the row. The product group is the product group of the row, which the scan
+// screens copy from the session defaults.
 export interface QueueFilter {
   locationId: null | number;
   productGroupId: null | number;

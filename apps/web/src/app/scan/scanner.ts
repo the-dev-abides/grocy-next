@@ -5,7 +5,9 @@ import DecodeWorker from './decode.worker?worker';
 import { createDecoder } from './decoder';
 import { createRepeatRule } from './repeat-rule';
 
-// The scanner of ADR 0009: the camera, the decoder in a Web Worker with the main thread as the fallback, the frame clock, and the repeat rule.
+// The scanner of ADR 0009.
+// It holds the camera, the frame clock, and the repeat rule.
+// It runs the decoder in a Web Worker, with the main thread as the fallback.
 
 export interface ScannerStatus {
   camera: 'denied' | 'error' | 'off' | 'on' | 'starting';

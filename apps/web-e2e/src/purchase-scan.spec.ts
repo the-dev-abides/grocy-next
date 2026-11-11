@@ -6,11 +6,10 @@ import {
   test,
 } from '@playwright/test';
 
-// The tests of the Purchase scan screen: a typed code becomes a pending scan
-// and shows in the session list within the three-second poll. The API keeps
-// its rows for the whole run, and the tests of one file run in parallel, so
-// each test types a code of its own and removes the open rows of that code
-// first. A repeat of the run, or a retry, then never merges into an old row.
+// The tests of the Purchase scan screen: a typed code becomes a pending scan and shows in the session list within the three-second poll.
+// The API keeps its rows for the whole run, and the tests of one file run in parallel.
+// Thus each test types a code of its own and removes the open rows of that code first.
+// A repeat of the run, or a retry, then never merges into an old row.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 

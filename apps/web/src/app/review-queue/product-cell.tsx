@@ -39,8 +39,8 @@ export function StateBadge({ state }: Readonly<{ state: RowState }>) {
   );
 }
 
-// The name of a row: the product name, the write-in name, or the lookup name
-// in a medium weight, or the bare code in the monospace font.
+// The name of a row. The product name, the write-in name, or the lookup name
+// shows in a medium weight. Else the bare code shows in the monospace font.
 export function RowName({
   name,
   scan,
@@ -58,9 +58,9 @@ export function RowName({
   );
 }
 
-// The second line under the name: the code when the row has a product, the
-// service of a lookup result as a link to the product page for the
-// attribution of ADR 0011, and the note.
+// The second line under the name. It shows the code when the row has a
+// product. It shows the service of a lookup result as a link to the product
+// page, for the attribution of ADR 0011. It also shows the note.
 export function RowMeta({ scan }: Readonly<{ scan: PendingScan }>) {
   return (
     <span
@@ -86,9 +86,9 @@ export function RowMeta({ scan }: Readonly<{ scan: PendingScan }>) {
   );
 }
 
-// The facts of a row that the hidden columns hold below their breakpoint:
-// the booking type and the time always, the location below `md`, and the
-// due date and the price below `xl`.
+// The facts of a row that the hidden columns hold below their breakpoint. The
+// booking type and the time show always. The location shows below `md`. The due
+// date and the price show below `xl`.
 function RowFacts({
   lists,
   scan,
@@ -123,9 +123,9 @@ export function ErrorLine({ error }: Readonly<{ error: null | string }>) {
   );
 }
 
-// The product cell: the name, the meta line, the facts of the hidden
-// columns, the state below `md`, the lines of the caller such as the
-// Inventory facts, and the Grocy message of a failed accept.
+// The product cell. It shows the name, the meta line, the facts of the hidden
+// columns, and the state below `md`. It shows the lines of the caller, such as
+// the Inventory facts. It shows the Grocy message of a failed accept.
 export function ProductCell({
   children,
   lists,

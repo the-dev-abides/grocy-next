@@ -20,10 +20,10 @@ interface OpenApiDocument {
   paths: Record<string, Record<string, OpenApiOperation>>;
 }
 
-// The stock entries of product 1 in the Grocy consume order, as the Grocy
-// mock answers them: the Fridge is the default consume location of the
-// product, so its two stock entries come first, then the open stock entry in
-// the Pantry, then the two closed Pantry stock entries by due date and then
+// The stock entries of product 1 in the Grocy consume order, as the Grocy mock
+// answers them. The Fridge is the default consume location of the product, so
+// its two stock entries come first. Then comes the open stock entry in the
+// Pantry. Then come the two closed Pantry stock entries, by due date and then
 // by purchase date.
 const PRODUCT_1_STOCK_ENTRIES = [
   {
@@ -68,11 +68,12 @@ const PRODUCT_1_STOCK_ENTRIES = [
   },
 ];
 
-// The product read gives the scan screens and the review queue the facts of
-// one product at display time. The product carries the fields of the list,
-// the fields that the short product form sets, the own stock in the stock
-// unit, the picture flag, the parent flag, the tare weight, the stock
-// entries in the Grocy consume order, and the resolved conversions.
+// The product read gives the scan screens and the review queue the facts of one
+// product at display time. The product carries the fields of the list and the
+// fields that the short product form sets. It also carries the own stock in the
+// stock unit, the picture flag, the parent flag, and the tare weight. It also
+// carries the stock entries in the Grocy consume order and the resolved
+// conversions.
 describe('the product read of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -90,10 +91,10 @@ describe('the product read of the Next API', () => {
     await app.close();
   });
 
-  // The fixture household has six cans of product 1 in five stock entries,
-  // with the Can, unit 1, as its stock unit and its purchase unit. No fixture
-  // product has a picture. Product 1 is no parent product and has no tare
-  // weight handling, so the tare weight is null.
+  // The fixture household has six cans of product 1 in five stock entries. The
+  // Can, unit 1, is its stock unit and its purchase unit. No fixture product
+  // has a picture. Product 1 is no parent product and has no tare weight
+  // handling, so the tare weight is null.
   it('reads one product with its form fields, its stock, its stock entries in the Grocy order, and its conversions through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/1`);
 

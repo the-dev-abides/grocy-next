@@ -4,9 +4,9 @@ import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 
 import type { PriceType } from './pending-scan.ts';
 
-// The amount and the price of a Purchase pending scan as entered: the amount
-// in the scanned unit, or in the purchase unit when the unit is null, and
-// the price as a unit price or a total price.
+// The amount and the price of a Purchase pending scan as entered. The amount is
+// in the scanned unit, or in the purchase unit when the unit is null. The price
+// is a unit price or a total price.
 export interface EnteredPurchase {
   amount: number;
   price: null | number;

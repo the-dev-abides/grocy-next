@@ -1,4 +1,5 @@
-// The rules of the swipe to reject and of plus and minus on a row, as the Purchase scan screen prototype settled them.
+// The rules of the swipe to reject and of plus and minus on a row.
+// The prototype of the Purchase scan screen settled them.
 
 // A drag past a third of the row width rejects the row.
 const REJECT_FRACTION = 1 / 3;

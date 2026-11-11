@@ -85,16 +85,16 @@ function RowButtons({
   );
 }
 
-// The columns that hide below a breakpoint: the location and the state from
-// `md`, the due date and the price from `xl`, the store and the time from
-// `2xl`.
+// The columns that hide below a breakpoint. The location and the state show
+// from `md`. The due date and the price show from `xl`. The store and the time
+// show from `2xl`.
 const FROM_MD = 'hidden md:table-cell';
 const FROM_XL = 'hidden xl:table-cell';
 const FROM_2XL = 'hidden 2xl:table-cell';
 
-// The fact cells after the product: the amount with the count field of an
-// Inventory row from `md`, the location, the due date,
-// the price and the store of a Purchase row, the time, and the state.
+// The fact cells after the product. The amount has the count field of an
+// Inventory row from `md`. Then come the location and the due date. A Purchase
+// row also has the price and the store. The time and the state come last.
 function FactCells({
   lists,
   onCount,
@@ -183,11 +183,11 @@ function CheckCell({
   );
 }
 
-// One row of the review queue table. The columns of the prototype: the
-// checkbox, the product with its facts, the amount, the location from `md`,
-// the due date and the price from `xl`, the store and the time from `2xl`,
-// the state from `md`, and the buttons. A failed row has the expired row
-// colour of ADR 0013.
+// One row of the review queue table. The columns of the prototype are the
+// checkbox, the product with its facts, and the amount. Then come the location
+// from `md`, the due date and the price from `xl`, and the store and the time
+// from `2xl`. Then come the state from `md` and the buttons. A failed row has
+// the expired row colour of ADR 0013.
 export function QueueRow({
   isChecked,
   lists,

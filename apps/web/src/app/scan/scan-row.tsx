@@ -90,9 +90,9 @@ export function RejectButton({ onReject }: Readonly<{ onReject: () => void }>) {
   );
 }
 
-// One row of the session list, shared by the two scan screens: the name, a
-// line with the time, the details of the screen, and the service link of a
-// lookup result, and the controls of the screen on the right.
+// One row of the session list, shared by the two scan screens. The row shows
+// the name and a line with the time. It shows the details of the screen and the
+// service link of a lookup result. The controls of the screen are on the right.
 export function ScanRow({
   children,
   details,

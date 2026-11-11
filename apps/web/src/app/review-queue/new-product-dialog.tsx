@@ -19,9 +19,9 @@ import { FormNotes, NameFields, ProductFields } from './new-product-fields';
 import { bodyOf, formOf } from './product-form';
 import { failureText } from './result-text';
 
-// The form: the proposals of ADR 0011 as the start values, every one open
-// to a change. Save sends the product create and then the update that sets
-// the new product on the row, two calls behind one click, as ADR 0010
+// The form: the proposals of ADR 0011 as the start values, every one open to a
+// change. Save sends the product create and then the update that sets the new
+// product on the row. These are two calls behind one click, as ADR 0010
 // decided. A refused create keeps the form open with the problem. The update
 // reports its problem in the result panel.
 function NewProductForm({

@@ -6,14 +6,14 @@ import {
   test,
 } from '@playwright/test';
 
-// The tests of the Inventory rows of the review queue: the count field with
-// the Grocy stock as the placeholder, the difference and what the accept
-// does, the notes of a parent product and a tare weight product, and the
-// accept with no change, an increase, and a decrease. The API keeps its rows
-// for the whole run, and every test of every file runs in parallel against
-// one API. The rows of this file are Inventory rows with a product and no
-// code, so no scan merges into them and no other file removes them. Each test
-// owns one product and finds its row by a note of its own.
+// The tests of the Inventory rows of the review queue.
+// They cover the count field with the Grocy stock as the placeholder, the difference, and what the accept does.
+// They cover the notes of a parent product and a tare weight product.
+// They cover the accept with no change, an increase, and a decrease.
+// The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
+// The rows of this file are Inventory rows with a product and no code.
+// Thus no scan merges into them, and no other file removes them.
+// Each test owns one product and finds its row by a note of its own.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 
@@ -99,7 +99,7 @@ test('an Inventory row shows the Grocy stock as the placeholder and no accept un
   await row.getByRole('button', { name: 'Accept' }).click();
 
   // The Grocy mock refuses an inventory with the new amount equal to the
-  // stock, so the result line shows that the API did not call Grocy.
+  // stock. Thus the result line shows that the API did not call Grocy.
   await expectGone(request, row, note);
   const result = page.getByRole('status');
   await expect(result).toContainText('1 booked');

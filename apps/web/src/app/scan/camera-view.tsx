@@ -133,9 +133,9 @@ function CameraFooter({
   );
 }
 
-// The camera view: the video, the frame colour of the last scan, the scan
-// frame guide, the message when the camera is not on, the banner, the
-// decoder label, and the speaker icon.
+// The camera view. It shows the video, the frame colour of the last scan, and
+// the scan frame guide. It shows the message when the camera is not on. It also
+// shows the banner, the decoder label, and the speaker icon.
 export function CameraView({
   attachVideo,
   banner,

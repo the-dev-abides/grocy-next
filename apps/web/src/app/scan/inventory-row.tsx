@@ -8,9 +8,9 @@ import { RejectButton, ScanRow } from './scan-row';
 import { dueDateText, nameOf, stockText } from './scan-text';
 import { WriteInNameField } from './write-in-name-field';
 
-// One row of the Inventory session list: the Grocy stock from the product
-// read, the location, and the due date on the detail line, the write-in
-// name field for a row with no product and no lookup result, and the reject
+// One row of the Inventory session list. The detail line shows the Grocy stock
+// from the product read, the location, and the due date. A row with no product
+// and no lookup result has the write-in name field. The row has the reject
 // button. The row has no amount: the review queue sets the count.
 export function InventoryRow({
   lists,

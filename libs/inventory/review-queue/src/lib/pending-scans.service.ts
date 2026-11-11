@@ -50,10 +50,10 @@ export class PendingScansService {
     private readonly pictures: ProductPictures,
   ) {}
 
-  // The update that sets a product, as the spec decided: the Grocy writes
-  // first, in order, and the update stops on the first failure with the
-  // Grocy problem. Then one transaction links the nutrition facts records
-  // of the code to the product and stores the row with the rules of the
+  // The update that sets a product, as the spec decided. The Grocy writes come
+  // first, in order, and the update stops on the first failure with the Grocy
+  // problem. Then one transaction links the nutrition facts records of the code
+  // to the product. The same transaction stores the row with the rules of the
   // product set.
   private async setProduct(
     updated: StoredPendingScan,
@@ -69,10 +69,10 @@ export class PendingScansService {
     });
   }
 
-  // The code goes to the product as a product barcode when the row has a
-  // code and the product has no product barcode with that code. The result
-  // is the id of the new product barcode, or null when none was added. A
-  // Grocy refusal is the grocy-refused problem of ADR 0014.
+  // When the row has a code, the code goes to the product as a product
+  // barcode. This happens only when the product has no product barcode with
+  // that code. The result is the id of the new product barcode, or null when
+  // none was added. A Grocy refusal is the grocy-refused problem of ADR 0014.
   private async addBarcode(
     product: ProductDetails,
     code: null | string,

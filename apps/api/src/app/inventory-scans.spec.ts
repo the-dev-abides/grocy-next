@@ -19,10 +19,10 @@ interface PendingScanBody {
   [field: string]: unknown;
 }
 
-// The Inventory scan screen creates one pending scan per product. The
-// create copies none of the amount, the unit, the price, and the store from
-// the product barcode, and a repeat scan of a product changes nothing on its
-// row, as ADR 0010 decided.
+// The Inventory scan screen creates one pending scan per product. The create
+// copies none of the amount, the unit, the price, and the store from the
+// product barcode. A repeat scan of a product changes nothing on its row, as
+// ADR 0010 decided.
 describe('the Inventory pending scans of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -55,8 +55,8 @@ describe('the Inventory pending scans of the Next API', () => {
     baseUrl = await app.getUrl();
   });
 
-  // Every test starts with an empty queue, so a repeat scan of a fixture
-  // code in one test never merges into a row of another test.
+  // Every test starts with an empty queue. Thus a repeat scan of a fixture code
+  // in one test never merges into a row of another test.
   beforeEach(async () => {
     const items = await list();
     for (const item of items) {
@@ -113,8 +113,8 @@ describe('the Inventory pending scans of the Next API', () => {
     expect(await list()).toEqual([first]);
   });
 
-  // Product 1 has two product barcodes. A scan of the second one is a scan
-  // of the same product, so the row of the first scan is the open Inventory
+  // Product 1 has two product barcodes. A scan of the second one is a scan of
+  // the same product. Thus the row of the first scan is the open Inventory
   // pending scan of that product.
   it('keeps one open Inventory pending scan per product across its product barcodes', async () => {
     const first = await createAndRead({

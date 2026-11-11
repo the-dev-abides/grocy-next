@@ -1,9 +1,9 @@
 import type { QuantityUnitConversion } from './product.ts';
 
-// One stored conversion row of one product: a factor from one quantity unit
-// to another with the id of the row in Grocy. The Grocy trigger creates one
-// such row with factor 1 for each pair of units of a new product that
-// differ, and the product create sets the factor of the form on it.
+// One stored conversion row of one product: a factor from one quantity unit to
+// another with the id of the row in Grocy. For each pair of different units of
+// a new product, the Grocy trigger creates one such row with factor 1. The
+// product create sets the factor of the form on it.
 export interface ProductConversion extends QuantityUnitConversion {
   id: number;
 }

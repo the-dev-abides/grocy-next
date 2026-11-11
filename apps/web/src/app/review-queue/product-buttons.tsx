@@ -9,10 +9,10 @@ import type { RowActions } from './use-row-actions';
 import { NewProductDialog } from './new-product-dialog';
 import { PickProductDialog } from './pick-product-dialog';
 
-// The two buttons of a row with no product, in place of the accept: Pick
+// The two buttons of a row with no product, in place of the accept. Pick
 // product opens the product pick dialog, and New product opens the short
-// product form. Both set the product on the row through the same update. A
-// card gives the big size.
+// product form. Both set the product on the row through the same update. A card
+// gives the big size.
 export function ProductButtons({
   actions,
   lists,

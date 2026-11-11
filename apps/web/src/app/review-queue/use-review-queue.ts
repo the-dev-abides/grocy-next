@@ -36,9 +36,10 @@ export interface ReviewQueue {
   rows: readonly PendingScan[] | undefined;
 }
 
-// The review queue: every pending scan of both booking types, most recent at the top, polled while the screen is open, and the lists that name a row.
-// An accept and a reject refetch the list, so the row changes before the
-// next poll.
+// The review queue. It holds every pending scan of both booking types, most
+// recent at the top, and the lists that name a row. It polls the list while the
+// screen is open. An accept and a reject refetch the list, so the row changes
+// before the next poll.
 export function useReviewQueue(): ReviewQueue {
   const pendingScans = useListPendingScansQuery(undefined, {
     pollingInterval: POLL_MS,

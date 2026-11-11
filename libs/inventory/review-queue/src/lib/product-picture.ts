@@ -38,7 +38,7 @@ function extensionOf(url: string, contentType: null | string): string {
 }
 
 // This function downloads the front image of a lookup result from the Open
-// Facts image host with the user agent of the lookup provider, as ADR 0011
+// Facts image host. It uses the user agent of the lookup provider, as ADR 0011
 // decided. Any status other than a success is a failed download.
 async function downloadImage(url: string, userAgent: string): Promise<Image> {
   const response = await fetch(url, {
@@ -56,10 +56,10 @@ async function downloadImage(url: string, userAgent: string): Promise<Image> {
   };
 }
 
-// The product picture of an update that sets a product: the lookup image
-// goes to Grocy as the picture of the product when the lookup has an image
-// and the product has no picture. The file is named after the product id,
-// so a product never takes the file of another product.
+// The product picture of an update that sets a product. The lookup image goes
+// to Grocy as the picture of the product when the lookup has an image and the
+// product has no picture. The file is named after the product id, so a product
+// never takes the file of another product.
 @Injectable()
 export class ProductPictures {
   private readonly logger = new Logger(ProductPictures.name);

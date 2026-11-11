@@ -3,7 +3,9 @@ import type { GrocyRefusal } from '@grocy-next/shared-next-api';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { z } from 'zod';
 
-// The answers of Grocy as the Grocy client reads them: the answer of one call, the shapes that the writes share, the tables that the client writes rows into, and the problems of ADR 0014 that a refusal becomes.
+// The answers of Grocy as the Grocy client reads them.
+// This file holds the answer of one call, the shapes that the writes share, and the tables that the client writes rows into.
+// It also holds the problems of ADR 0014 that a refusal becomes.
 
 // The answer of one Grocy call: the body that Grocy answered, or the
 // refusal when Grocy answered 400 with `{"error_message": ...}`. Every other

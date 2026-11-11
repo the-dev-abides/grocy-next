@@ -1,8 +1,8 @@
 import type { PendingScan } from '../api/next-api';
 
-// The state of a review queue row, from the three facts of ADR 0010: a
-// product or none, an amount or none, and an error or none. The four states
-// are the filter states of the spec.
+// The state of a review queue row, from the three facts of ADR 0010. The facts
+// are a product or none, an amount or none, and an error or none. The four
+// states are the filter states of the spec.
 export type RowState = 'failed' | 'needs-count' | 'needs-product' | 'ready';
 
 export const stateLabel: Readonly<Record<RowState, string>> = {

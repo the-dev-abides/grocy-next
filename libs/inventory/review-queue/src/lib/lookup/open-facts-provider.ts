@@ -42,8 +42,8 @@ function serviceOf(host: string): string {
 
 // The one lookup provider: the Open Facts family, as ADR 0011 decided. It sends
 // one v3 read to the Open Facts base URL with `product_type=all` and the fields
-// it needs, follows the redirect to the host that holds the product, and names
-// the service after the final host.
+// it needs. It follows the redirect to the host that holds the product. It
+// names the service after the final host.
 export class OpenFactsProvider implements LookupProvider {
   readonly attribution = ATTRIBUTION;
   readonly ratePerMinute = RATE_PER_MINUTE;

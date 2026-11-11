@@ -14,7 +14,7 @@ import type { PendingScan, ProductListItem } from '../api/next-api';
 
 import { searchProducts } from './product-search';
 
-// The words under the title: the server adds the code to the product, and
+// The words under the title. The server adds the code to the product. It also
 // sets the lookup picture when the product has none, as ADR 0011 decided.
 function PickDescription({ scan }: Readonly<{ scan: PendingScan }>) {
   return (
@@ -107,9 +107,10 @@ function PickProductForm({
   );
 }
 
-// The product pick dialog of a row with no product or with a wrong match: a search over the products, filtered in the browser by a part of the name.
-// The pick sends the update with the product id. The server adds the code to
-// the product and sets the picture, as ADR 0010 and ADR 0011 decided.
+// The product pick dialog of a row with no product or with a wrong match. It is
+// a search over the products. The browser filters the products by a part of the
+// name. The pick sends the update with the product id. The server adds the code
+// to the product and sets the picture, as ADR 0010 and ADR 0011 decided.
 export function PickProductDialog({
   isOpen,
   onClose,

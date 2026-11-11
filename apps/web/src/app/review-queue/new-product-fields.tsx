@@ -224,9 +224,9 @@ export function ProductFields({
   );
 }
 
-// The notes under the fields: the label quantity text when the lookup gave
-// no unit proposal, and the attribution line of ADR 0011 with the service
-// that held the product as a link to the product page.
+// The notes under the fields. When the lookup gave no unit proposal, a note
+// shows the label quantity text. The attribution line of ADR 0011 shows the
+// service that held the product, as a link to the product page.
 export function FormNotes({
   hasUnitProposal,
   scan,

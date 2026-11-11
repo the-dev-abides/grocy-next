@@ -100,9 +100,10 @@ function FailureAlert({ hasFailed }: Readonly<{ hasFailed: boolean }>) {
   );
 }
 
-// The left column, which stays at the top: the title, the defaults section,
-// the camera view with the feedback of the last scan, the controls of the
-// screen under the camera, and from `lg` up the typed code field.
+// The left column, which stays at the top. It holds the title, the defaults
+// section, and the camera view with the feedback of the last scan. It holds the
+// controls of the screen under the camera. From `lg` up, it also holds the
+// typed code field.
 function ScanControls({
   bookingType,
   children,
@@ -163,12 +164,12 @@ function ScanControls({
 }
 
 // The scan screen that the Purchase and the Inventory screens share, in the
-// layout of the prototype: a left column that stays at the top with the
-// defaults section, the camera view, the controls of the screen, and the
-// typed code field, and the scans of the session as the page, most recent at
-// the top. A camera scan and a typed code send the same create call and get
-// the same feedback. The screen gives the controls under the camera and the
-// row of the session list.
+// layout of the prototype. A left column stays at the top. It holds the
+// defaults section, the camera view, the controls of the screen, and the typed
+// code field. The scans of the session are the page, most recent at the top. A
+// camera scan and a typed code send the same create call and get the same
+// feedback. The screen gives the controls under the camera and the row of the
+// session list.
 export function ScanScreen({
   bookingType,
   emptyText,

@@ -1,8 +1,9 @@
 import type { LookupResult } from '../pending-scan.ts';
 import type { NutritionFactsFromLookup } from '../storage/stored-nutrition-facts.ts';
 
-// What a lookup returns for a code that the service holds: the lookup result of
-// ADR 0010, the nutrition facts of ADR 0011, and the URL of the front image.
+// What a lookup returns for a code that the service holds. It returns the
+// lookup result of ADR 0010, the nutrition facts of ADR 0011, and the URL of
+// the front image.
 export interface LookupHit {
   imageUrl: null | string;
   lookupResult: LookupResult;

@@ -39,9 +39,9 @@ interface StockFacts {
   tareWeight: null | number;
 }
 
-// The Grocy stock of an Inventory row: the own stock in the stock unit, the
-// count of the stock entries when there are two or more, and the notes for
-// a parent product and a tare weight product.
+// The Grocy stock of an Inventory row. It is the own stock in the stock unit,
+// and the count of the stock entries when there are two or more. It also has
+// the notes for a parent product and a tare weight product.
 export function stockLineText(product: StockFacts, unit: string): string {
   const count = product.stockEntries.length;
   const entries = count > 1 ? ` in ${String(count)} stock entries` : '';
@@ -96,11 +96,11 @@ type EffectProduct = Pick<
   'locationId' | 'stockAmount' | 'stockEntries' | 'tareWeight'
 >;
 
-// What the accept of an Inventory count does, before the tap: the stock
-// entries that a decrease takes from, in the Grocy order, or the one stock
-// entry that an increase adds, at the location and with the due date of the
-// row or the product defaults. A gross weight below the tare weight is a
-// Grocy refusal. No change says nothing, because the difference says it.
+// What the accept of an Inventory count does, before the tap. A decrease takes
+// from stock entries in the Grocy order. An increase adds one stock entry, at
+// the location and with the due date of the row or the product defaults. A
+// gross weight below the tare weight is a Grocy refusal. No change says
+// nothing, because the difference says it.
 export function effectText(
   scan: Pick<PendingScan, 'dueDate' | 'locationId'> & { amount: number },
   product: EffectProduct,

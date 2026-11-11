@@ -103,10 +103,10 @@ function inventoryFields(body: CreatePendingScan): AmountFields {
   };
 }
 
-// This function builds the row of a pending scan from the create body, the
-// product that the code resolved to, and the time of the create as RFC 3339
-// text in UTC. The row stores the code as scanned. A value from the body
-// wins over a product barcode default.
+// This function builds the row of a pending scan from the create body and the
+// product that the code resolved to. It also uses the time of the create, as
+// RFC 3339 text in UTC. The row stores the code as scanned. A value from the
+// body wins over a product barcode default.
 export function pendingScanToStore(
   body: CreatePendingScan,
   match: null | ProductMatch,

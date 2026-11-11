@@ -107,10 +107,12 @@ function QueueBody({
   );
 }
 
-// The review queue screen of ADR 0006: every pending scan of both booking types as a table or as cards, most recent at the top, refreshed every three seconds.
-// The filter narrows the rows, and the bulk actions act on the rows that
-// it shows. The result panel above the rows shows the booking facts of
-// each accept. A switch changes between the table and the cards.
+// The review queue screen of ADR 0006. It shows every pending scan of both
+// booking types as a table or as cards, most recent at the top. It refreshes
+// the rows every three seconds. The filter narrows the rows, and the bulk
+// actions act on the rows that it shows. The result panel above the rows shows
+// the booking facts of each accept. A switch changes between the table and the
+// cards.
 export function ReviewQueuePage() {
   const queue = useReviewQueue();
   return (

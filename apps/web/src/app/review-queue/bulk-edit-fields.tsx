@@ -146,9 +146,9 @@ function RowSelects({
   );
 }
 
-// The fields of the bulk edit, in the two-column grid of ADR 0013: the
-// amount, the location, the due date, the store, the price with its price
-// type, the product group of a new product, and the note.
+// The fields of the bulk edit, in the two-column grid of ADR 0013. The fields
+// are the amount, the location, the due date, the store, and the price with its
+// price type. Then come the product group of a new product and the note.
 export function BulkEditFields({
   edit,
   lists,

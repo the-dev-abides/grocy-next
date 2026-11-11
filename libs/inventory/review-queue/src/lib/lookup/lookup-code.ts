@@ -24,8 +24,8 @@ function upcAParts(data: string): [string, string] {
   return [data.slice(0, 5), `0000${sixth}`];
 }
 
-// The GS1 check digit of eleven digits: the odd positions count three times,
-// the even positions one time, and the check digit completes the sum to a
+// The GS1 check digit of eleven digits. The odd positions count three times,
+// and the even positions one time. The check digit completes the sum to a
 // multiple of ten.
 function checkDigitOf(body: string): string {
   let sum = 0;

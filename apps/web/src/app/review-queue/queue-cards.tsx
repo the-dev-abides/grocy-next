@@ -7,10 +7,10 @@ import type { Selection } from './use-selection';
 
 import { QueueCard } from './queue-card';
 
-// The cards view of the review queue: one card per row that the filter
-// shows, one column on a phone, two from `lg`, and three from `2xl`. The
-// checkbox above the cards checks every shown card, as the header checkbox
-// of the table does.
+// The cards view of the review queue. It shows one card per row that the filter
+// shows. It has one column on a phone, two from `lg`, and three from `2xl`. The
+// checkbox above the cards checks every shown card, as the header checkbox of
+// the table does.
 export function QueueCards({
   lists,
   onChanged,

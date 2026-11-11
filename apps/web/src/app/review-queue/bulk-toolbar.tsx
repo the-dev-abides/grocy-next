@@ -53,8 +53,9 @@ function rejectConfirm(
   };
 }
 
-// The bulk actions above the table: the counts, Bulk edit on the checked rows, and Reject all and Accept all on the rows that the filter shows.
-// Reject all and Accept all open a confirm first.
+// The bulk actions above the table. The toolbar shows the counts. Bulk edit
+// acts on the checked rows. Reject all and Accept all act on the rows that the
+// filter shows. Reject all and Accept all open a confirm first.
 export function BulkToolbar({
   actions,
   checkedCount,

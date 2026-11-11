@@ -7,15 +7,14 @@ import {
 } from '@playwright/test';
 import path from 'node:path';
 
-// The camera tests of ADR 0015. The Firefox and WebKit projects leave this
-// file out in the Playwright configuration. The Chromium fake camera: the
-// three flags below make Chromium grant the camera permission with no
-// prompt, offer a fake camera, and play a checked-in file as the camera
-// picture. The file holds the barcode of one fixture code, so every page
-// load of the Purchase scan screen scans that code one time. The tests of
-// this file run one after the other in one worker, because they scan the
-// same code against one API. Playwright takes the launch options at the top
-// of the file only.
+// The camera tests of ADR 0015.
+// The Firefox and WebKit projects leave this file out in the Playwright configuration.
+// The three flags below give the Chromium fake camera.
+// They make Chromium grant the camera permission with no prompt.
+// They make Chromium offer a fake camera and play a checked-in file as the camera picture.
+// The file holds the barcode of one fixture code, so every page load of the Purchase scan screen scans that code one time.
+// The tests of this file run one after the other in one worker, because they scan the same code against one API.
+// Playwright takes the launch options at the top of the file only.
 
 // The unknown code of the fixture. No other test creates a Purchase pending
 // scan with this code, so a row of this code belongs to this file.

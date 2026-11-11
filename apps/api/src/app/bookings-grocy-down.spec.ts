@@ -17,9 +17,9 @@ interface PendingScanBody {
   [field: string]: unknown;
 }
 
-// A pending scan with a product and no code is created with no Grocy read,
-// so the queue holds a row that the accept can try against a Grocy that does
-// not answer.
+// The server creates a pending scan with a product and no code with no Grocy
+// read. Thus the queue holds a row that the accept can try against a Grocy that
+// does not answer.
 describe('the accept when Grocy does not answer', () => {
   let app: INestApplication;
   let baseUrl: string;

@@ -1,10 +1,11 @@
 import type { PendingScan } from '../api/next-api';
 
-// The session list of a scan screen is the pending scan list filtered to the
-// rows that this screen created or merged since it opened, and to the booking
-// type of the screen, most recent at the top. The screen collects the ids
-// from its own create responses, so no clock of the browser takes part. Two
-// rows with one scan time keep the later row first.
+// The session list of a scan screen is the pending scan list with a filter. It
+// keeps the rows that this screen created or merged since it opened. It keeps
+// the rows of the booking type of the screen only. The most recent row is at
+// the top. The screen collects the ids from its own create responses, so no
+// clock of the browser takes part. Two rows with one scan time keep the later
+// row first.
 export function sessionRows(
   items: readonly PendingScan[],
   sessionIds: ReadonlySet<number>,

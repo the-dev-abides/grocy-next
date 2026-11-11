@@ -7,9 +7,9 @@ import { ProblemFilter } from './problem-filter.ts';
 import { NextApiValidationPipe } from './validation-pipe.ts';
 
 // The conventions of ADR 0014 as one module. The API app imports it one
-// time, and every controller of every domain library gets the JSON body
-// check, the Zod validation, the Zod response serialization, and the
-// Problem Details error body.
+// time. Then every controller of every domain library gets the JSON body check,
+// the Zod validation, the Zod response serialization, and the Problem Details
+// error body.
 @Module({
   providers: [
     { provide: APP_GUARD, useClass: JsonBodyGuard },

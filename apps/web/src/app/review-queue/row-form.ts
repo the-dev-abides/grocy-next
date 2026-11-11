@@ -74,10 +74,10 @@ export function rowFormBody(form: RowForm): UpdatePendingScan {
   };
 }
 
-// The units of the amount of a Purchase row, as in the prototype: the
+// The units of the amount of a Purchase row, as in the prototype. They are the
 // purchase unit, the stock unit, and the units of the conversions of the
-// product, in the order of the unit list. A row with no product offers every
-// unit.
+// product. They come in the order of the unit list. A row with no product
+// offers every unit.
 export function unitChoices<Unit extends Named>(
   product:
     Pick<Product, 'conversions' | 'purchaseUnitId' | 'stockUnitId'> | undefined,

@@ -141,9 +141,9 @@ function PurchaseFields({ form, lists, patch }: Readonly<FieldsProperties>) {
 }
 
 // Every field of one row, in the two-column grid of ADR 0013, as in the
-// prototype: the amount and the unit, the location, the due date, the store
-// and the price of a Purchase row, the product group of a new product on a
-// row with no product, and the note.
+// prototype. The fields are the amount and the unit, the location, and the due
+// date. A Purchase row also has the store and the price. A row with no product
+// has the product group of a new product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
   const { form, lists, patch, scan } = props;
   const isInventory = scan.bookingType === 'inventory';

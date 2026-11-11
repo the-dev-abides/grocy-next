@@ -61,7 +61,7 @@ async function storeAttempt(
 }
 
 // The lookup worker of ADR 0011: an in-process worker with a plain timer. It
-// holds a queue of pending scan ids, runs one lookup at a time, and runs no
+// holds a queue of pending scan ids and runs one lookup at a time. It runs no
 // more than the rate budget of the provider in one clock minute. A lookup sets
 // the time of the attempt on the row in every case. A hit stores the lookup
 // result and writes one nutrition facts record. A miss, a timeout, a 429, or a

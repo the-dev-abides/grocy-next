@@ -32,9 +32,9 @@ export class ProductsService {
     return toProduct(details, { conversions, stockEntries });
   }
 
-  // Grocy does not check that the ids of a product create name a row, so
-  // the server checks them against the active rows of the master data tables
-  // first. An id that names nothing is the unknown-id problem of ADR 0014.
+  // Grocy does not check that the ids of a product create name a row. Thus the
+  // server first checks them against the active rows of the master data
+  // tables. An id that names nothing is the unknown-id problem of ADR 0014.
   private async checkIds(product: CreateProduct): Promise<void> {
     const [locations, productGroups, quantityUnits] = await Promise.all([
       this.grocy.listLocations(),
@@ -51,12 +51,12 @@ export class ProductsService {
     }
   }
 
-  // The factor from the purchase unit to the stock unit goes on the
-  // conversion row that the Grocy trigger created for the new product. The
-  // trigger creates no row when a conversion of the household already
-  // resolves the pair, and the create then adds the row, so the product
-  // stores the factor of the form in every case. A product whose purchase
-  // unit is the stock unit has no row and no factor to set.
+  // The factor from the purchase unit to the stock unit goes on the conversion
+  // row that the Grocy trigger created for the new product. When a conversion
+  // of the household already resolves the pair, the trigger creates no row, and
+  // the create adds the row. Thus the product stores the factor of the form in
+  // every case. A product whose purchase unit is the stock unit has no row and
+  // no factor to set.
   private async setFactor(
     productId: number,
     product: CreateProduct,
@@ -85,9 +85,11 @@ export class ProductsService {
     await this.grocy.setConversionFactor(row.id, product.purchaseToStockFactor);
   }
 
-  // The product create of the short product form: the ids are checked, the product goes into Grocy with the fields of the form, the factor goes on the conversion row, and the response is the product as Grocy stores it.
-  // The create touches no pending scan, as ADR 0010 decided. The screen sets
-  // the new product on the pending scan with a second call.
+  // The product create of the short product form. The service checks the ids
+  // and creates the product in Grocy with the fields of the form. It sets the
+  // factor on the conversion row. The response is the product as Grocy stores
+  // it. The create touches no pending scan, as ADR 0010 decided. The screen
+  // sets the new product on the pending scan with a second call.
   async create(product: CreateProduct): Promise<Product> {
     await this.checkIds(product);
     const created = await this.grocy.createProduct(toGrocyProductBody(product));

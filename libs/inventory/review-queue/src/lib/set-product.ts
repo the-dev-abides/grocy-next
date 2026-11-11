@@ -27,12 +27,11 @@ export function hasBarcode(product: ProductDetails, code: string): boolean {
   return product.barcodes.some((row) => forms.has(row.barcode.toLowerCase()));
 }
 
-// This function applies the rules of an update that sets a product, after
-// the Grocy writes: the write-in name goes, the unit goes because the empty
-// unit means the purchase unit of the product, the location takes the
-// product default when the row had none, and the row stores the id of the
-// product barcode that the update added in Grocy, or null when it added
-// none.
+// This function applies the rules of an update that sets a product, after the
+// Grocy writes. The write-in name goes. The unit goes, because the empty unit
+// means the purchase unit of the product. The location takes the product
+// default when the row had none. The row stores the id of the product barcode
+// that the update added in Grocy, or null when it added none.
 export function withProduct(
   updated: StoredPendingScan,
   product: ProductDetails,

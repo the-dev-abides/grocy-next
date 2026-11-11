@@ -1,8 +1,8 @@
 import { ABSENCE_MS, createRepeatRule } from './repeat-rule';
 
-// The repeat rule of ADR 0009, with a fake clock: one barcode value is one
-// scan while the decoder finds it in consecutive frames, and a new scan after
-// it has been absent from the frames for one second.
+// The repeat rule of ADR 0009, with a fake clock. One barcode value is one scan
+// while the decoder finds it in consecutive frames. It is a new scan after it
+// is absent from the frames for one second.
 function fakeClock() {
   let now = 0;
   return {

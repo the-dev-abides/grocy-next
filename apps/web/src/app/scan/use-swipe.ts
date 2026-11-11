@@ -39,10 +39,10 @@ function pointerStartOf(event: RowPointerEvent): null | PointerStart {
   };
 }
 
-// The swipe to the left on a row. The hook follows one pointer from the
-// down to the up, keeps the drag distance, and calls `onReject` after the
-// slide out when the drag went past a third of the row width. The row
-// element that gets the handlers gives its width.
+// The swipe to the left on a row. The hook follows one pointer from the down to
+// the up and keeps the drag distance. When the drag went past a third of the
+// row width, the hook calls `onReject` after the slide out. The row element
+// that gets the handlers gives its width.
 export function useSwipe(onReject: () => void): Swipe {
   const [dragX, setDragX] = useState(0);
   const [isGone, setIsGone] = useState(false);

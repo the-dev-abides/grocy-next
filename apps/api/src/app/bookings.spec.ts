@@ -37,9 +37,9 @@ interface OpenApiDocument {
   paths: Record<string, Record<string, OpenApiOperation>>;
 }
 
-// The stock log row that the Grocy mock returns for a purchase: the product
-// of the path, the amount and the price of the request, and fixed values for
-// the other fields. Grocy writes no stock entry id on a purchase.
+// The stock log row that the Grocy mock returns for a purchase. It has the
+// product of the path and the amount and the price of the request. The other
+// fields have fixed values. Grocy writes no stock entry id on a purchase.
 const MOCK_PURCHASE_ROW = {
   dueDate: '2027-01-01',
   id: 101,
@@ -52,9 +52,9 @@ const MOCK_PURCHASE_ROW = {
 };
 const MOCK_TRANSACTION_ID = '69131a2b3c4e6';
 
-// The accept of a Purchase pending scan: the creation of a booking, as ADR
-// 0010 decided. The fixture household has the conversion 1 Box = 6 Packs on
-// product 3 and no conversion from the Pack to the Can on product 1.
+// The accept of a Purchase pending scan: the creation of a booking, as ADR 0010
+// decided. The fixture household has the conversion 1 Box = 6 Packs on product
+// 3. It has no conversion from the Pack to the Can on product 1.
 describe('the accept of a Purchase pending scan', () => {
   let app: INestApplication;
   let baseUrl: string;

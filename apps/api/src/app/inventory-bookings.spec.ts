@@ -19,9 +19,9 @@ interface PendingScanBody {
 }
 
 // The stock log row that the Grocy mock returns for an inventory that adds
-// stock: an increase of 3 on the product of the path with the due date, the
-// location, the price, the store, and the note of the request. Grocy writes
-// no stock entry id on added stock.
+// stock. It is an increase of 3 on the product of the path. It has the due
+// date, the location, the price, the store, and the note of the request. Grocy
+// writes no stock entry id on added stock.
 const MOCK_INCREASE_ROW = {
   amount: 3,
   id: 102,
@@ -98,7 +98,7 @@ describe('the accept of an Inventory pending scan', () => {
 
   // A count above the stock adds stock. The accept sends the new amount with
   // the due date, the location, the price, the store, and the note of the
-  // row, and the Grocy mock answers them in the row, so the booking shows
+  // row. The Grocy mock answers these values in the row, so the booking shows
   // what the accept sent.
   it('accepts an increase with the fields of the added stock and deletes the row', async () => {
     const created = await createAndRead({

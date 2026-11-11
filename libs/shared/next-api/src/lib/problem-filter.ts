@@ -30,12 +30,12 @@ function send(
   response.end(JSON.stringify(body));
 }
 
-// The problem of an exception, or undefined when the exception is not a
-// Next API error. The router throws `NotFoundException` for an unknown
-// path. NestJS maps the body parser error for a body that is not valid
-// JSON to a plain `BadRequestException` with the parser message. No Next
-// API code throws a plain `BadRequestException`, so one with a body is the
-// parser, and one without a body is a request line that Express refused.
+// The problem of an exception, or undefined when the exception is not a Next
+// API error. The router throws `NotFoundException` for an unknown path. NestJS
+// maps the body parser error for a body that is not valid JSON to a plain
+// `BadRequestException` with the parser message. No Next API code throws a
+// plain `BadRequestException`. Thus one with a body is the parser, and one
+// without a body is a request line that Express refused.
 function problemOf(
   exception: unknown,
   request: HttpRequest,

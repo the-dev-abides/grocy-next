@@ -40,8 +40,9 @@ function OutcomeIcon({ outcome }: Readonly<Pick<ResultLine, 'outcome'>>) {
   return <X className="mt-px size-3.5 shrink-0 text-destructive" />;
 }
 
-// The result panel above the list: one line per accepted or failed row,
-// most recent at the top, and the count of booked, failed, and skipped rows.
+// The result panel above the list. It has one line per accepted or failed row,
+// most recent at the top. It also has the count of booked, failed, and skipped
+// rows.
 export function ResultPanel({
   lines,
   onClose,

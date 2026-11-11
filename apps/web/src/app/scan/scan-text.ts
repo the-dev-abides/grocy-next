@@ -5,9 +5,9 @@ interface Named {
   name: string;
 }
 
-// This function returns the name of the master data row with the id, the
-// fallback when the id is null, and the id itself while the list has not
-// loaded yet.
+// This function returns the name of the master data row with the id. It returns
+// the fallback when the id is null. It returns the id itself while the list has
+// not loaded yet.
 export function nameOf(
   rows: readonly Named[] | undefined,
   id: null | number,
@@ -41,8 +41,9 @@ export function dueDateText(dueDate: null | string): string {
   return dueDate ?? 'default due';
 }
 
-// The Grocy stock of the product of an Inventory row, in the stock unit of
-// the product, or the words while the product read has not answered.
+// The Grocy stock of the product of an Inventory row, in the stock unit of the
+// product. While the product read has not answered, the function returns the
+// words.
 export function stockText(
   product: Pick<Product, 'stockAmount' | 'stockUnitId'> | undefined,
   quantityUnits: readonly Named[] | undefined,

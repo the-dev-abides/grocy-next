@@ -17,13 +17,13 @@ import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 // gives the fact through this parameter, not through a body field.
 export type RepeatRule = 'merge' | 'no merge';
 
-// This function finds the open pending scan that a new scan repeats: the
+// This function finds the open pending scan that a new scan repeats. It is the
 // most recent row with the same booking type that holds the same thing. A
 // Purchase row holds the same thing when its code is one code with the new
-// code. An Inventory row holds the same thing when it has the same product,
-// so that one product has at most one open Inventory pending scan, or the
-// same code when the scan has no product. A row with no code is never a
-// merge target, and a new scan with no code has no target.
+// code. An Inventory row holds the same thing when it has the same product, or
+// the same code when the scan has no product. Thus one product has at most one
+// open Inventory pending scan. A row with no code is never a merge target, and
+// a new scan with no code has no target.
 export function findRepeatTarget(
   manager: EntityManager,
   row: PendingScanToStore,

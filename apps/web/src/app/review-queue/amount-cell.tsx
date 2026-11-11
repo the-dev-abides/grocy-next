@@ -5,9 +5,9 @@ import type { PendingScan, Product } from '../api/next-api';
 import { CountField } from './count-field';
 
 // The amount of a row from `md`. An Inventory row of a known product has the
-// count field of the spec: the field is open while the row has no count, and
-// a click on the count opens it again. Every other amount is text, because
-// the inline edit of the other cells is a later milestone.
+// count field of the spec. The field is open while the row has no count, and a
+// click on the count opens it again. Every other amount is text, because the
+// inline edit of the other cells is a later milestone.
 export function AmountCell({
   onCount,
   product,

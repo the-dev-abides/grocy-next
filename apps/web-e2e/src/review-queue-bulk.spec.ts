@@ -6,16 +6,15 @@ import {
   test,
 } from '@playwright/test';
 
-// The tests of the filter, the bulk actions, and the full form of one row of
-// the review queue. The API keeps its rows for the whole run, and every test
-// of every file runs in parallel against one API. Each test creates its own
-// rows through the API with a note of its own and removes them at the end.
-// Accept all and Reject all act on every row that the filter shows, so each
-// of the two tests filters on a location and a product group that only its
-// own rows have: no other file sets a product group on a row, and no other
-// test of this file uses the Freezer with a product group. The bulk edit acts
-// on the checked rows only. The codes of this file are produce codes that no
-// other file types.
+// The tests of the filter, the bulk actions, and the full form of one row of the review queue.
+// The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
+// Each test creates its own rows through the API with a note of its own and removes them at the end.
+// Accept all and Reject all act on every row that the filter shows.
+// Thus each of the two tests filters on a location and a product group that only its own rows have.
+// No other file sets a product group on a row.
+// No other test of this file uses the Freezer with a product group.
+// The bulk edit acts on the checked rows only.
+// The codes of this file are produce codes that no other file types.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 
@@ -26,9 +25,9 @@ const GARAGE = 4;
 const DAIRY = 1;
 const SNACKS = 2;
 
-// The Grocy mock answers a purchase with a fixed stock log row: the location
-// 1 Fridge, the due date 2027-01-01, and the amount and the price of the
-// request.
+// The Grocy mock answers a purchase with a fixed stock log row. The row has the
+// location 1 Fridge and the due date 2027-01-01. It has the amount and the
+// price of the request.
 const MOCK_DUE_DATE = '2027-01-01';
 
 interface PendingScanRow {
@@ -100,9 +99,10 @@ test('the filter by location, product group, and each of the four states narrows
 }) => {
   const note = 'bulk-filter';
   await removeRows(request, note);
-  // A ready Purchase row in the Pantry, an Inventory row with no count in the
-  // Fridge, a row with no product in the Pantry, and a row in the inactive
-  // Garage that the Grocy mock refuses at accept.
+  // Four rows. The first is a ready Purchase row in the Pantry. The second is
+  // an Inventory row with no count in the Fridge. The third is a row with no
+  // product in the Pantry. The fourth is a row in the inactive Garage that the
+  // Grocy mock refuses at accept.
   await createRow(request, {
     bookingType: 'purchase',
     locationId: PANTRY,

@@ -51,13 +51,14 @@ function useScanLists(): ScanLists {
   };
 }
 
-// The scan session of a scan screen: the rows of the booking type that this
-// screen created or merged, the master data lists that name a row, the
-// defaults and the price for the next scan, the create call of a code, the
-// update of a row, and the delete of the swipe. The session is not stored. A
-// new screen starts a new session. Every call refetches the list, so the row
-// changes before the next poll. The create call returns the stored row, or
-// null when the call failed, so the screen gives the feedback of the outcome.
+// The scan session of a scan screen. It holds the rows of the booking type that
+// this screen created or merged, and the master data lists that name a row. It
+// holds the defaults and the price for the next scan. It gives the create call
+// of a code, the update of a row, and the delete of the swipe. The session is
+// not stored. A new screen starts a new session. Every call refetches the list,
+// so the row changes before the next poll. The create call returns the stored
+// row, or null when the call failed. Thus the screen gives the feedback of the
+// outcome.
 export function useScanSession(
   bookingType: PendingScan['bookingType'],
 ): ScanSession {

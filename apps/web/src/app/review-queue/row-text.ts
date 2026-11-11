@@ -19,10 +19,10 @@ export const bookingTypeLabel: Readonly<
   purchase: 'Purchase',
 };
 
-// The unit of the amount of a row, as ADR 0010 decided: a Purchase amount is
-// in the scanned unit, or the purchase unit of the product when the row has
-// none, and an Inventory amount is in the stock unit of the product. No
-// words while the product read has not answered.
+// The unit of the amount of a row, as ADR 0010 decided. A Purchase amount is in
+// the scanned unit. When the row has no scanned unit, the amount is in the
+// purchase unit of the product. An Inventory amount is in the stock unit of the
+// product. No words while the product read has not answered.
 export function unitOf(
   scan: Pick<PendingScan, 'bookingType' | 'quantityUnitId'>,
   product: ProductUnits | undefined,

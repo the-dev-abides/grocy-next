@@ -124,8 +124,8 @@ export class GrocyClient {
   }
 
   // One row into one Grocy table through the Grocy objects endpoint. Grocy
-  // answers the id of the new row, or 400 with the reason when Grocy refuses
-  // the row, for example when a unique column has the value already.
+  // answers the id of the new row. When Grocy refuses the row, it answers 400
+  // with the reason, for example when a unique column has the value already.
   private async createObject(
     table: GrocyWritableTable,
     body: unknown,
@@ -220,9 +220,9 @@ export class GrocyClient {
   }
 
   // The conversion rows of one product in the Grocy table
-  // `quantity_unit_conversions`: the rows that the Grocy trigger created for
-  // the product and the rows that the household added. Grocy answers an
-  // empty list for an unknown product.
+  // `quantity_unit_conversions`. These are the rows that the Grocy trigger
+  // created for the product and the rows that the household added. Grocy
+  // answers an empty list for an unknown product.
   async readProductConversions(
     productId: number,
   ): Promise<ProductConversion[]> {

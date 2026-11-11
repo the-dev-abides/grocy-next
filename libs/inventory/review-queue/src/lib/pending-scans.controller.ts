@@ -41,8 +41,8 @@ import { PendingScansService } from './pending-scans.service.ts';
 export class PendingScansController {
   constructor(private readonly pendingScans: PendingScansService) {}
 
-  // A create from the scan screen applies the repeat rule: a repeat scan of
-  // a code adds to the open row and answers 200 in place of 201.
+  // A create from the scan screen applies the repeat rule. A repeat scan of a
+  // code adds to the open row and answers 200 in place of 201.
   @Post()
   @ApiOperation({
     operationId: 'createPendingScan',

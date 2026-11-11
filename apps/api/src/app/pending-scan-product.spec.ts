@@ -114,9 +114,9 @@ describe('the update of a pending scan that sets a product', () => {
     return app.get(DataSource).getRepository(storedNutritionFactsSchema);
   }
 
-  // The lookup result of the row names the real image host. The test writes
-  // the image URL of the mock into the stored lookup result, so the picture
-  // download reaches the mock and no test reaches the network.
+  // The lookup result of the row names the real image host. The test writes the
+  // image URL of the mock into the stored lookup result. Thus the picture
+  // download reaches the mock, and no test reaches the network.
   async function lookUpWithImage(imageUrl: string): Promise<PendingScanBody> {
     const created = await createAndRead({
       bookingType: 'purchase',
@@ -142,9 +142,9 @@ describe('the update of a pending scan that sets a product', () => {
     baseUrl = await app.getUrl();
   });
 
-  // Every test starts with an empty queue and no nutrition facts, so a create
-  // of a fixture code in one test never merges into a row of another test.
-  // No Next API operation reads the nutrition facts, so the test clears the
+  // Every test starts with an empty queue and no nutrition facts. Thus a create
+  // of a fixture code in one test never merges into a row of another test. No
+  // Next API operation reads the nutrition facts, so the test clears the
   // storage.
   beforeEach(async () => {
     const response = await fetch(`${baseUrl}/api/v2/pending-scans`);
@@ -269,8 +269,8 @@ describe('the update of a pending scan that sets a product', () => {
     expect(await read(created.id)).toEqual(created);
   });
 
-  // No fixture product has a picture, so the update downloads the front
-  // image from the mock, uploads it to Grocy as a product picture, and sets
+  // No fixture product has a picture. Thus the update downloads the front image
+  // from the mock and uploads it to Grocy as a product picture. Then it sets
   // the picture name on the product. The Grocy mock answers both writes with
   // 204 and holds no state, so the response carries the row only.
   it('sets the lookup picture on a product with no picture and answers the row', async () => {

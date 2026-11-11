@@ -27,9 +27,9 @@ export class GrocyStockClient {
   constructor(private readonly grocy: GrocyClient) {}
 
   // This method books an inventory of one product: the new own stock. Grocy
-  // books the difference as added stock or as a consume in the Grocy order,
-  // and refuses a new amount that equals the stock, so the caller sends no
-  // inventory in that case.
+  // books the difference as added stock or as a consume in the Grocy
+  // order. Grocy refuses a new amount that equals the stock, so the caller
+  // sends no inventory in that case.
   async inventory(
     productId: number,
     inventory: Inventory,

@@ -6,14 +6,15 @@ import {
   test,
 } from '@playwright/test';
 
-// The tests of the review queue screen: the table of every pending scan of
-// both booking types, the accept and the reject of a row, and the sidebar
-// badge. The API keeps its rows for the whole run, and every test of every
-// file runs in parallel against one API, so each test creates its own rows
-// through the API with a note of its own, finds them by that note, and
-// removes them at the end. The other spec files own the fixture codes, so
-// the rows of this file carry a product and no code, a produce code that no
-// other file types, or the third unknown code of the Open Food Facts mock.
+// The tests of the review queue screen.
+// They cover the table of every pending scan of both booking types and the sidebar badge.
+// They also cover the accept and the reject of a row.
+// The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
+// Thus each test creates its own rows through the API with a note of its own.
+// It finds them by that note and removes them at the end.
+// The other spec files own the fixture codes.
+// Thus each row of this file carries a product and no code, or a produce code that no other file types.
+// Else it carries the third unknown code of the Open Food Facts mock.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 
@@ -34,9 +35,9 @@ const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
 // at the next poll of the pending scan list.
 const LOOKUP_TIMEOUT_MS = 15_000;
 
-// The Grocy mock answers a purchase with a fixed stock log row: the location
-// 1 Fridge, the due date 2027-01-01, and the amount and the price of the
-// request.
+// The Grocy mock answers a purchase with a fixed stock log row. The row has the
+// location 1 Fridge and the due date 2027-01-01. It has the amount and the
+// price of the request.
 const MOCK_DUE_DATE = '2027-01-01';
 
 interface PendingScanRow {
@@ -345,9 +346,10 @@ test('New product opens the short product form with the proposals of the lookup 
 
   await row.getByRole('button', { name: 'New product' }).click();
 
-  // The proposals of ADR 0011: the name, the description with the brand and
-  // the label text, the stock unit Gram from g, the purchase unit Pack from a
-  // label with no package word, and the factor 415 from the net quantity.
+  // The test checks the proposals of ADR 0011. The form has the name, and a
+  // description with the brand and the label text. The stock unit is Gram, from
+  // g. The purchase unit is Pack, from a label with no package word. The factor
+  // is 415, from the net quantity.
   const dialog = page.getByRole('dialog', { name: 'New product' });
   const name = dialog.getByRole('textbox', { name: 'Name' });
   await expect(name).toHaveValue('Beanz in a rich tomato sauce');
@@ -386,9 +388,9 @@ test('New product opens the short product form with the proposals of the lookup 
 
   await save.click();
 
-  // The product exists in Grocy and the row has it: the server added the
-  // code to the product, set the default location of the product on the row,
-  // and the row is ready.
+  // The product exists in Grocy and the row has it. The server added the code
+  // to the product and set the default location of the product on the row. The
+  // row is ready.
   await expect(dialog).toBeHidden();
   await expect(row).toContainText('Heinz Beanz 415 g');
   await expect(row).toContainText('Ready');

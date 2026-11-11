@@ -6,15 +6,15 @@ import {
   test,
 } from '@playwright/test';
 
-// The tests of the Inventory scan screen: a typed code becomes one row per
-// product with the Grocy stock from the product read, a repeat scan changes
-// nothing, and a row with no product and no lookup result takes a write-in
-// name. The API keeps its rows for the whole run, and the tests of one file
-// run in parallel, so each test owns one code and one product. The Purchase
-// tests own the three fixture codes and the 12-digit form of the second
-// product barcode, and they remove rows by code across both booking types,
-// so this file uses the 13-digit form of that product barcode, a Grocycode,
-// and a produce code of its own.
+// The tests of the Inventory scan screen.
+// A typed code becomes one row per product with the Grocy stock from the product read.
+// A repeat scan changes nothing.
+// A row with no product and no lookup result takes a write-in name.
+// The API keeps its rows for the whole run, and the tests of one file run in parallel.
+// Thus each test owns one code and one product.
+// The Purchase tests own the three fixture codes and the 12-digit form of the second product barcode.
+// They remove rows by code across both booking types.
+// Thus this file uses the 13-digit form of that product barcode, a Grocycode, and a produce code of its own.
 
 const PENDING_SCANS = '/api/v2/pending-scans';
 
@@ -44,10 +44,10 @@ async function inventoryRows(
   });
 }
 
-// One product has at most one open Inventory pending scan with a code, so the
-// open rows of the product with a code go too, whatever code they carry. A
-// row with no code is never a merge target, and the review queue tests own
-// the Inventory rows with no code.
+// One product has at most one open Inventory pending scan with a code. Thus the
+// open rows of the product with a code go too, whatever code they carry. A row
+// with no code is never a merge target, and the review queue tests own the
+// Inventory rows with no code.
 async function removeInventoryRows(
   request: APIRequestContext,
   code: string,

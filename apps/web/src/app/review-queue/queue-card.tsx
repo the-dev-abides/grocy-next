@@ -21,9 +21,9 @@ import { RowEditButton } from './row-edit-button';
 import { amountText, bookingTypeLabel } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
-// Every fact of the row on one line, as the card has no columns: the
-// booking type, the time, the location, the due date, and the price and the
-// store of a Purchase row.
+// Every fact of the row on one line, as the card has no columns. The facts are
+// the booking type, the time, the location, and the due date. A Purchase row
+// also has the price and the store.
 function CardFacts({
   lists,
   scan,
@@ -110,8 +110,8 @@ function CardAmount({
   );
 }
 
-// The accept of a card in the big size: Accept on a ready card, Accept again
-// on a failed card, and a closed Set the count on a card with no count.
+// The accept of a card in the big size. A ready card shows Accept, and a failed
+// card shows Accept again. A card with no count shows a closed Set the count.
 function AcceptButton({
   actions,
   state,

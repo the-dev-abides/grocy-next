@@ -36,15 +36,15 @@ const MINIMAL_BODY = {
   stockUnitId: 2,
 };
 
-// The product create of the short product form. The server creates the
-// product in Grocy, sets the factor on the conversion row that the Grocy
-// trigger created when the purchase unit differs from the stock unit, and
-// answers the product as Grocy stores it. The Grocy mock holds no state, so
-// the details of the new product come from an Imposter store that the
-// create and the conversion row update fill. The mock does not capture the
-// description and the product group, so the details answer null for both.
-// A new product has no stock entry, and its resolved conversions in the mock
-// hold the one row from the purchase unit to the stock unit.
+// The product create of the short product form. The server creates the product
+// in Grocy. When the purchase unit differs from the stock unit, the Grocy
+// trigger creates a conversion row, and the server sets the factor on it. The
+// server answers the product as Grocy stores it. The Grocy mock holds no
+// state. Thus the details of the new product come from an Imposter store that
+// the create and the conversion row update fill. The mock does not capture the
+// description and the product group, so the details answer null for both. A new
+// product has no stock entry. Its resolved conversions in the mock hold the one
+// row from the purchase unit to the stock unit.
 describe('the product create of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -72,7 +72,7 @@ describe('the product create of the Next API', () => {
 
   // The Pantry is location 2, the Pack is unit 2, and the Box is unit 3. The
   // Grocy trigger creates the conversion row from the Box to the Pack with
-  // factor 1, and the create sets the factor of the form on that row.
+  // factor 1. The create sets the factor of the form on that row.
   it('creates a product with the factor on the conversion row from the purchase unit to the stock unit', async () => {
     const response = await create({
       defaultDueDays: 180,
@@ -164,9 +164,9 @@ describe('the product create of the Next API', () => {
     });
   });
 
-  // Grocy does not check that the ids of a product create name a row, so
-  // the server checks them against the active rows of the master data
-  // tables. The Garage, location 4, is the one inactive row.
+  // Grocy does not check that the ids of a product create name a row. Thus the
+  // server checks them against the active rows of the master data tables. The
+  // Garage, location 4, is the one inactive row.
   it.each([
     {
       change: { locationId: 9 },

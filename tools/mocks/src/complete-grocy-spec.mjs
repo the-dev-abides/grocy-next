@@ -163,7 +163,7 @@ function bodySchemaOf(paths, pathName, method) {
 /**
 Changes the `oneOf` of the generic object create body and the generic object
 update body to an `anyOf`. No entity shape of the Grocy document names a
-required field or forbids an unknown field, so every body matches all nine
+required field or forbids an unknown field. Thus every body matches all nine
 shapes, and a `oneOf` can never pass. Grocy itself checks the body against
 the one entity of the path. With the `anyOf`, the validator still checks
 that the body is an object with the field types of the shapes.

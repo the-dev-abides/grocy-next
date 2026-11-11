@@ -56,9 +56,9 @@ export interface NutritionFactsFromLookup extends NutrientColumns {
   traceTags: string[];
 }
 
-// One nutrition facts record as the Grocy Next storage holds it: one row per
-// successful lookup, linked to the product barcode and, once the row gets a
-// product, to the product.
+// One nutrition facts record as the Grocy Next storage holds it. The storage
+// keeps one row per successful lookup. The row links to the product barcode
+// and, once the row gets a product, to the product.
 export interface StoredNutritionFacts extends NutritionFactsFromLookup {
   code: string;
   createdAt: string;

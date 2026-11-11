@@ -19,11 +19,11 @@ export interface ScanFeedback {
   show: (banner: ScanBanner) => void;
 }
 
-// This hook holds the on-screen feedback of the last scan: the frame colour
-// for 0.7 seconds and the banner for about 2 seconds, 3 seconds for an
-// unknown code. It plays the sound and the vibration of the outcome. Each
-// scan is a new object, so a scan within the time of the last one starts
-// the time again.
+// This hook holds the on-screen feedback of the last scan. The frame colour
+// shows for 0.7 seconds. The banner shows for about 2 seconds, and for 3
+// seconds for an unknown code. The hook plays the sound and the vibration of
+// the outcome. Each scan is a new object, so a scan within the time of the last
+// one starts the time again.
 export function useScanFeedback(): ScanFeedback {
   const [flash, setFlash] = useState<null | { kind: FeedbackKind }>(null);
   const [banner, setBanner] = useState<null | ScanBanner>(null);

@@ -1,8 +1,8 @@
 import type { ProductListItem } from '../api/next-api';
 
 // The search of the product pick dialog runs in the browser over the product
-// list: the products whose name holds the typed text, case ignored, sorted
-// by name. An empty text lists every product.
+// list. It finds the products whose name holds the typed text, with the case
+// ignored. It sorts them by name. An empty text lists every product.
 export function searchProducts(
   products: readonly ProductListItem[] | undefined,
   text: string,

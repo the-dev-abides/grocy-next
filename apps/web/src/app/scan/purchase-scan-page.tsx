@@ -3,8 +3,8 @@ import { PurchaseRow } from './purchase-row';
 import { ScanScreen } from './scan-screen';
 import { nextAmount } from './swipe';
 
-// The Purchase scan screen: the shared scan screen with the store in the
-// defaults, the price for the next scan under the camera, and the amount
+// The Purchase scan screen. It is the shared scan screen with the store in the
+// defaults. It has the price for the next scan under the camera and the amount
 // controls on each row. Plus and minus send an update with the new amount.
 export function PurchaseScanPage() {
   return (

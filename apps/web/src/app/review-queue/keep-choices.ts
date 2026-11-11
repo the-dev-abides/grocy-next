@@ -1,5 +1,5 @@
-// The values of a bulk edit select: keep the field as it is, set it to
-// none, or set it to the id of a row.
+// The values of a bulk edit select. A value keeps the field as it is, sets it
+// to none, or sets it to the id of a row.
 export const KEEP = 'keep';
 export const NONE = 'none';
 

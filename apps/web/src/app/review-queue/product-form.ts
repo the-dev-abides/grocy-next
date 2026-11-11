@@ -20,8 +20,8 @@ export interface ProductForm {
   stockUnitId: null | number;
 }
 
-// The form as it opens: the proposals of ADR 0011, the location and the
-// product group of the row, and the due days 0, which means no due date.
+// The form as it opens. It has the proposals of ADR 0011 and the location and
+// the product group of the row. The due days are 0, which means no due date.
 export function formOf(
   scan: Pick<
     PendingScan,
@@ -58,11 +58,11 @@ function dueDaysOf(form: ProductForm): null | number {
   return Number.isSafeInteger(days) && days >= -1 ? days : null;
 }
 
-// The body of the product create from the form, or null while the form is
-// not complete: a name, a location, and the two units are required, the
-// factor must be a number above zero when the units differ, and the due days
-// must be a whole number from -1. The description and the factor go only
-// when they have a value.
+// The body of the product create from the form, or null while the form is not
+// complete. A name, a location, and the two units are required. When the units
+// differ, the factor must be a number above zero. The due days must be a whole
+// number from -1. The description and the factor go only when they have a
+// value.
 export function bodyOf(form: ProductForm): CreateProduct | null {
   const name = form.name.trim();
   const factor = factorOf(form);

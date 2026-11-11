@@ -8,7 +8,7 @@ export interface Selection {
 }
 
 // The checkbox of each row and the checkbox of the header. A row that the
-// filter hides or that left the queue does not count as checked, so the
+// filter hides or that left the queue does not count as checked. Thus the
 // checked rows are always rows in front of the user.
 export function useSelection(shownIds: readonly number[]): Selection & {
   checkedIds: number[];

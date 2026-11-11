@@ -5,10 +5,10 @@ interface Named {
   name: string;
 }
 
-// One entry of the stock unit name list: the names of a household unit that
-// measures the net quantity unit, and how many of the net quantity unit one
-// such unit holds. The first entry of each list is the unit itself. The
-// other entries are the units with a conversion to it.
+// One entry of the stock unit name list. It holds the names of a household unit
+// that measures the net quantity unit. It also holds how many of the net
+// quantity unit one such unit holds. The first entry of each list is the unit
+// itself. The other entries are the units with a conversion to it.
 interface StockUnitNames {
   names: readonly string[];
   perUnit: number;
@@ -52,8 +52,8 @@ const STOCK_UNIT_NAMES: Readonly<
   ],
 };
 
-// One entry of the package name list: the words of a label quantity text
-// that name the package, and the names of the household units for it. The
+// One entry of the package name list. It holds the words of a label quantity
+// text that name the package, and the names of the household units for it. The
 // last entry has no word. It is the package when the label names none.
 interface PackageNames {
   names: readonly string[];
@@ -88,10 +88,10 @@ function isNetQuantityUnit(unit: null | string): unit is 'g' | 'ml' {
   return unit === 'g' || unit === 'ml';
 }
 
-// The stock unit proposal: the household unit whose name matches the net
-// quantity unit, or a household unit with a conversion to it, with the net
-// quantity converted. No match, no net quantity, or a unit outside g and ml
-// gives no proposal.
+// The stock unit proposal. It is the household unit whose name matches the net
+// quantity unit, or a household unit with a conversion to it. The proposal
+// converts the net quantity to that unit. No match, no net quantity, or a unit
+// outside g and ml gives no proposal.
 export function proposeStockUnit(
   netQuantity: null | number,
   netQuantityUnit: null | string,
@@ -173,9 +173,10 @@ function unitsOf(
 }
 
 // The proposal of the short product form from the lookup result and the
-// write-in name, as ADR 0011 decided: the write-in name, else the lookup
-// name, the description with the brand and the label quantity text, the two
-// units, and the factor from the net quantity in the stock unit.
+// write-in name, as ADR 0011 decided. The name is the write-in name, else the
+// lookup name. The description has the brand and the label quantity text. The
+// proposal also has the two units, and the factor from the net quantity in the
+// stock unit.
 export function proposeProduct(
   scan: Pick<PendingScan, 'lookupResult' | 'writeInName'>,
   units: readonly Named[] | undefined,

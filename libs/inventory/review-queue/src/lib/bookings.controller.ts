@@ -16,9 +16,9 @@ import { BookingsService } from './bookings.service.ts';
 export class BookingsController {
   constructor(private readonly bookings: BookingsService) {}
 
-  // The accept answers 200 with the booking, as ADR 0014 decided, because
-  // the response carries the values that Grocy stored and no new Next API
-  // resource has a path.
+  // The accept answers 200 with the booking, as ADR 0014 decided. The response
+  // carries the values that Grocy stored, and no new Next API resource has a
+  // path.
   @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

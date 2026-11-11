@@ -37,9 +37,9 @@ function DifferenceBadge({
   );
 }
 
-// The Inventory facts of a row, under the name: the Grocy stock with the
-// parent and tare weight notes, and once the count is set, the difference
-// and what the accept does.
+// The Inventory facts of a row, under the name. The first line is the Grocy
+// stock with the parent and tare weight notes. When the count is set, the lines
+// also show the difference and what the accept does.
 export function InventoryLines({
   lists,
   product,

@@ -1,4 +1,9 @@
-// The scan feedback of the spec: a short high tone and a short vibration for a known product, two low tones and a long vibration for an unknown code, a two-tone for a repeat scan. Chrome plays no sound before the first tap on the page, so the page unlocks the audio on the first pointer or key event. There is no one-time tap screen.
+// The scan feedback of the spec.
+// A known product gives a short high tone and a short vibration.
+// An unknown code gives two low tones and a long vibration.
+// A repeat scan gives a two-tone.
+// Chrome plays no sound before the first tap on the page, so the page unlocks the audio on the first pointer or key event.
+// There is no one-time tap screen.
 
 // The frame colour shows for 0.7 seconds. The banner shows for about 2
 // seconds, 3 seconds for an unknown code.

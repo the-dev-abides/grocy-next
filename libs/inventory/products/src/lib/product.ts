@@ -61,11 +61,12 @@ const quantityUnitConversionSchema = z
   .meta({ id: 'QuantityUnitConversion' });
 
 // One product in the Next API, the resource of the product read and of the
-// product create. It carries the fields that the short product form sets
-// and the facts that the scan screens and the review queue need at display
-// time: the own stock, the stock entries in the Grocy consume order, the
-// resolved conversions, the parent flag, and the tare weight. The schema is
-// strict, so a response carries these fields and nothing else.
+// product create. It carries the fields that the short product form sets. It
+// also carries the facts that the scan screens and the review queue need at
+// display time. These facts are the own stock, the stock entries in the Grocy
+// consume order, the resolved conversions, the parent flag, and the tare
+// weight. The schema is strict, so a response carries these fields and nothing
+// else.
 const productSchema = z
   .strictObject({
     ...productFields,
@@ -133,10 +134,10 @@ const productIdSchema = z.strictObject({
     .meta({ description: 'The id of the product.' }),
 });
 
-// The body of the short product form. Grocy requires the name, the
-// location, and the two units. Every other field is optional, and an absent
-// field means unset, as ADR 0014 decided: no description, no product group,
-// the factor 1, no due date rule, and no minimum stock. The product has no
+// The body of the short product form. Grocy requires the name, the location,
+// and the two units. Every other field is optional, and an absent field means
+// unset, as ADR 0014 decided. Unset means no description, no product group, the
+// factor 1, no due date rule, and no minimum stock. The product has no
 // conversion row when the purchase unit is the stock unit, so the factor is
 // then 1.
 const productFormSchema = z
