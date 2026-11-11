@@ -44,14 +44,25 @@ nine entity shapes with no required field, so the script changes it to an
 `anyOf` in the copy.
 
 Each Grocy call has one static response file under `grocy/responses`, matched
-on the path, the query, or a value in the body. The mock holds no state. An
-inventory returns a fixed stock log row and changes nothing. A purchase
-returns one stock log row with the product of the path, the amount of the
-request, and the price of the request when the request has one. The other
-fields of the row are fixed. The two purchase files are templates, not JSON
-files, because the placeholders are not JSON. A purchase with the inactive
-location 4 and no due date gets the Grocy error `Location does not exist`,
-as Grocy answers it. A product barcode create answers the id 5 for every
+on the path, the query, or a value in the body. The mock holds no state. A
+purchase returns one stock log row with the product of the path, the amount
+of the request, and the price of the request when the request has one. The
+other fields of the row are fixed. The two purchase files are templates, not
+JSON files, because the placeholders are not JSON. A purchase with the
+inactive location 4 and no due date gets the Grocy error `Location does not
+exist`, as Grocy answers it. An inventory with a new amount equal to the
+fixture stock of the product gets the Grocy error `The new amount cannot
+equal the current stock amount`, as Grocy answers it, so a test of the
+no-change accept sees that the Next API did not call Grocy. An inventory with
+the inactive location 4 and no due date gets the same Grocy error as a
+purchase. The mock holds no stock, so it cannot book the difference. An
+inventory of product 1 returns a decrease: two stock log rows with negative
+amounts, as Grocy answers a count of 3 on the stock 6. An inventory of every
+other product returns an increase of 3, as Grocy answers a count of 4 on the
+stock 1 of product 3: one stock log row with the product of the path and,
+when the request has all of the due date, the location, the price, the
+store, and the note, those values of the request. A request without one of
+them gets the Grocy defaults of product 3. A product barcode create answers the id 5 for every
 code except 5000112637922, which gets the Grocy error of a code that
 another product already has. A product picture upload and a product update
 answer 204. The product details never show the new product barcode or the

@@ -310,12 +310,94 @@ resources:
       headers:
         Content-Type: application/json
 
-  # The inventory returns one fixed stock log row. The row names product 1
-  # and amount 1 for every request. The mock changes nothing.
+  # The inventory. Grocy refuses a new amount that equals the stock of the
+  # product, and the Next API calls no Grocy in that case, so a new amount
+  # equal to the fixture stock gets that Grocy error, and a test of the
+  # no-change accept sees that the Next API did not call Grocy. Grocy refuses
+  # an increase into the inactive location 4 when the request has no due
+  # date, as on a purchase. The mock holds no stock, so it cannot book the
+  # difference. An inventory of product 1 answers a decrease: two stock log
+  # rows with negative amounts, one whole stock entry of two cans and one
+  # stock entry reduced by one, as Grocy answers a count of 3 on the stock 6.
+  # An inventory of every other product answers an increase of 3, as Grocy
+  # answers a count of 4 on the stock 1 of product 3: one stock log row with
+  # the product of the path. When the request has all of the due date, the
+  # location, the price, the store, and the note, the row carries those
+  # values of the request, else the Grocy defaults of product 3. The mock
+  # changes nothing.
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '1'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 6
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '2'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 2
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '3'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 1
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.location_id
+          value: 4
+        - jsonPath: $.best_before_date
+          operator: NotExists
+    response:
+      statusCode: 400
+      content: '{"error_message": "Location does not exist"}'
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-log-inventory-decrease.json
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.best_before_date
+          operator: Exists
+        - jsonPath: $.location_id
+          operator: Exists
+        - jsonPath: $.price
+          operator: Exists
+        - jsonPath: $.shopping_location_id
+          operator: Exists
+        - jsonPath: $.note
+          operator: Exists
+    response:
+      template: true
+      file: responses/stock-log-inventory-increase.json.template
+      headers:
+        Content-Type: application/json
   - path: /api/stock/products/{productId}/inventory
     method: POST
     response:
-      file: responses/stock-log-inventory.json
+      template: true
+      file: responses/stock-log-inventory-increase-defaults.json.template
+      headers:
+        Content-Type: application/json
 
   # The product picture. An update of a pending scan that sets a product with
   # no picture uploads the lookup image as a product picture, then sets the
