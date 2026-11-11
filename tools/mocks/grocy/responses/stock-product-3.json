@@ -44,7 +44,7 @@
       "product_id": 3,
       "barcode": "8000500310427",
       "qu_id": 2,
-      "amount": null,
+      "amount": 2,
       "shopping_location_id": null,
       "last_price": null,
       "row_created_timestamp": "2026-01-05 10:00:00",
