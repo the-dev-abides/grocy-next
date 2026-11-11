@@ -28,12 +28,14 @@ function checkCodeOrProduct(row: StoredPendingScan) {
     throw new ProblemException(
       PROBLEM_TYPES.validation,
       'The body, the query, or the path fails the schema.',
-      [
-        {
-          message: 'The pending scan needs a code or a productId.',
-          path: 'code',
-        },
-      ],
+      {
+        errors: [
+          {
+            message: 'The pending scan needs a code or a productId.',
+            path: 'code',
+          },
+        ],
+      },
     );
   }
 }

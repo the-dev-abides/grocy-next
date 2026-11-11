@@ -30,6 +30,6 @@ export function validationProblemOf(error: z.ZodError): ProblemException {
   return new ProblemException(
     PROBLEM_TYPES.validation,
     'The body, the query, or the path fails the schema.',
-    fieldErrorsOf(error),
+    { errors: fieldErrorsOf(error) },
   );
 }
