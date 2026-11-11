@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "outDir": "out-tsc/checks",
+    "tsBuildInfoFile": "out-tsc/checks/tsconfig.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.mjs"],
+  "exclude": ["out-tsc", "eslint.config.mjs"]
+}
