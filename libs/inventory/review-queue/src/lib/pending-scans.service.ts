@@ -8,10 +8,12 @@ import type {
   CreatePendingScan,
   PendingScan,
   PendingScanList,
+  UpdatePendingScan,
 } from './pending-scan.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
 import { pendingScanToStore } from './pending-scan-to-store.ts';
+import { updatedPendingScan } from './pending-scan-update.ts';
 import { resolveCode } from './resolve-code.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 
@@ -64,6 +66,13 @@ export class PendingScansService {
       );
     }
     return row;
+  }
+
+  // The update of ADR 0014: a JSON merge patch on the writable fields. The
+  // response is the row as stored.
+  async update(id: number, body: UpdatePendingScan): Promise<PendingScan> {
+    const row = await this.read(id);
+    return this.pendingScans.save(updatedPendingScan(row, body, now()));
   }
 
   // The reject of ADR 0010. The response is the row as it was before the

@@ -11,6 +11,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   Res,
@@ -27,6 +28,7 @@ import {
   PendingScan,
   PendingScanId,
   PendingScanList,
+  UpdatePendingScan,
 } from './pending-scan.ts';
 import { PendingScansService } from './pending-scans.service.ts';
 
@@ -106,6 +108,32 @@ export class PendingScansController {
   @ZodSerializerDto(PendingScan)
   read(@Param() parameters: PendingScanId): Promise<PendingScan> {
     return this.pendingScans.read(parameters.id);
+  }
+
+  // The update is a JSON merge patch on the writable fields. An absent field
+  // stays as it is. A field set to null clears it.
+  @Patch(':id')
+  @ApiOperation({
+    operationId: 'updatePendingScan',
+    summary: 'Update one pending scan.',
+  })
+  @ApiOkResponse({
+    description: 'The pending scan after the update.',
+    type: PendingScan,
+  })
+  @ApiProblemResponses(
+    PROBLEM_TYPES.validation,
+    PROBLEM_TYPES.notJson,
+    PROBLEM_TYPES.notFound,
+    PROBLEM_TYPES.bookingTypeFixed,
+  )
+  @NoQuery()
+  @ZodSerializerDto(PendingScan)
+  update(
+    @Param() parameters: PendingScanId,
+    @Body() body: UpdatePendingScan,
+  ): Promise<PendingScan> {
+    return this.pendingScans.update(parameters.id, body);
   }
 
   // The reject. The response is the row as it was before the delete.

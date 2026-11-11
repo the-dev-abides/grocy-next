@@ -173,6 +173,68 @@ const pendingScanBodySchema = z
     path: ['code'],
   });
 
+// The update body: a JSON merge patch (RFC 7396) on the writable fields, as
+// ADR 0014 decided. An absent field stays as it is. A field set to null
+// clears it. The booking type is in the body so that a client can send the
+// row back, but the update refuses a change of it.
+const pendingScanUpdateSchema = z.strictObject({
+  amount: z.number().nullable().optional().meta({ description: 'The amount.' }),
+  bookingType: z.enum(BOOKING_TYPES).optional().meta({
+    description: 'The booking that the accept makes. Set at create.',
+  }),
+  code: z
+    .string()
+    .min(1)
+    .nullable()
+    .optional()
+    .meta({ description: 'The code as scanned or typed.' }),
+  dueDate: z.iso
+    .date()
+    .nullable()
+    .optional()
+    .meta({ description: 'The due date.' }),
+  locationId: z
+    .int()
+    .positive()
+    .nullable()
+    .optional()
+    .meta({ description: 'The id of the location.' }),
+  note: z.string().nullable().optional().meta({ description: 'The note.' }),
+  price: z
+    .number()
+    .nullable()
+    .optional()
+    .meta({ description: 'The price as entered.' }),
+  priceType: z
+    .enum(PRICE_TYPES)
+    .optional()
+    .meta({ description: 'Whether the price is per unit or in total.' }),
+  productGroupId: z
+    .int()
+    .positive()
+    .nullable()
+    .optional()
+    .meta({ description: 'The id of the product group of a new product.' }),
+  productId: z
+    .int()
+    .positive()
+    .nullable()
+    .optional()
+    .meta({ description: 'The id of the product.' }),
+  quantityUnitId: z.int().positive().nullable().optional().meta({
+    description: 'The id of the quantity unit of the amount. Purchase only.',
+  }),
+  storeId: z
+    .int()
+    .positive()
+    .nullable()
+    .optional()
+    .meta({ description: 'The id of the store.' }),
+  writeInName: z.string().nullable().optional().meta({
+    description: 'The product name that the user typed on the scan screen.',
+  }),
+});
+
 // The path parameter of a read. The id arrives as text and becomes an
 // integer.
 const pendingScanIdSchema = z.strictObject({
@@ -188,4 +250,5 @@ const pendingScanIdSchema = z.strictObject({
 export class PendingScan extends createZodDto(pendingScanSchema) {}
 export class PendingScanList extends createZodDto(pendingScanListSchema) {}
 export class CreatePendingScan extends createZodDto(pendingScanBodySchema) {}
+export class UpdatePendingScan extends createZodDto(pendingScanUpdateSchema) {}
 export class PendingScanId extends createZodDto(pendingScanIdSchema) {}

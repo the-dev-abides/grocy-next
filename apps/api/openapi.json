@@ -755,6 +755,87 @@
         "summary": "Read one pending scan.",
         "tags": ["PendingScans"]
       },
+      "patch": {
+        "operationId": "updatePendingScan",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The id of the pending scan.",
+            "schema": {
+              "maximum": 9007199254740991,
+              "exclusiveMinimum": true,
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePendingScan"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The pending scan after the update.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingScan"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The booking type is fixed"
+          },
+          "415": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The body is not JSON"
+          }
+        },
+        "summary": "Update one pending scan.",
+        "tags": ["PendingScans"]
+      },
       "delete": {
         "operationId": "deletePendingScan",
         "parameters": [
@@ -1207,6 +1288,90 @@
           }
         },
         "required": ["items"],
+        "additionalProperties": false
+      },
+      "UpdatePendingScan": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "The amount.",
+            "type": "number",
+            "nullable": true
+          },
+          "bookingType": {
+            "description": "The booking that the accept makes. Set at create.",
+            "type": "string",
+            "enum": ["inventory", "purchase"]
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The code as scanned or typed.",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The due date.",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the location.",
+            "nullable": true
+          },
+          "note": {
+            "description": "The note.",
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "description": "The price as entered.",
+            "type": "number",
+            "nullable": true
+          },
+          "priceType": {
+            "description": "Whether the price is per unit or in total.",
+            "type": "string",
+            "enum": ["total", "unit"]
+          },
+          "productGroupId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the product group of a new product.",
+            "nullable": true
+          },
+          "productId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the product.",
+            "nullable": true
+          },
+          "quantityUnitId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the quantity unit of the amount. Purchase only.",
+            "nullable": true
+          },
+          "storeId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the store.",
+            "nullable": true
+          },
+          "writeInName": {
+            "description": "The product name that the user typed on the scan screen.",
+            "type": "string",
+            "nullable": true
+          }
+        },
         "additionalProperties": false
       }
     }
