@@ -18,7 +18,7 @@ interface StockUnitNames {
 // decided. A household unit matches an entry when its name is in the list,
 // case ignored. The Next API has no operation for the Grocy unit
 // conversions, so the conversions through kg and l are in this list.
-export const STOCK_UNIT_NAMES: Readonly<
+const STOCK_UNIT_NAMES: Readonly<
   Record<'g' | 'ml', readonly StockUnitNames[]>
 > = {
   g: [
@@ -61,7 +61,7 @@ interface PackageNames {
 }
 
 // The built-in package name list for the purchase unit, as ADR 0011 decided.
-export const PACKAGE_NAMES: readonly PackageNames[] = [
+const PACKAGE_NAMES: readonly PackageNames[] = [
   { names: ['jar', 'glass'], words: ['jar', 'glass'] },
   { names: ['bottle'], words: ['bottle'] },
   { names: ['can', 'tin'], words: ['can', 'tin'] },
