@@ -4,6 +4,7 @@ import type {
   ProductGroup,
   ProductListItem,
   QuantityUnit,
+  QuantityUnitConversion,
   Store,
 } from '../api/next-api';
 
@@ -12,6 +13,7 @@ import {
   useListPendingScansQuery,
   useListProductGroupsQuery,
   useListProductsQuery,
+  useListQuantityUnitConversionsQuery,
   useListQuantityUnitsQuery,
   useListStoresQuery,
 } from '../api/next-api';
@@ -19,11 +21,13 @@ import { POLL_MS } from '../api/poll-interval';
 import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
-// the short product form.
+// the short product form. The household conversions take part in the stock
+// unit proposal of the short product form.
 export interface QueueLists {
   locations: readonly Location[] | undefined;
   productGroups: readonly ProductGroup[] | undefined;
   products: readonly ProductListItem[] | undefined;
+  quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
   quantityUnits: readonly QuantityUnit[] | undefined;
   stores: readonly Store[] | undefined;
 }
@@ -52,6 +56,8 @@ export function useReviewQueue(): ReviewQueue {
       locations: useListLocationsQuery(undefined).data?.items,
       productGroups: useListProductGroupsQuery(undefined).data?.items,
       products: useListProductsQuery(undefined).data?.items,
+      quantityUnitConversions:
+        useListQuantityUnitConversionsQuery(undefined).data?.items,
       quantityUnits: useListQuantityUnitsQuery(undefined).data?.items,
       stores: useListStoresQuery(undefined).data?.items,
     },

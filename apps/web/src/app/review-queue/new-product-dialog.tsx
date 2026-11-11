@@ -35,7 +35,7 @@ function NewProductForm({
   onCreated: (productId: number) => void;
   scan: PendingScan;
 }>) {
-  const proposal = formOf(scan, lists.quantityUnits);
+  const proposal = formOf(scan, lists);
   const [form, setForm] = useState(proposal);
   const [problem, setProblem] = useState<null | string>(null);
   const [createProduct, creating] = useCreateProductMutation();

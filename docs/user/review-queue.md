@@ -105,6 +105,12 @@ The fields are:
   field asks how many stock units one purchase unit holds.
 - `Default location`, `Product group`, and `Default due days`.
 
+The form proposes the stock unit from the net quantity of the label, in g
+or ml. When the household has a unit with a conversion to g, kg, ml, or l,
+the form proposes that unit. For example, with the conversion 1 Bag = 500 g
+and the net quantity 1 kg, the stock unit is Bag and the amount is 2. Else
+the form proposes the household unit that is named g, kg, ml, or l.
+
 When the form has no unit proposal, it shows the quantity text of the label.
 Pick the units yourself.
 

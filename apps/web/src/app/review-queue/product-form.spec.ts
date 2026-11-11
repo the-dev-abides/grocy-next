@@ -23,7 +23,9 @@ const scan = {
 
 describe('the fields of the short product form', () => {
   it('start from the proposals, the location and the product group of the row, and no due days', () => {
-    expect(formOf(scan, units)).toEqual({
+    expect(
+      formOf(scan, { quantityUnitConversions: [], quantityUnits: units }),
+    ).toEqual({
       defaultDueDays: '0',
       description: 'H J Heinz Foods UK Ltd, 415g',
       factor: '415',
@@ -37,7 +39,10 @@ describe('the fields of the short product form', () => {
 });
 
 describe('the body of the product create from the form', () => {
-  const form = formOf(scan, units);
+  const form = formOf(scan, {
+    quantityUnitConversions: [],
+    quantityUnits: units,
+  });
 
   it('holds the required fields, the description, and the factor when the units differ', () => {
     expect(bodyOf({ ...form, name: ' Heinz Beanz 415 g ' })).toEqual({

@@ -1,4 +1,8 @@
-import type { CreateProduct, PendingScan } from '../api/next-api';
+import type {
+  CreateProduct,
+  PendingScan,
+  QuantityUnitConversion,
+} from '../api/next-api';
 
 import { proposeProduct } from './product-proposal';
 
@@ -20,6 +24,12 @@ export interface ProductForm {
   stockUnitId: null | number;
 }
 
+// The household units and the household conversions for the unit proposals.
+interface UnitLists {
+  quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
+  quantityUnits: readonly Named[] | undefined;
+}
+
 // The form as it opens. It has the proposals of ADR 0011 and the location and
 // the product group of the row. The due days are 0, which means no due date.
 export function formOf(
@@ -27,9 +37,13 @@ export function formOf(
     PendingScan,
     'locationId' | 'lookupResult' | 'productGroupId' | 'writeInName'
   >,
-  units: readonly Named[] | undefined,
+  lists: UnitLists,
 ): ProductForm {
-  const proposal = proposeProduct(scan, units);
+  const proposal = proposeProduct(
+    scan,
+    lists.quantityUnits,
+    lists.quantityUnitConversions,
+  );
   return {
     defaultDueDays: '0',
     description: proposal.description,
