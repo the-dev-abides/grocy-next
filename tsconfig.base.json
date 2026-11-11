@@ -13,11 +13,17 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
     "customConditions": ["@grocy-next/source"],
-    "noUncheckedSideEffectImports": false,
-    "types": ["*"]
+    "noUncheckedSideEffectImports": false
   }
 }

@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { Product } from './product.ts';
 
@@ -12,7 +13,7 @@ export class ProductsController {
   // A full list has no cut-off. The operation returns every product.
   @Get()
   @ApiOperation({ summary: 'List every product.' })
-  @ApiOkResponse({ type: Product, isArray: true })
+  @ApiOkResponse({ isArray: true, type: Product })
   list(): Promise<Product[]> {
     return this.grocy.listProducts();
   }

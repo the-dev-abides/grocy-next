@@ -1,8 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
+
+import type { GrocyProduct } from './grocy-product.ts';
+
 import { Product } from '../product.ts';
-import { GrocyProduct } from './grocy-product.ts';
 
 // The Grocy API client. It reads and writes a running Grocy instance through
 // the Grocy API and returns the Next API shapes. The HTTP module carries the
@@ -18,10 +20,12 @@ export class GrocyClient {
     const response = await firstValueFrom(
       this.http.get<GrocyProduct[]>('/api/objects/products'),
     );
-    return response.data.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-    }));
+    return response.data.map((product) => {
+      return {
+        description: product.description,
+        id: product.id,
+        name: product.name,
+      };
+    });
   }
 }

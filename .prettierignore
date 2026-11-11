@@ -4,3 +4,5 @@
 /.nx/workspace-data
 .nx/self-healing
 pnpm-lock.yaml
+# The Grocy OpenAPI document is a copy of a third-party file.
+docs/reference/grocy-openapi.json

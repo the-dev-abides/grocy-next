@@ -8,7 +8,7 @@ Docker with the Compose plugin runs the developer stack.
 
 | Command                                                                                                 | What it does                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install`                                                                                          | Installs the workspace.                                                                                                                                                                                                                                        |
+| `pnpm install`                                                                                          | Installs the workspace and the `lefthook` pre-commit hook. The hook runs the lint, the type check, and the format check on the projects that the staged files touch.                                                                                           |
 | `cp .env.example .env`                                                                                  | Creates the environment file. With no edit, it points at the bundled instances.                                                                                                                                                                                |
 | `docker compose -f compose.dev.yaml --profile grocy --profile mealie --profile postgres up -d --wait`   | Starts the bundled Grocy, Mealie, and PostgreSQL. The command returns when the health checks pass. Grocy listens on port 9283 with demo data and no login. Mealie listens on port 9925. The first Mealie login is `changeme@example.com` with `MyPassword`.    |
 | `docker compose -f compose.dev.yaml --profile grocy up -d --wait`                                       | Starts only the bundled Grocy. Name only the profiles that you need.                                                                                                                                                                                           |
@@ -19,6 +19,8 @@ Docker with the Compose plugin runs the developer stack.
 | `pnpm nx run-many -t test`                                                                              | Runs the unit tests of every project.                                                                                                                                                                                                                          |
 | `pnpm nx run-many -t lint typecheck`                                                                    | Runs the lint and the type check of every project.                                                                                                                                                                                                             |
 | `pnpm nx format:write`                                                                                  | Formats every file. `pnpm nx format:check` reports and changes nothing.                                                                                                                                                                                        |
+| `pnpm exec knip`                                                                                        | Reports an unused file, an unused export, an unused dependency, and a missing dependency. CI runs it.                                                                                                                                                          |
+| `pnpm nx run-many -t lint -- --fix`                                                                     | Applies the lint fixes that have one safe form, such as the import order and the Tailwind class order.                                                                                                                                                         |
 | `pnpm nx run-many -t build`                                                                             | Builds every project.                                                                                                                                                                                                                                          |
 | `docker build -t ghcr.io/the-dev-abides/grocy-next:main .`                                              | Builds the container image on the local architecture. The tag is the one that the two Compose files pull, so `docker compose up` then uses the local build.                                                                                                    |
 | `GROCY_URL=... GROCY_API_KEY=... docker compose up -d --wait`                                           | Starts the image on SQLite with `compose.yaml` on port 3000. `compose.postgres.yaml` starts the image and a PostgreSQL, and also needs `DB_PASSWORD`. Inside a container, `localhost` is the container. Give the address of Grocy as the container reaches it. |
@@ -43,3 +45,22 @@ the same file, so the API and the bundled PostgreSQL agree.
 
 A change to a `DB_*` value after the first start of the bundled PostgreSQL
 does not change the database. Remove the volumes and start again.
+
+## Checks
+
+ADR 0016 records the checks. Every rule is an error. No comment turns a rule
+off. A rule changes only in the root `eslint.config.mjs`, in its own commit,
+with a comment that says why. Each project `eslint.config.mjs` is one
+re-export of the root configuration.
+
+CI runs the lint with zero warnings, the type check, the format check,
+`knip`, and the tests. The `lefthook` pre-commit hook runs the lint, the type
+check, and the format check before each commit.
+
+A Claude Code hook in `tools/checks/src/pre-tool-use.mjs` rejects a write
+that contains a suppression comment, a write to a check configuration file,
+a project lint configuration that is not the one re-export, and a shell
+command that bypasses a hook or a check. To edit a check configuration file
+with Claude Code, set `IS_UNLOCKED` at the top of the script to `true`, make the
+change, and set it back to `false`. The pre-commit hook refuses a commit of
+the script with the value `true`.

@@ -1,4 +1,4 @@
-import { MigrationInterface } from 'typeorm';
+import type { MigrationInterface } from 'typeorm';
 
 // Milestone 1 has no entity. This migration changes nothing. It proves that
 // the migrations run at every start on both engines.

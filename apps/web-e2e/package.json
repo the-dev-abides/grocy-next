@@ -2,6 +2,7 @@
   "name": "@grocy-next/web-e2e",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "nx": {
     "name": "web-e2e",
     "tags": [

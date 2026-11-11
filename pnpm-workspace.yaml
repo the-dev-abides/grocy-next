@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'libs/**'
+  - 'tools/*'
 
 catalog:
   # TypeScript stays on 6.0.x. TypeScript 7.0 ships no JavaScript compiler
@@ -18,6 +19,8 @@ allowBuilds:
   nx: true
   '@swc/core': true
   '@parcel/watcher': true
+  # lefthook installs the git hooks at `pnpm install`.
+  lefthook: true
   # @scarf/scarf sends install telemetry. Its script stays blocked.
   '@scarf/scarf': false
   # esbuild gets its binary from an optional dependency. Its install script

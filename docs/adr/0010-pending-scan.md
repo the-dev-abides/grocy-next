@@ -107,9 +107,9 @@ booking.
   - `DELETE /api/v2/pending-scans/{id}`, reject.
   - `POST /api/v2/bookings`, accept. The body names one pending scan.
   - `POST /api/v2/products`, the short product form.
-  Every operation is also an MCP tool in this milestone. The `products` and
-  `bookings` resources are the Next API resources that milestone 4 widens
-  and milestone 10 serves from Grocy Next storage.
+    Every operation is also an MCP tool in this milestone. The `products` and
+    `bookings` resources are the Next API resources that milestone 4 widens
+    and milestone 10 serves from Grocy Next storage.
 
 ## Considered options
 

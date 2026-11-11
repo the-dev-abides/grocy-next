@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // `nx format` runs prettier. No script names it.
+  "ignoreDependencies": ["prettier"],
+  "workspaces": {
+    ".": {},
+    "apps/api": {
+      "entry": ["src/main.ts", "rspack.config.ts"],
+      // The knip rspack plugin cannot load the config, because the NX rspack
+      // plugin reads the NX project graph at load time.
+      "rspack": false
+    },
+    "apps/web": {
+      "entry": ["index.html"]
+    },
+    "apps/web-e2e": {
+      "entry": ["src/**/*.spec.ts"]
+    },
+    "libs/*/*": {},
+    "tools/*": {
+      "entry": ["src/*.mjs"]
+    }
+  }
+}

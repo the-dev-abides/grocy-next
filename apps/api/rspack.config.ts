@@ -1,6 +1,7 @@
-import { NxAppRspackPlugin } from '@nx/rspack/app-plugin';
 import type { Compiler, Configuration } from '@rspack/core';
-import { join } from 'node:path';
+
+import { NxAppRspackPlugin } from '@nx/rspack/app-plugin';
+import path from 'node:path';
 
 // Every bare import stays out of the bundle and loads from `node_modules` at
 // run time, as an ES module import. Workspace libraries are bundled. The NX
@@ -17,38 +18,36 @@ const keepDependenciesExternal = {
           request.startsWith('/') ||
           request.startsWith('@grocy-next/');
         if (isBundled) {
-          return callback();
+          callback();
+          return;
         }
-        return callback(undefined, `module ${request}`);
+        callback(undefined, `module ${request}`);
       },
     ];
   },
 };
 
-// The API is an ES module application. rspack bundles the source with SWC,
+// The API is an ES module app. rspack bundles the source with SWC,
 // which emits the decorator metadata that NestJS needs, and writes one ES
 // module file.
 const config: Configuration = {
   output: {
-    path: join(import.meta.dirname, 'dist'),
-    filename: '[name].mjs',
     chunkFilename: '[name].mjs',
-    module: true,
     chunkFormat: 'module',
+    filename: '[name].mjs',
     library: { type: 'module' },
-  },
-  experiments: {
-    outputModule: true,
+    module: true,
+    path: path.join(import.meta.dirname, 'dist'),
   },
   plugins: [
     new NxAppRspackPlugin({
-      target: 'node',
-      main: './src/main.ts',
-      tsConfig: './tsconfig.app.json',
-      outputFileName: 'main.mjs',
-      optimization: false,
-      outputHashing: 'none',
       generatePackageJson: true,
+      main: './src/main.ts',
+      optimization: false,
+      outputFileName: 'main.mjs',
+      outputHashing: 'none',
+      target: 'node',
+      tsConfig: './tsconfig.app.json',
     }),
     keepDependenciesExternal,
   ],

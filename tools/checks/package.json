@@ -1,0 +1,13 @@
+{
+  "name": "@grocy-next/checks",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "nx": {
+    "name": "checks",
+    "tags": [
+      "scope:shared",
+      "type:util"
+    ]
+  }
+}

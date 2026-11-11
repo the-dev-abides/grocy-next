@@ -13,8 +13,8 @@ export class MigrationsHealthIndicator {
 
   check(key: string) {
     return this.healthIndicatorService.check(key).attempt(async () => {
-      const pending = await this.dataSource.showMigrations();
-      if (pending) {
+      const isPending = await this.dataSource.showMigrations();
+      if (isPending) {
         throw new Error('One or more migrations have not run.');
       }
     });

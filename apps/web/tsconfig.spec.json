@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "verbatimModuleSyntax": false,
     "outDir": "./out-tsc/vitest",
     "types": [
       "vitest/globals",
@@ -12,6 +13,7 @@
       "@nx/react/typings/image.d.ts"
     ],
     "jsx": "react-jsx",
+    "erasableSyntaxOnly": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "paths": {

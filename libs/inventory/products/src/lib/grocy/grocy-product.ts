@@ -5,5 +5,5 @@
 export interface GrocyProduct {
   id: number;
   name: string;
-  description: string | null;
+  description: null | string;
 }

@@ -14,5 +14,18 @@
       "Bash(git push -u origin research/:*)",
       "Bash(git push origin research/:*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/checks/src/pre-tool-use.mjs\""
+          }
+        ]
+      }
+    ]
   }
 }

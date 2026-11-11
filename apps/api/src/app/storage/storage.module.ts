@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import type { EnvironmentVariables } from './storage-options.ts';
+
 import { Empty1793756181772 } from './migrations/1793756181772-empty.ts';
-import { EnvironmentVariables, readStorageOptions } from './storage-options.ts';
+import { readStorageOptions } from './storage-options.ts';
 
 // This list holds the migrations. Add a new migration here.
 const MIGRATIONS = [Empty1793756181772];
@@ -23,13 +26,15 @@ function validateStorageVariables(
   imports: [
     ConfigModule.forRoot({ validate: validateStorageVariables }),
     TypeOrmModule.forRootAsync({
-      useFactory: () => ({
-        ...readStorageOptions(process.env),
-        entities: [],
-        migrations: MIGRATIONS,
-        migrationsRun: true,
-        synchronize: false,
-      }),
+      useFactory: () => {
+        return {
+          ...readStorageOptions(),
+          entities: [],
+          migrations: MIGRATIONS,
+          migrationsRun: true,
+          synchronize: false,
+        };
+      },
     }),
   ],
 })

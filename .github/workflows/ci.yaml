@@ -1,7 +1,11 @@
 # The CI checks. The workflow runs on every pull request and on every push to
 # `main`, on GitHub-hosted runners. These jobs run in parallel:
 #
-# - `lint` runs the lint of every project.
+# - `lint` runs the lint of every project. A warning fails it.
+# - `typecheck` runs the type check of every project.
+# - `format` checks that every file is formatted.
+# - `knip` reports an unused file, export, or dependency, and a missing
+#   dependency.
 # - `test` runs the unit tests of every project.
 # - `start-sqlite` builds the API, starts it against SQLite, and calls the
 #   three health checks.
@@ -17,9 +21,10 @@
 # merges the two digests into one manifest and gives the manifest two tags:
 # the commit SHA and `main`. A pull request run pushes no image.
 #
-# A lint error, a failed test, a failed start, or a failed build fails the
-# workflow. Each job stops after 15 minutes. Every third-party action is pinned
-# to a commit SHA. The tag in the comment names the release.
+# A lint error, a type error, a format error, a knip report, a failed test,
+# a failed start, or a failed build fails the workflow. Each job stops after
+# 15 minutes. Every third-party action is pinned to a commit SHA. The tag in
+# the comment names the release.
 
 name: CI
 
@@ -55,6 +60,33 @@ jobs:
       - uses: ./.github/actions/install
       - name: Lint every project
         run: pnpm nx run-many -t lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/install
+      - name: Type check every project
+        run: pnpm nx run-many -t typecheck
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/install
+      - name: Check the format of every file
+        run: pnpm nx format:check
+
+  knip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/install
+      - name: Report unused code and dependencies
+        run: pnpm exec knip
 
   test:
     runs-on: ubuntu-latest
