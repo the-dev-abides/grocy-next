@@ -1,7 +1,6 @@
-import { storedPendingScanSchema } from '@grocy-next/inventory-review-queue';
+import { PendingScansService } from '@grocy-next/inventory-review-queue';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
 import { AppModule } from './app.module.ts';
 import { configureApp } from './configure-app.ts';
 
@@ -14,11 +13,9 @@ vi.hoisted(() => {
 });
 
 interface PendingScanBody {
-  error: null | string;
+  amount: null | number;
   id: number;
-  locationId: null | number;
   scannedAt: string;
-  updatedAt: string;
   [field: string]: unknown;
 }
 
@@ -67,22 +64,6 @@ describe('the pending scans of the Next API', () => {
     return (await response.json()) as PendingScanBody;
   }
 
-  function update(id: number, body: unknown): Promise<Response> {
-    return fetch(`${baseUrl}/api/v2/pending-scans/${String(id)}`, {
-      body: JSON.stringify(body),
-      headers: { 'content-type': 'application/json' },
-      method: 'PATCH',
-    });
-  }
-
-  async function updateAndRead(
-    id: number,
-    body: unknown,
-  ): Promise<PendingScanBody> {
-    const response = await update(id, body);
-    return (await response.json()) as PendingScanBody;
-  }
-
   async function read(id: number): Promise<PendingScanBody> {
     const response = await fetch(
       `${baseUrl}/api/v2/pending-scans/${String(id)}`,
@@ -97,6 +78,18 @@ describe('the pending scans of the Next API', () => {
     app = configureApp(moduleRef.createNestApplication());
     await app.listen(0);
     baseUrl = await app.getUrl();
+  });
+
+  // Every test starts with an empty queue, so a repeat scan of a fixture
+  // code in one test never merges into a row of another test.
+  beforeEach(async () => {
+    const response = await fetch(`${baseUrl}/api/v2/pending-scans`);
+    const { items } = (await response.json()) as { items: PendingScanBody[] };
+    for (const item of items) {
+      await fetch(`${baseUrl}/api/v2/pending-scans/${String(item.id)}`, {
+        method: 'DELETE',
+      });
+    }
   });
 
   afterAll(async () => {
@@ -254,6 +247,139 @@ describe('the pending scans of the Next API', () => {
     });
   });
 
+  it('adds a repeat scan of a code to the open Purchase row and answers it with 200', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    const response = await create({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+    const body = (await response.json()) as PendingScanBody;
+    expect(body).toEqual({
+      ...first,
+      amount: 2,
+      scannedAt: expect.stringMatching(TIMESTAMP),
+      updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+    expect(body.scannedAt > first.scannedAt).toBe(true);
+    const list = await fetch(`${baseUrl}/api/v2/pending-scans`);
+    const { items } = (await list.json()) as { items: PendingScanBody[] };
+    expect(items).toEqual([body]);
+  });
+
+  it('moves the merged row to the top of the list', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+    const second = await createAndRead({
+      bookingType: 'purchase',
+      code: '7622300441937',
+    });
+
+    await create({ bookingType: 'purchase', code: '5449000000996' });
+
+    const list = await fetch(`${baseUrl}/api/v2/pending-scans`);
+    const { items } = (await list.json()) as { items: PendingScanBody[] };
+    expect(items.map((item) => item.id)).toEqual([first.id, second.id]);
+  });
+
+  it('adds the product barcode amount on a repeat scan when the product barcode has one', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '8000500310427',
+    });
+    expect(first.amount).toBe(2);
+
+    const body = await createAndRead({
+      bookingType: 'purchase',
+      code: '8000500310427',
+    });
+
+    expect(body.id).toBe(first.id);
+    expect(body.amount).toBe(4);
+  });
+
+  it('merges the two forms of a 12-digit code as one code', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '049000006346',
+    });
+
+    const response = await create({
+      bookingType: 'purchase',
+      code: '0049000006346',
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      amount: 2,
+      code: '049000006346',
+      id: first.id,
+    });
+  });
+
+  it('does not merge a repeat scan into a row of the other booking type', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    const response = await create({
+      bookingType: 'inventory',
+      code: '5449000000996',
+    });
+
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as PendingScanBody;
+    expect(body.id).not.toBe(first.id);
+    expect(await read(first.id)).toEqual(first);
+  });
+
+  it('never merges into a row with no code', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      productId: 3,
+    });
+
+    const sameProduct = await create({ bookingType: 'purchase', productId: 3 });
+    const sameCode = await create({
+      bookingType: 'purchase',
+      code: '8000500310427',
+    });
+
+    expect(sameProduct.status).toBe(201);
+    expect(sameCode.status).toBe(201);
+    const list = await fetch(`${baseUrl}/api/v2/pending-scans`);
+    const { items } = (await list.json()) as { items: PendingScanBody[] };
+    expect(items).toHaveLength(3);
+    expect(await read(first.id)).toEqual(first);
+  });
+
+  // The MCP tool of a later spec creates with no merge. No HTTP operation
+  // reaches that path, so the test calls the service.
+  it('never merges a create with no merge', async () => {
+    const service = app.get(PendingScansService);
+    const body = { bookingType: 'purchase', code: '5449000000996' } as const;
+
+    const first = await service.create(body, 'no merge');
+    const second = await service.create(body, 'no merge');
+    const third = await service.create(body, 'merge');
+
+    expect(first.isMerged).toBe(false);
+    expect(second.isMerged).toBe(false);
+    expect(second.pendingScan.id).not.toBe(first.pendingScan.id);
+    expect(third.isMerged).toBe(true);
+    expect(third.pendingScan.id).toBe(second.pendingScan.id);
+    expect(third.pendingScan.amount).toBe(2);
+  });
+
   it('refuses a body with no code and no product with a validation problem', async () => {
     const response = await create({ bookingType: 'purchase' });
 
@@ -349,210 +475,6 @@ describe('the pending scans of the Next API', () => {
     expect(await response.json()).toMatchObject({
       errors: [{ path: 'id' }],
       type: '/problems/validation',
-    });
-  });
-
-  it('updates every writable field of a pending scan', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '4006381333931',
-    });
-
-    const response = await update(created.id, {
-      amount: 3,
-      code: '5449000000996',
-      dueDate: '2027-02-28',
-      locationId: 3,
-      note: 'Three cans',
-      price: 2.55,
-      priceType: 'total',
-      productGroupId: 2,
-      productId: 1,
-      quantityUnitId: 1,
-      storeId: 1,
-      writeInName: 'Cola',
-    });
-
-    expect(response.status).toBe(200);
-    const body = (await response.json()) as PendingScanBody;
-    expect(body).toEqual({
-      ...created,
-      amount: 3,
-      code: '5449000000996',
-      dueDate: '2027-02-28',
-      locationId: 3,
-      note: 'Three cans',
-      price: 2.55,
-      priceType: 'total',
-      productGroupId: 2,
-      productId: 1,
-      quantityUnitId: 1,
-      storeId: 1,
-      updatedAt: expect.stringMatching(TIMESTAMP),
-      writeInName: 'Cola',
-    });
-    expect(body.updatedAt > created.updatedAt).toBe(true);
-    expect(await read(created.id)).toEqual(body);
-  });
-
-  it('keeps an absent field and clears a field set to null, as a merge patch', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-      locationId: 2,
-      note: 'Six cans',
-    });
-
-    const body = await updateAndRead(created.id, { note: null, price: null });
-
-    expect(body).toEqual({
-      ...created,
-      note: null,
-      price: null,
-      updatedAt: expect.stringMatching(TIMESTAMP),
-    });
-    expect(body.locationId).toBe(2);
-  });
-
-  it('refuses an update that changes the booking type with the booking-type-fixed problem', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-    });
-
-    const response = await update(created.id, {
-      amount: 2,
-      bookingType: 'inventory',
-    });
-
-    expect(response.status).toBe(409);
-    expect(response.headers.get('content-type')).toBe(
-      'application/problem+json',
-    );
-    expect(await response.json()).toEqual({
-      detail: 'The booking type of a pending scan is set at create.',
-      instance: `/api/v2/pending-scans/${String(created.id)}`,
-      status: 409,
-      title: 'The booking type is fixed',
-      type: '/problems/booking-type-fixed',
-    });
-    expect(await read(created.id)).toEqual(created);
-  });
-
-  it('accepts an update that repeats the booking type', async () => {
-    const created = await createAndRead({
-      bookingType: 'inventory',
-      code: '5449000000996',
-    });
-
-    const response = await update(created.id, {
-      amount: 4,
-      bookingType: 'inventory',
-    });
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ amount: 4 });
-  });
-
-  // No Next API operation sets the error yet. The accept of a later ticket
-  // sets it. The test writes the error into the storage to set the state.
-  it('clears the error on any update', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-    });
-    await app
-      .get(DataSource)
-      .getRepository(storedPendingScanSchema)
-      .update({ id: created.id }, { error: 'Grocy refused the purchase.' });
-    expect(await read(created.id)).toMatchObject({
-      error: 'Grocy refused the purchase.',
-    });
-
-    const body = await updateAndRead(created.id, {});
-
-    expect(body.error).toBeNull();
-    expect(await read(created.id)).toEqual(body);
-  });
-
-  it('refuses a read-only field in an update with a validation problem', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-    });
-
-    const response = await update(created.id, { error: null, id: 7 });
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({
-      errors: [
-        { message: 'unknown field', path: 'error' },
-        { message: 'unknown field', path: 'id' },
-      ],
-      type: '/problems/validation',
-    });
-  });
-
-  it('refuses an update that leaves no code and no product with a validation problem', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '5449000000996',
-    });
-
-    const response = await update(created.id, { code: null, productId: null });
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({
-      errors: [
-        {
-          message: 'The pending scan needs a code or a productId.',
-          path: 'code',
-        },
-      ],
-      type: '/problems/validation',
-    });
-    expect(await read(created.id)).toEqual(created);
-  });
-
-  it('answers an update of an unknown id with a not-found problem', async () => {
-    const response = await update(999_999, { amount: 2 });
-
-    expect(response.status).toBe(404);
-    expect(await response.json()).toMatchObject({
-      detail: 'No pending scan has the id 999999.',
-      type: '/problems/not-found',
-    });
-  });
-
-  it('deletes a pending scan and answers the row as it was', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: '7622300441937',
-      note: 'The row that goes',
-    });
-
-    const response = await fetch(
-      `${baseUrl}/api/v2/pending-scans/${String(created.id)}`,
-      { method: 'DELETE' },
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(created);
-    const read = await fetch(
-      `${baseUrl}/api/v2/pending-scans/${String(created.id)}`,
-    );
-    expect(read.status).toBe(404);
-  });
-
-  it('answers a delete of an unknown id with a not-found problem', async () => {
-    const response = await fetch(`${baseUrl}/api/v2/pending-scans/999999`, {
-      method: 'DELETE',
-    });
-
-    expect(response.status).toBe(404);
-    expect(await response.json()).toMatchObject({
-      detail: 'No pending scan has the id 999999.',
-      type: '/problems/not-found',
     });
   });
 

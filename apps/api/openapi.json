@@ -622,6 +622,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "The open pending scan that the repeat scan added to.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingScan"
+                }
+              }
+            }
+          },
           "201": {
             "description": "The stored pending scan.",
             "headers": {

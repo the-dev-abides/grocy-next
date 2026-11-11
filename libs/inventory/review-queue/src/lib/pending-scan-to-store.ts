@@ -21,7 +21,7 @@ type AmountFields = Pick<
 >;
 
 const DEFAULT_PRICE_TYPE: PriceType = 'unit';
-const DEFAULT_PURCHASE_AMOUNT = 1;
+export const DEFAULT_PURCHASE_AMOUNT = 1;
 
 // The defaults of a code that no product barcode matched.
 const NO_BARCODE: Omit<ProductBarcode, 'barcode' | 'id'> = {

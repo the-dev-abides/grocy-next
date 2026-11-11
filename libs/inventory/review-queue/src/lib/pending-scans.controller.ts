@@ -10,6 +10,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -47,10 +48,16 @@ function locationOf(request: IncomingMessage, id: number): string {
 export class PendingScansController {
   constructor(private readonly pendingScans: PendingScansService) {}
 
+  // A create from the scan screen applies the repeat rule: a repeat scan of
+  // a code adds to the open row and answers 200 in place of 201.
   @Post()
   @ApiOperation({
     operationId: 'createPendingScan',
     summary: 'Create a pending scan.',
+  })
+  @ApiOkResponse({
+    description: 'The open pending scan that the repeat scan added to.',
+    type: PendingScan,
   })
   @ApiCreatedResponse({
     description: 'The stored pending scan.',
@@ -74,8 +81,15 @@ export class PendingScansController {
     @Req() request: IncomingMessage,
     @Res({ passthrough: true }) response: ServerResponse,
   ): Promise<PendingScan> {
-    const pendingScan = await this.pendingScans.create(body);
-    response.setHeader(LOCATION_HEADER, locationOf(request, pendingScan.id));
+    const { isMerged, pendingScan } = await this.pendingScans.create(
+      body,
+      'merge',
+    );
+    if (isMerged) {
+      response.statusCode = HttpStatus.OK;
+    } else {
+      response.setHeader(LOCATION_HEADER, locationOf(request, pendingScan.id));
+    }
     return pendingScan;
   }
 
