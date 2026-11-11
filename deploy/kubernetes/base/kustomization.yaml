@@ -7,7 +7,8 @@
 # The ConfigMap holds the variables that are not secret. The name gets a hash
 # suffix, so a change to a value restarts the pod. An overlay changes or adds
 # a value with a `configMapGenerator` entry that has the same name and
-# `behavior: merge`.
+# `behavior: merge`. `BARCODE_LOOKUP` turns the online barcode lookup on or
+# off. `OPEN_FACTS_URL` is the base URL of the Open Facts service.
 #
 # The Grocy URL and the Grocy API key come from one Secret that the user
 # creates. See `deploy/kubernetes/README.md`.
@@ -22,3 +23,5 @@ configMapGenerator:
   - name: grocy-next
     literals:
       - DB_ENGINE=sqlite
+      - BARCODE_LOOKUP=on
+      - OPEN_FACTS_URL=https://world.openfoodfacts.org

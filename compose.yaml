@@ -10,6 +10,9 @@
 # it. `GROCY_API_KEY` is a key from the Grocy "Manage API keys" page. Compose
 # stops with a message when one of the two is not set.
 #
+# The online barcode lookup is on. To turn it off, set `BARCODE_LOOKUP=off`.
+# To point the lookup at a mirror of Open Food Facts, set `OPEN_FACTS_URL`.
+#
 # The app listens on port 3000. The SQLite file is in the `data` volume.
 #
 # To keep the SQLite file in a host folder, replace the `data:/data` line with
@@ -26,6 +29,8 @@ services:
     environment:
       GROCY_URL: ${GROCY_URL:?Set GROCY_URL to the address of your Grocy instance}
       GROCY_API_KEY: ${GROCY_API_KEY:?Set GROCY_API_KEY to an API key of your Grocy instance}
+      BARCODE_LOOKUP: ${BARCODE_LOOKUP:-on}
+      OPEN_FACTS_URL: ${OPEN_FACTS_URL:-https://world.openfoodfacts.org}
     ports:
       - '3000:3000'
     volumes:

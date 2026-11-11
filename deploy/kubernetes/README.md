@@ -171,7 +171,10 @@ kubectl apply -k .
 ```
 
 To change a ConfigMap value, add a `configMapGenerator` entry with the same
-name and `behavior: merge`:
+name and `behavior: merge`. The ConfigMap holds `DB_ENGINE`, `BARCODE_LOOKUP`
+(`on` or `off`, the online barcode lookup), and `OPEN_FACTS_URL` (the base
+URL of the Open Facts service). This example sets the SQLite file and turns
+the lookup off:
 
 ```yaml
 configMapGenerator:
@@ -179,6 +182,7 @@ configMapGenerator:
     behavior: merge
     literals:
       - DB_FILE=/data/household.db
+      - BARCODE_LOOKUP=off
 ```
 
 For the `postgres` overlay, point `resources` at `overlays/postgres` and set

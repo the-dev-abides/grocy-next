@@ -56,18 +56,20 @@ The API reads `.env` from the workspace root at start. A value in the shell
 has priority over the file. `compose.dev.yaml` reads the `DB_*` values from
 the same file, so the API and the bundled PostgreSQL agree.
 
-| Variable        | Default in `.env.example` | What it sets                                                                                                                |
-| --------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `DB_ENGINE`     | `sqlite`                  | The storage engine: `sqlite` or `postgres`. To use the bundled database, set `postgres`. Then start the `postgres` profile. |
-| `DB_FILE`       | `./grocy-next.db`         | The SQLite file. The folder must exist. Git ignores `*.db`.                                                                 |
-| `DB_HOST`       | `localhost`               | The PostgreSQL host.                                                                                                        |
-| `DB_PORT`       | `5432`                    | The PostgreSQL port on the host. The bundled PostgreSQL publishes this port.                                                |
-| `DB_NAME`       | `grocy-next`              | The PostgreSQL database. The bundled PostgreSQL creates it at the first start.                                              |
-| `DB_USER`       | `grocy-next`              | The PostgreSQL user. The bundled PostgreSQL creates it at the first start.                                                  |
-| `DB_PASSWORD`   | `grocy-next`              | The PostgreSQL password.                                                                                                    |
-| `GROCY_URL`     | `http://localhost:9283`   | The address of the Grocy instance. Set your own address to use your own Grocy.                                              |
-| `GROCY_API_KEY` | `demo`                    | An API key of the Grocy instance. The bundled Grocy accepts any value. Your own Grocy needs a real key.                     |
-| `PORT`          | `3000`                    | The port that the API listens on.                                                                                           |
+| Variable         | Default in `.env.example`         | What it sets                                                                                                                |
+| ---------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `DB_ENGINE`      | `sqlite`                          | The storage engine: `sqlite` or `postgres`. To use the bundled database, set `postgres`. Then start the `postgres` profile. |
+| `DB_FILE`        | `./grocy-next.db`                 | The SQLite file. The folder must exist. Git ignores `*.db`.                                                                 |
+| `DB_HOST`        | `localhost`                       | The PostgreSQL host.                                                                                                        |
+| `DB_PORT`        | `5432`                            | The PostgreSQL port on the host. The bundled PostgreSQL publishes this port.                                                |
+| `DB_NAME`        | `grocy-next`                      | The PostgreSQL database. The bundled PostgreSQL creates it at the first start.                                              |
+| `DB_USER`        | `grocy-next`                      | The PostgreSQL user. The bundled PostgreSQL creates it at the first start.                                                  |
+| `DB_PASSWORD`    | `grocy-next`                      | The PostgreSQL password.                                                                                                    |
+| `GROCY_URL`      | `http://localhost:9283`           | The address of the Grocy instance. Set your own address to use your own Grocy.                                              |
+| `GROCY_API_KEY`  | `demo`                            | An API key of the Grocy instance. The bundled Grocy accepts any value. Your own Grocy needs a real key.                     |
+| `PORT`           | `3000`                            | The port that the API listens on.                                                                                           |
+| `BARCODE_LOOKUP` | `on`                              | The online barcode lookup: `on` or `off`. Off means the server looks up no unknown code and the screens show the bare code. |
+| `OPEN_FACTS_URL` | `https://world.openfoodfacts.org` | The base URL of the Open Facts service. The end-to-end tests and the API tests point it at the Open Food Facts mock.        |
 
 A change to a `DB_*` value after the first start of the bundled PostgreSQL
 does not change the database. Remove the volumes and start again.
