@@ -31,11 +31,21 @@
           "buildTarget": "api:build",
           "runBuildTargetDependencies": false
         }
+      },
+      "openapi": {
+        "command": "DB_FILE=:memory: GROCY_URL=http://grocy.invalid GROCY_API_KEY=placeholder TS_NODE_PROJECT=tsconfig.app.json node --import @swc-node/register/esm-register src/write-openapi.ts && pnpm exec prettier --write openapi.json",
+        "options": {
+          "cwd": "apps/api"
+        },
+        "outputs": [
+          "{projectRoot}/openapi.json"
+        ]
       }
     }
   },
   "dependencies": {
     "@grocy-next/inventory-products": "workspace:*",
+    "@grocy-next/shared-next-api": "workspace:*",
     "@nestjs/axios": "^12.0.1",
     "@nestjs/common": "^12.3.2",
     "@nestjs/config": "^12.0.1",
@@ -47,10 +57,12 @@
     "@nestjs/typeorm": "^12.0.2",
     "axios": "^1.21.0",
     "better-sqlite3": "^13.0.3",
+    "nestjs-zod": "^5.6.0",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "typeorm": "^1.1.2"
+    "typeorm": "^1.1.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@nestjs/testing": "^12.3.2"

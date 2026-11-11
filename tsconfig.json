@@ -7,13 +7,16 @@
       "path": "./apps/api"
     },
     {
-      "path": "./apps/web-e2e"
-    },
-    {
       "path": "./apps/web"
     },
     {
+      "path": "./apps/web-e2e"
+    },
+    {
       "path": "./libs/inventory/products"
+    },
+    {
+      "path": "./libs/shared/next-api"
     },
     {
       "path": "./tools/checks"
