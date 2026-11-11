@@ -1,7 +1,7 @@
 import type { StockLogRow } from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
 
-import { GrocyClient } from '@grocy-next/inventory-products';
+import { GrocyClient, GrocyStockClient } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -92,6 +92,7 @@ export class BookingsService {
     private readonly rows: Repository<StoredPendingScan>,
     private readonly pendingScans: PendingScansService,
     private readonly grocy: GrocyClient,
+    private readonly stock: GrocyStockClient,
   ) {}
 
   // The Purchase accept: convert the amount and the price to the stock unit
@@ -105,7 +106,7 @@ export class BookingsService {
   ): Promise<Booking> {
     const amount = purchaseAmountOf(row);
     const product = await readActiveProduct(this.grocy, productId);
-    const conversions = await this.grocy.readResolvedConversions(productId);
+    const conversions = await this.stock.readResolvedConversions(productId);
     const stock = toStockUnit(
       {
         amount,
@@ -119,7 +120,7 @@ export class BookingsService {
         stockUnitId: product.stockUnitId,
       },
     );
-    const result = await this.grocy.purchase(productId, {
+    const result = await this.stock.purchase(productId, {
       amount: stock.amount,
       dueDate: row.dueDate,
       locationId: row.locationId,

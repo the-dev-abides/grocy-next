@@ -9,12 +9,8 @@ import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import type { ProductConversion } from '../product-conversion.ts';
-import type {
-  ProductDetails,
-  QuantityUnitConversion,
-} from '../product-details.ts';
+import type { ProductDetails } from '../product-details.ts';
 import type { ProductListItem } from '../product.ts';
-import type { Purchase, PurchaseResult } from '../purchase.ts';
 import type {
   CreatedObjectResult,
   GrocyAnswer,
@@ -35,7 +31,6 @@ import {
   grocyErrorSchema,
   resultOf,
 } from './grocy-answers.ts';
-import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import {
   grocyMasterDataRowsSchema,
   toMasterDataRows,
@@ -48,8 +43,6 @@ import {
   grocyProductDetailsSchema,
   toProductDetails,
 } from './grocy-product-details.ts';
-import { toGrocyPurchaseBody } from './grocy-purchase.ts';
-import { stockLogRowsOf } from './grocy-stock-log.ts';
 
 // The status and the message of a Grocy refusal, for the `grocy` field of
 // the grocy-refused problem. A refusal body with no message gives the
@@ -85,8 +78,11 @@ function grocyUnavailable(error: unknown): unknown {
 
 // The Grocy API client. It reads and writes a running Grocy instance through
 // the Grocy API and returns the Next API shapes. The HTTP module carries the
-// Grocy address and the API key header on every request. The client is
-// temporary. Grocy owns the data until API parity.
+// Grocy address and the API key header on every request. This file is the
+// one file that maps the axios errors, so every Grocy call goes through its
+// `send`. The stock bookings are in the Grocy stock client, which calls
+// through this client. The client is temporary. Grocy owns the data until
+// API parity.
 @Injectable()
 export class GrocyClient {
   constructor(private readonly http: HttpService) {}
@@ -106,17 +102,6 @@ export class GrocyClient {
       }
       return { data: null, grocy };
     }
-  }
-
-  // One Grocy objects read with a `query[]` filter.
-  private async query(table: string, filter: string): Promise<unknown> {
-    return dataOf(
-      await this.send(
-        this.http.get<unknown>(`/api/objects/${table}`, {
-          params: { 'query[]': filter },
-        }),
-      ),
-    );
   }
 
   // The active rows of one master data table. The Grocy objects endpoint
@@ -145,15 +130,32 @@ export class GrocyClient {
     table: GrocyWritableTable,
     body: unknown,
   ): Promise<CreatedObjectResult> {
-    const answer = await this.send(
-      this.http.post<unknown>(`/api/objects/${table}`, body),
-    );
+    const answer = await this.post(`/api/objects/${table}`, body);
     return resultOf(answer, createdIdOf);
   }
 
   // One Grocy update. Grocy answers 204 and no body.
   private async put(path: string, body: unknown, headers = {}): Promise<void> {
     dataOf(await this.send(this.http.put(path, body, { headers })));
+  }
+
+  // One Grocy objects read with a `query[]` filter. The stock client reads
+  // the resolved conversions through it.
+  async query(table: string, filter: string): Promise<unknown> {
+    return dataOf(
+      await this.send(
+        this.http.get<unknown>(`/api/objects/${table}`, {
+          params: { 'query[]': filter },
+        }),
+      ),
+    );
+  }
+
+  // One Grocy write with a body. The answer carries the refusal when Grocy
+  // answered 400, so the caller stores the reason. The stock client books
+  // through it.
+  post(path: string, body: unknown): Promise<GrocyAnswer> {
+    return this.send(this.http.post<unknown>(path, body));
   }
 
   // This method creates one product. Grocy answers the id of the new row, or
@@ -216,22 +218,6 @@ export class GrocyClient {
     });
   }
 
-  // This method books a purchase of one product. Grocy answers the stock log
-  // rows of the new transaction, or 400 with the reason when Grocy refuses
-  // the purchase. The caller stores the reason on the pending scan.
-  async purchase(
-    productId: number,
-    purchase: Purchase,
-  ): Promise<PurchaseResult> {
-    const answer = await this.send(
-      this.http.post<unknown>(
-        `/api/stock/products/${String(productId)}/add`,
-        toGrocyPurchaseBody(purchase),
-      ),
-    );
-    return resultOf(answer, stockLogRowsOf);
-  }
-
   // The conversion rows of one product in the Grocy table
   // `quantity_unit_conversions`: the rows that the Grocy trigger created for
   // the product and the rows that the household added. Grocy answers an
@@ -257,19 +243,6 @@ export class GrocyClient {
     return this.readDetails(
       `/api/stock/products/by-barcode/${encodeURIComponent(code)}`,
     );
-  }
-
-  // The resolved conversions of one product: every pair of quantity units
-  // with a path between them and the factor of the path. Grocy answers an
-  // empty list for an unknown product.
-  async readResolvedConversions(
-    productId: number,
-  ): Promise<QuantityUnitConversion[]> {
-    const data = await this.query(
-      'quantity_unit_conversions_resolved',
-      `product_id=${String(productId)}`,
-    );
-    return toConversions(grocyConversionsSchema.parse(data));
   }
 
   // This method sets the factor of one conversion row.

@@ -1,4 +1,5 @@
 export { GrocyClient } from './lib/grocy/grocy-client.ts';
+export { GrocyStockClient } from './lib/grocy/grocy-stock-client.ts';
 export type {
   ProductBarcode,
   ProductDetails,
