@@ -5,7 +5,16 @@ import {
   NoQuery,
   PROBLEM_TYPES,
 } from '@grocy-next/shared-next-api';
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiOkResponse,
@@ -97,5 +106,22 @@ export class PendingScansController {
   @ZodSerializerDto(PendingScan)
   read(@Param() parameters: PendingScanId): Promise<PendingScan> {
     return this.pendingScans.read(parameters.id);
+  }
+
+  // The reject. The response is the row as it was before the delete.
+  @Delete(':id')
+  @ApiOperation({
+    operationId: 'deletePendingScan',
+    summary: 'Delete one pending scan.',
+  })
+  @ApiOkResponse({
+    description: 'The pending scan as it was before the delete.',
+    type: PendingScan,
+  })
+  @ApiProblemResponses(PROBLEM_TYPES.validation, PROBLEM_TYPES.notFound)
+  @NoQuery()
+  @ZodSerializerDto(PendingScan)
+  delete(@Param() parameters: PendingScanId): Promise<PendingScan> {
+    return this.pendingScans.delete(parameters.id);
   }
 }

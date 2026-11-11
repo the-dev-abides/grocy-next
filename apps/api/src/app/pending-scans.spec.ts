@@ -324,7 +324,39 @@ describe('the pending scans of the Next API', () => {
     });
   });
 
-  it('declares the three pending scan operations in the OpenAPI document', async () => {
+  it('deletes a pending scan and answers the row as it was', async () => {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: '7622300441937',
+      note: 'The row that goes',
+    });
+
+    const response = await fetch(
+      `${baseUrl}/api/v2/pending-scans/${String(created.id)}`,
+      { method: 'DELETE' },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(created);
+    const read = await fetch(
+      `${baseUrl}/api/v2/pending-scans/${String(created.id)}`,
+    );
+    expect(read.status).toBe(404);
+  });
+
+  it('answers a delete of an unknown id with a not-found problem', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/pending-scans/999999`, {
+      method: 'DELETE',
+    });
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({
+      detail: 'No pending scan has the id 999999.',
+      type: '/problems/not-found',
+    });
+  });
+
+  it('declares the pending scan operations in the OpenAPI document', async () => {
     const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
 
     const document = (await response.json()) as {
@@ -340,6 +372,9 @@ describe('the pending scans of the Next API', () => {
     expect(
       document.paths['/api/v2/pending-scans/{id}']?.['get']?.operationId,
     ).toBe('getPendingScan');
+    expect(
+      document.paths['/api/v2/pending-scans/{id}']?.['delete']?.operationId,
+    ).toBe('deletePendingScan');
     expect(document.components.schemas['PendingScan']?.required).toEqual(
       Object.keys(UNSET_FIELDS),
     );

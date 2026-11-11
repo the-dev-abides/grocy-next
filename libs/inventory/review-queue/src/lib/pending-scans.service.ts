@@ -65,4 +65,12 @@ export class PendingScansService {
     }
     return row;
   }
+
+  // The reject of ADR 0010. The response is the row as it was before the
+  // delete, as ADR 0014 decided. The queue keeps no history.
+  async delete(id: number): Promise<PendingScan> {
+    const row = await this.read(id);
+    await this.pendingScans.delete({ id });
+    return row;
+  }
 }
