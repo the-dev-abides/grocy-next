@@ -10,19 +10,6 @@ const webServerAddress = getReadyUrl('http://localhost:4200');
 // `playwright.config.mts` by its extension list.
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
-  use: {
-    baseURL: webServerAddress,
-    // Playwright records a trace when it retries a failed test.
-    trace: 'on-first-retry',
-  },
-  // The tests run against the web dev server. Playwright reuses a server
-  // that already runs.
-  webServer: {
-    command: 'pnpm exec nx run web:dev',
-    url: webServerAddress,
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
   projects: [
     {
       name: 'chromium',
@@ -37,4 +24,17 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
   ],
+  use: {
+    baseURL: webServerAddress,
+    // Playwright records a trace when it retries a failed test.
+    trace: 'on-first-retry',
+  },
+  // The tests run against the web dev server. Playwright reuses a server
+  // that already runs.
+  webServer: {
+    command: 'pnpm exec nx run web:dev',
+    cwd: workspaceRoot,
+    reuseExistingServer: true,
+    url: webServerAddress,
+  },
 });

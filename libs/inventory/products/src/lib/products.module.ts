@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
+
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { readGrocyOptions } from './grocy/grocy-options.ts';
 import { ProductsController } from './products.controller.ts';
@@ -9,10 +10,11 @@ import { ProductsController } from './products.controller.ts';
 // reads the Grocy variables at start, so a missing variable stops the
 // process before it listens.
 @Module({
+  controllers: [ProductsController],
   imports: [
     HttpModule.registerAsync({
       useFactory: () => {
-        const options = readGrocyOptions(process.env);
+        const options = readGrocyOptions();
         return {
           baseURL: options.url,
           headers: { 'GROCY-API-KEY': options.apiKey },
@@ -20,7 +22,6 @@ import { ProductsController } from './products.controller.ts';
       },
     }),
   ],
-  controllers: [ProductsController],
   providers: [GrocyClient],
 })
 export class ProductsModule {}

@@ -2,7 +2,7 @@
 import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { join } from 'node:path';
+import path from 'node:path';
 import { defineConfig } from 'vite';
 
 // The API listens on port 3000 on the host. The dev server forwards every
@@ -10,45 +10,44 @@ import { defineConfig } from 'vite';
 // in development.
 const API_URL = 'http://localhost:3000';
 
-export default defineConfig(() => ({
-  root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/apps/web',
-  server: {
-    port: 4200,
-    host: 'localhost',
-    proxy: {
-      '/api': API_URL,
+export default defineConfig(() => {
+  return {
+    build: {
+      emptyOutDir: true,
+      outDir: './dist',
+      reportCompressedSize: true,
     },
-  },
-  preview: {
-    port: 4300,
-    host: 'localhost',
-  },
-  plugins: [react(), tailwindcss(), nxReadySignal()],
-  resolve: {
-    // The `@/` alias points at `src`. shadcn/ui writes its components with it.
-    alias: {
-      '@': join(import.meta.dirname, 'src'),
+    cacheDir: '../../node_modules/.vite/apps/web',
+    plugins: [react(), tailwindcss(), nxReadySignal()],
+    preview: {
+      host: 'localhost',
+      port: 4300,
     },
-  },
-  build: {
-    outDir: './dist',
-    emptyOutDir: true,
-    reportCompressedSize: true,
-    commonjsOptions: {
-      transformMixedEsModules: true,
+    resolve: {
+      // The `@/` alias points at `src`. shadcn/ui writes its components with it.
+      alias: {
+        '@': path.join(import.meta.dirname, 'src'),
+      },
     },
-  },
-  test: {
-    name: 'web',
-    watch: false,
-    globals: true,
-    environment: 'jsdom',
-    include: ['src/**/*.spec.{ts,tsx}'],
-    reporters: ['default'],
-    coverage: {
-      reportsDirectory: './test-output/vitest/coverage',
-      provider: 'v8' as const,
+    root: import.meta.dirname,
+    server: {
+      host: 'localhost',
+      port: 4200,
+      proxy: {
+        '/api': API_URL,
+      },
     },
-  },
-}));
+    test: {
+      coverage: {
+        provider: 'v8' as const,
+        reportsDirectory: './test-output/vitest/coverage',
+      },
+      environment: 'jsdom',
+      globals: true,
+      include: ['src/**/*.spec.{ts,tsx}'],
+      name: 'web',
+      reporters: ['default'],
+      watch: false,
+    },
+  };
+});

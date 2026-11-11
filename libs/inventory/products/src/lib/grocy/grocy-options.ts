@@ -13,9 +13,10 @@ export interface GrocyOptions {
 
 // This function reads the variables and builds the client options. It throws
 // on a missing or wrong value, so the process exits with a clear message
-// before the process listens.
+// before the process listens. With no argument, it reads the process
+// environment. This file is the one place that reads it.
 export function readGrocyOptions(
-  variables: EnvironmentVariables,
+  variables: EnvironmentVariables = process.env,
 ): GrocyOptions {
   const url = variables[GROCY_URL];
   if (!url) {
@@ -33,5 +34,5 @@ export function readGrocyOptions(
       `${GROCY_API_KEY} must be set to an API key of the Grocy instance.`,
     );
   }
-  return { url, apiKey };
+  return { apiKey, url };
 }

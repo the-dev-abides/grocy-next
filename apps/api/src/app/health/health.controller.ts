@@ -4,6 +4,7 @@ import {
   HealthCheckService,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+
 import { MigrationsHealthIndicator } from './migrations.health.ts';
 
 // The three Kubernetes probes. No probe calls Grocy, so a Grocy outage does

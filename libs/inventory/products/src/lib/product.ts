@@ -12,8 +12,8 @@ export class Product {
 
   @ApiProperty({
     description: 'The description of the product, or null when it has none.',
-    type: String,
     nullable: true,
+    type: String,
   })
-  description!: string | null;
+  description!: null | string;
 }

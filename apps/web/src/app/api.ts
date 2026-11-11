@@ -5,20 +5,23 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export interface Product {
   id: number;
   name: string;
-  description: string | null;
+  description: null | string;
 }
 
 // The one API slice of the web app. It talks to the Next API under `/api/v2`
 // on the same origin.
 export const api = createApi({
-  reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v2' }),
-  endpoints: (builder) => ({
-    // The product list. A full list has no cut-off.
-    listProducts: builder.query<Product[], void>({
-      query: () => 'products',
-    }),
-  }),
+  endpoints: (builder) => {
+    return {
+      // The product list. A full list has no cut-off. The query takes no
+      // argument.
+      listProducts: builder.query<Product[], undefined>({
+        query: () => 'products',
+      }),
+    };
+  },
+  reducerPath: 'api',
 });
 
 export const { useListProductsQuery } = api;

@@ -1,30 +1,39 @@
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig(() => ({
-  root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/apps/api',
-  plugins: [
-    // SWC emits the decorator metadata that NestJS reads. esbuild does not.
-    swc.vite({
-      module: { type: 'es6' },
-      jsc: {
-        target: 'es2022',
-        parser: { syntax: 'typescript', decorators: true },
-        transform: { legacyDecorator: true, decoratorMetadata: true },
+export default defineConfig(() => {
+  return {
+    cacheDir: '../../node_modules/.vite/apps/api',
+    plugins: [
+      // SWC emits the decorator metadata that NestJS reads. esbuild does not.
+      swc.vite({
+        jsc: {
+          parser: { decorators: true, syntax: 'typescript' },
+          target: 'es2022',
+          transform: { decoratorMetadata: true, legacyDecorator: true },
+        },
+        module: { type: 'es6' },
+      }),
+    ],
+    root: import.meta.dirname,
+    test: {
+      coverage: {
+        provider: 'v8' as const,
+        reportsDirectory: './test-output/vitest/coverage',
       },
-    }),
-  ],
-  test: {
-    name: 'api',
-    watch: false,
-    globals: true,
-    environment: 'node',
-    include: ['src/**/*.spec.ts'],
-    reporters: ['default'],
-    coverage: {
-      reportsDirectory: './test-output/vitest/coverage',
-      provider: 'v8' as const,
+      // The tests run on SQLite in memory and write no file. The Grocy
+      // variables hold placeholder values. No test calls Grocy.
+      env: {
+        DB_FILE: ':memory:',
+        GROCY_API_KEY: 'placeholder',
+        GROCY_URL: 'https://grocy.invalid',
+      },
+      environment: 'node',
+      globals: true,
+      include: ['src/**/*.spec.ts'],
+      name: 'api',
+      reporters: ['default'],
+      watch: false,
     },
-  },
-}));
+  };
+});

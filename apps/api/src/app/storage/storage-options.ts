@@ -1,6 +1,7 @@
+import type { DataSourceOptions } from 'typeorm';
+
 import { existsSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { DataSourceOptions } from 'typeorm';
+import path from 'node:path';
 
 // The storage reads these variables. `DB_ENGINE` selects the engine. Unset
 // means `sqlite`. The SQLite engine reads `DB_FILE`. The PostgreSQL engine
@@ -29,9 +30,10 @@ export type EnvironmentVariables = Record<string, string | undefined>;
 // One DataSource serves both engines. This function reads the variables and
 // builds the options. It throws on a wrong value, so the process exits with
 // a clear message before the process listens. The caller adds the
-// migrations.
+// migrations. With no argument, it reads the process environment. This file
+// is the one place that reads it.
 export function readStorageOptions(
-  variables: EnvironmentVariables,
+  variables: EnvironmentVariables = process.env,
 ): DataSourceOptions {
   const engine = variables[DB_ENGINE] ?? DEFAULT_ENGINE;
   if (!isEngine(engine)) {
@@ -39,17 +41,16 @@ export function readStorageOptions(
       `${DB_ENGINE} must be "sqlite" or "postgres". The value is "${engine}".`,
     );
   }
-  if (engine === 'postgres') {
-    return readPostgresOptions(variables);
-  }
-  return readSqliteOptions(variables);
+  return engine === 'postgres'
+    ? readPostgresOptions(variables)
+    : readSqliteOptions(variables);
 }
 
 // The driver retries a connection that fails. A missing folder does not
 // appear after a retry, so the check stops the process at once.
 function readSqliteOptions(variables: EnvironmentVariables): DataSourceOptions {
   const file = variables[DB_FILE] ?? DEFAULT_FILE;
-  const folder = dirname(file);
+  const folder = path.dirname(file);
   if (file !== IN_MEMORY_FILE && !existsSync(folder)) {
     throw new Error(
       `The folder "${folder}" for the SQLite file does not exist. ` +
@@ -57,15 +58,15 @@ function readSqliteOptions(variables: EnvironmentVariables): DataSourceOptions {
     );
   }
   return {
-    type: 'better-sqlite3',
     database: file,
+    type: 'better-sqlite3',
   };
 }
 
 function readPostgresOptions(
   variables: EnvironmentVariables,
 ): DataSourceOptions {
-  const missing = POSTGRES_REQUIRED.filter((name) => !variables[name]);
+  const missing = POSTGRES_REQUIRED.filter((name) => isBlank(variables[name]));
   if (missing.length > 0) {
     throw new Error(
       `${missing.join(', ')} must be set when ${DB_ENGINE} is "postgres".`,
@@ -76,15 +77,32 @@ function readPostgresOptions(
     throw new Error(`${DB_PORT} must be a number. The value is "${port}".`);
   }
   return {
-    type: 'postgres',
-    host: variables[DB_HOST],
+    database: requireVariable(variables, DB_NAME),
+    host: requireVariable(variables, DB_HOST),
+    password: requireVariable(variables, DB_PASSWORD),
     port: Number(port),
-    database: variables[DB_NAME],
-    username: variables[DB_USER],
-    password: variables[DB_PASSWORD],
+    type: 'postgres',
+    username: requireVariable(variables, DB_USER),
   };
 }
 
+// The check above lists every missing variable in one message. This
+// function reads one variable after that check, so the type is a string.
+function requireVariable(
+  variables: EnvironmentVariables,
+  name: string,
+): string {
+  const value = variables[name];
+  if (isBlank(value)) {
+    throw new Error(`${name} must be set when ${DB_ENGINE} is "postgres".`);
+  }
+  return value;
+}
+
 function isEngine(value: string): value is Engine {
-  return (ENGINES as readonly string[]).includes(value);
+  return ENGINES.some((engine) => engine === value);
+}
+
+function isBlank(value: string | undefined): value is '' | undefined {
+  return value === undefined || value === '';
 }
