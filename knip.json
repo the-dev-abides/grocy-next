@@ -11,7 +11,10 @@
       "rspack": false
     },
     "apps/web": {
-      "entry": ["index.html"]
+      // The RTK Query OpenAPI code generator writes `next-api.ts`. It
+      // exports every type of the OpenAPI document. An entry file keeps
+      // its unused exports.
+      "entry": ["index.html", "src/app/api/next-api.ts"]
     },
     "apps/web-e2e": {
       "entry": ["src/**/*.spec.ts"]
