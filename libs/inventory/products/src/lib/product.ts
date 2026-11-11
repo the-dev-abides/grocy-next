@@ -19,20 +19,46 @@ const productListItemSchema = z
   .strictObject(productFields)
   .meta({ id: 'ProductListItem' });
 
-// One product in the Next API, the resource of the product read. It carries
-// the facts that the scan screens and the review queue need at display
+// One product in the Next API, the resource of the product read and of the
+// product create. It carries the fields that the short product form sets
+// and the facts that the scan screens and the review queue need at display
 // time. A later ticket widens it with the stock entries, the conversions,
 // the parent flag, and the tare weight. The schema is strict, so a response
 // carries these fields and nothing else.
 const productSchema = z
   .strictObject({
     ...productFields,
+    defaultDueDays: z.int().meta({
+      description:
+        'The default due days of a new stock entry. 0 means no due date, and -1 means never overdue.',
+    }),
     hasPicture: z.boolean().meta({
       description: 'Whether the product has a picture.',
     }),
+    locationId: z
+      .int()
+      .nullable()
+      .meta({ description: 'The id of the default location.' }),
+    minStockAmount: z
+      .number()
+      .meta({ description: 'The minimum stock amount in the stock unit.' }),
+    productGroupId: z
+      .int()
+      .nullable()
+      .meta({ description: 'The id of the product group, or null.' }),
+    purchaseToStockFactor: z.number().meta({
+      description:
+        'The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.',
+    }),
+    purchaseUnitId: z
+      .int()
+      .meta({ description: 'The id of the purchase quantity unit.' }),
     stockAmount: z.number().meta({
       description: 'The own stock of the product in the stock unit.',
     }),
+    stockUnitId: z
+      .int()
+      .meta({ description: 'The id of the stock quantity unit.' }),
   })
   .meta({ id: 'Product' });
 

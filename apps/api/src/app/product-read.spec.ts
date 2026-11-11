@@ -22,8 +22,8 @@ interface OpenApiDocument {
 
 // The product read gives the scan screens and the review queue the facts of
 // one product at display time. The product carries the fields of the list,
-// the own stock in the stock unit, and the picture flag. A later ticket
-// widens it.
+// the fields that the short product form sets, the own stock in the stock
+// unit, and the picture flag. A later ticket widens it.
 describe('the product read of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -41,18 +41,39 @@ describe('the product read of the Next API', () => {
     await app.close();
   });
 
-  // The fixture household has six cans of product 1 in the Fridge. No
+  // The fixture household has six cans of product 1 in the Fridge, location
+  // 1, with the Can, unit 1, as its stock unit and its purchase unit. No
   // fixture product has a picture.
-  it('reads one product with its stock amount and its picture flag through the Grocy mock', async () => {
+  it('reads one product with its form fields, its stock amount, and its picture flag through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/1`);
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      defaultDueDays: 0,
       description: null,
       hasPicture: false,
       id: 1,
+      locationId: 1,
+      minStockAmount: 0,
       name: 'Coca-Cola Original 330 ml',
+      productGroupId: null,
+      purchaseToStockFactor: 1,
+      purchaseUnitId: 1,
       stockAmount: 6,
+      stockUnitId: 1,
+    });
+  });
+
+  // Product 3 is in the Pantry, location 2, in the product group Snacks, 2,
+  // with the Pack, unit 2, as both units.
+  it('reads the product group and the units of a product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/3`);
+
+    expect(await response.json()).toMatchObject({
+      locationId: 2,
+      productGroupId: 2,
+      purchaseUnitId: 2,
+      stockUnitId: 2,
     });
   });
 
@@ -124,7 +145,20 @@ describe('the product read of the Next API', () => {
     ]);
     expect(document.components.schemas['Product']).toMatchObject({
       additionalProperties: false,
-      required: ['description', 'id', 'name', 'hasPicture', 'stockAmount'],
+      required: [
+        'description',
+        'id',
+        'name',
+        'defaultDueDays',
+        'hasPicture',
+        'locationId',
+        'minStockAmount',
+        'productGroupId',
+        'purchaseToStockFactor',
+        'purchaseUnitId',
+        'stockAmount',
+        'stockUnitId',
+      ],
     });
     expect(document.components.schemas['ProductListItem']).toMatchObject({
       additionalProperties: false,
