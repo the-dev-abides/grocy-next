@@ -11,6 +11,11 @@
     ],
     "implicitDependencies": [
       "web"
-    ]
+    ],
+    "targets": {
+      "e2e": {
+        "dependsOn": []
+      }
+    }
   }
 }
