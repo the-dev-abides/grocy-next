@@ -1120,6 +1120,96 @@
         "summary": "Delete one pending scan.",
         "tags": ["PendingScans"]
       }
+    },
+    "/api/v2/bookings": {
+      "post": {
+        "operationId": "createBooking",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBooking"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The booking with the values that Grocy stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The pending scan has no product\n\nThe pending scan has no amount"
+          },
+          "415": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The body is not JSON"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "An id names nothing in Grocy\n\nThe product has no conversion to the stock unit\n\nGrocy refused the change"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "Accept a pending scan as a booking.",
+        "tags": ["Bookings"]
+      }
     }
   },
   "info": {
@@ -1147,6 +1237,23 @@
         "required": ["message", "path"],
         "additionalProperties": false
       },
+      "GrocyRefusal": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The error message that Grocy returned."
+          },
+          "status": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The HTTP status that Grocy returned."
+          }
+        },
+        "required": ["message", "status"],
+        "additionalProperties": false
+      },
       "Problem": {
         "type": "object",
         "properties": {
@@ -1160,6 +1267,10 @@
             "items": {
               "$ref": "#/components/schemas/FieldError"
             }
+          },
+          "grocy": {
+            "description": "The status and the message that Grocy returned.",
+            "$ref": "#/components/schemas/GrocyRefusal"
           },
           "instance": {
             "type": "string",
@@ -1755,6 +1866,139 @@
             "nullable": true
           }
         },
+        "additionalProperties": false
+      },
+      "CreateBooking": {
+        "type": "object",
+        "properties": {
+          "pendingScanId": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "description": "The id of the pending scan to accept.",
+            "minimum": 0
+          }
+        },
+        "required": ["pendingScanId"],
+        "additionalProperties": false
+      },
+      "StockLogRow": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The amount in the stock unit."
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The due date of the stock entry.",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the booking in Grocy."
+          },
+          "locationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the location.",
+            "nullable": true
+          },
+          "note": {
+            "description": "The note.",
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "description": "The price per stock unit.",
+            "type": "number",
+            "nullable": true
+          },
+          "purchasedDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The purchase date.",
+            "nullable": true
+          },
+          "stockEntryId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the stock entry, when Grocy wrote it.",
+            "nullable": true
+          },
+          "storeId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the store.",
+            "nullable": true
+          },
+          "transactionType": {
+            "type": "string",
+            "description": "The Grocy transaction type."
+          }
+        },
+        "required": [
+          "amount",
+          "dueDate",
+          "id",
+          "locationId",
+          "note",
+          "price",
+          "purchasedDate",
+          "stockEntryId",
+          "storeId",
+          "transactionType"
+        ],
+        "additionalProperties": false
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockLogRow"
+            },
+            "description": "The stock log rows of the transaction."
+          },
+          "bookingType": {
+            "type": "string",
+            "enum": ["inventory", "purchase"],
+            "description": "The booking that the accept made."
+          },
+          "pendingScanId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the accepted pending scan."
+          },
+          "productId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the product."
+          },
+          "transactionId": {
+            "description": "The id of the Grocy transaction, or null on no change.",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "bookings",
+          "bookingType",
+          "pendingScanId",
+          "productId",
+          "transactionId"
+        ],
         "additionalProperties": false
       }
     }
