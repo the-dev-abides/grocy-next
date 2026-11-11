@@ -3,6 +3,7 @@ import { cn } from 'cn';
 import { Check, RotateCw, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 
 import type { PendingScan, Product } from '../api/next-api';
@@ -16,27 +17,39 @@ import { AmountCell } from './amount-cell';
 import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
+import { RowEditButton } from './row-edit-button';
 import { type RowState, stateOf } from './row-state';
 import { amountText, rowName, unitOf } from './row-text';
 import { useRowActions } from './use-row-actions';
 
-// The reject button on every row. The accept button on a ready row, and the
-// Accept again button on a failed row. A row that needs a product shows Pick
-// product and New product in place of the accept. A row that needs a count
-// has no accept.
+// The edit button and the reject button on every row. The accept button on
+// a ready row, and the Accept again button on a failed row. A row that needs
+// a product shows Pick product and New product in place of the accept. A row
+// that needs a count has no accept.
 function RowButtons({
   actions,
   lists,
+  name,
+  product,
   scan,
   state,
 }: Readonly<{
   actions: RowActions;
   lists: QueueLists;
+  name: string;
+  product: Product | undefined;
   scan: PendingScan;
   state: RowState;
 }>) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-1">
+      <RowEditButton
+        actions={actions}
+        lists={lists}
+        name={name}
+        product={product}
+        scan={scan}
+      />
       <Button
         variant="ghost"
         size="icon"
@@ -153,11 +166,9 @@ function stockUnitOf(
     : nameOf(quantityUnits, product.stockUnitId, '');
 }
 
-// One row of the review queue table. The columns of the prototype: the
-// product with its facts, the amount, the location from `md`, the due date
-// and the price from `xl`, the store and the time from `2xl`, the state from
-// `md`, and the buttons. A failed row has the expired row colour of ADR 0013.
-export function QueueRow({
+// The facts of a row: the product read, the state, the unit, the name, and
+// the actions.
+function useRowFacts({
   lists,
   onChanged,
   onResult,
@@ -171,8 +182,6 @@ export function QueueRow({
   const product = useGetProductQuery(
     scan.productId === null ? skipToken : { id: scan.productId },
   ).data;
-  const state = stateOf(scan);
-  const unit = unitOf(scan, product, lists.quantityUnits);
   // The product read names a product that the product list does not hold
   // yet, such as a product that the short product form created.
   const name = product?.name ?? rowName(scan, lists.products);
@@ -184,17 +193,76 @@ export function QueueRow({
     scan,
     stockUnit: stockUnitOf(product, lists.quantityUnits),
   });
+  return {
+    actions,
+    name,
+    product,
+    state: stateOf(scan),
+    unit: unitOf(scan, product, lists.quantityUnits),
+  };
+}
+
+// A failed row has the expired row colour, and a busy row is faded.
+function rowClass(state: RowState, isBusy: boolean): string {
+  return cn(
+    state === 'failed' &&
+      `
+        bg-row-expired
+        hover:bg-row-expired
+      `,
+    isBusy && 'opacity-50',
+  );
+}
+
+// The checkbox of a row, for the bulk edit.
+function CheckCell({
+  isChecked,
+  name,
+  onToggle,
+}: Readonly<{ isChecked: boolean; name: string; onToggle: () => void }>) {
+  return (
+    <TableCell className="w-8">
+      <Checkbox
+        aria-label={`Check ${name}`}
+        checked={isChecked}
+        onCheckedChange={onToggle}
+      />
+    </TableCell>
+  );
+}
+
+// One row of the review queue table. The columns of the prototype: the
+// checkbox, the product with its facts, the amount, the location from `md`,
+// the due date and the price from `xl`, the store and the time from `2xl`,
+// the state from `md`, and the buttons. A failed row has the expired row
+// colour of ADR 0013.
+export function QueueRow({
+  isChecked,
+  lists,
+  onChanged,
+  onResult,
+  onToggle,
+  scan,
+}: Readonly<{
+  isChecked: boolean;
+  lists: QueueLists;
+  onChanged: () => void;
+  onResult: (line: Omit<ResultLine, 'key'>) => void;
+  onToggle: () => void;
+  scan: PendingScan;
+}>) {
+  const { actions, name, product, state, unit } = useRowFacts({
+    lists,
+    onChanged,
+    onResult,
+    scan,
+  });
   return (
     <TableRow
-      className={cn(
-        state === 'failed' &&
-          `
-            bg-row-expired
-            hover:bg-row-expired
-          `,
-        actions.isBusy && 'opacity-50',
-      )}
+      className={rowClass(state, actions.isBusy)}
+      data-state={isChecked ? 'selected' : undefined}
     >
+      <CheckCell isChecked={isChecked} name={name} onToggle={onToggle} />
       <ProductCell lists={lists} name={name} scan={scan} state={state}>
         <InventoryLines
           lists={lists}
@@ -211,7 +279,14 @@ export function QueueRow({
         onCount={actions.setCount}
       />
       <TableCell className="text-right">
-        <RowButtons actions={actions} lists={lists} scan={scan} state={state} />
+        <RowButtons
+          actions={actions}
+          lists={lists}
+          name={name}
+          product={product}
+          scan={scan}
+          state={state}
+        />
       </TableCell>
     </TableRow>
   );
