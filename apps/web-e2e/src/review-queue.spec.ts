@@ -1,10 +1,14 @@
+import { expect, test } from '@playwright/test';
 import {
-  type APIRequestContext,
-  expect,
-  type Locator,
-  type Page,
-  test,
-} from '@playwright/test';
+  createRow,
+  listRows,
+  LOOKUP_TIMEOUT_MS,
+  MOCK_DUE_DATE,
+  OPEN_FACTS_MOCK_URL,
+  pickOption,
+  queueRows,
+  removeRows,
+} from './pending-scans.js';
 
 // The tests of the review queue screen.
 // They cover the table of every pending scan of both booking types and the sidebar badge.
@@ -16,8 +20,6 @@ import {
 // Thus each row of this file carries a product and no code, or a produce code that no other file types.
 // Else it carries the third unknown code of the Open Food Facts mock.
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
 // The third unknown code of the Open Food Facts mock, Heinz Beanz 415 g. The
 // record names the end-to-end mock as its image host, so the picture
 // download of the update that sets the new product reaches the mock. The
@@ -26,60 +28,6 @@ const PENDING_SCANS = '/api/v2/pending-scans';
 const NEW_PRODUCT_CODE = '5000157024671';
 const NEW_PRODUCT_ID = 4;
 const NEW_PRODUCT_BARCODE_ID = 5;
-
-// The Open Food Facts mock of the Playwright configuration. The lookup worker
-// of the API names the source URL after it.
-const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
-
-// The lookup worker answers within a few seconds. The row shows the result
-// at the next poll of the pending scan list.
-const LOOKUP_TIMEOUT_MS = 15_000;
-
-// The Grocy mock answers a purchase with a fixed stock log row. The row has the
-// location 1 Fridge and the due date 2027-01-01. It has the amount and the
-// price of the request.
-const MOCK_DUE_DATE = '2027-01-01';
-
-interface PendingScanRow {
-  bookingType: 'inventory' | 'purchase';
-  code: null | string;
-  id: number;
-  locationId: null | number;
-  note: null | string;
-  productBarcodeId: null | number;
-  productId: null | number;
-}
-
-async function listRows(request: APIRequestContext): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items;
-}
-
-async function removeRows(
-  request: APIRequestContext,
-  isMatch: (row: PendingScanRow) => boolean,
-): Promise<void> {
-  const rows = await listRows(request);
-  for (const row of rows) {
-    if (isMatch(row)) {
-      await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-    }
-  }
-}
-
-async function createRow(
-  request: APIRequestContext,
-  body: Record<string, unknown>,
-): Promise<PendingScanRow> {
-  const response = await request.post(PENDING_SCANS, { data: body });
-  expect(response.status()).toBe(201);
-  return (await response.json()) as PendingScanRow;
-}
-
-function queueRows(page: Page): Locator {
-  return page.getByRole('table', { name: 'Pending scans' }).locator('tbody tr');
-}
 
 for (const path of ['/scan/purchase', '/scan/inventory']) {
   test(`Done on the scan screen ${path} opens the review queue`, async ({
@@ -314,14 +262,6 @@ test('the product pick dialog finds a fixture product by a part of its name and 
 
   await removeRows(request, (item) => item.id === created.id);
 });
-
-async function pickOption(dialog: Locator, label: string, option: string) {
-  await dialog.getByLabel(label, { exact: true }).click();
-  await dialog
-    .page()
-    .getByRole('option', { name: option, exact: true })
-    .click();
-}
 
 test('New product opens the short product form with the proposals of the lookup result, creates the product, and the accept books it', async ({
   page,

@@ -5,6 +5,11 @@ import {
   type Page,
   test,
 } from '@playwright/test';
+import {
+  listRows,
+  PENDING_SCANS,
+  removeRowsWithNote,
+} from './pending-scans.js';
 
 // The tests of the Inventory rows of the review queue.
 // They cover the count field with the Grocy stock as the placeholder, the difference, and what the accept does.
@@ -15,31 +20,6 @@ import {
 // Thus no scan merges into them, and no other file removes them.
 // Each test owns one product and finds its row by a note of its own.
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
-interface PendingScanRow {
-  id: number;
-  note: null | string;
-}
-
-async function listRows(request: APIRequestContext): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items;
-}
-
-async function removeRows(
-  request: APIRequestContext,
-  note: string,
-): Promise<void> {
-  const rows = await listRows(request);
-  for (const row of rows) {
-    if (row.note === note) {
-      await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-    }
-  }
-}
-
 // An Inventory row of the product with no count, and the review queue with
 // that row.
 async function openInventoryRow(
@@ -48,7 +28,7 @@ async function openInventoryRow(
   productId: number,
   note: string,
 ): Promise<Locator> {
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   const response = await request.post(PENDING_SCANS, {
     data: { bookingType: 'inventory', note, productId },
   });
@@ -169,7 +149,7 @@ test('a parent product row says that the count is own stock only', async ({
     'In Grocy: 0 Pack · parent product, own stock only',
   );
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });
 
 test('a tare weight product row says that the count is a gross weight, and the gross weight of the stock plus the tare weight is no change', async ({

@@ -1,10 +1,13 @@
+import { expect, test } from '@playwright/test';
 import {
-  type APIRequestContext,
-  expect,
-  type Locator,
-  type Page,
-  test,
-} from '@playwright/test';
+  createRow,
+  listRows,
+  MOCK_DUE_DATE,
+  pickOption,
+  queueRows,
+  removeRowsWithNote,
+  storedRow,
+} from './pending-scans.js';
 
 // The tests of the filter, the bulk actions, and the full form of one row of the review queue.
 // The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
@@ -16,8 +19,6 @@ import {
 // The bulk edit acts on the checked rows only.
 // The codes of this file are produce codes that no other file types.
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
 // The fixture household of the Grocy mock.
 const PANTRY = 2;
 const FREEZER = 3;
@@ -25,80 +26,12 @@ const GARAGE = 4;
 const DAIRY = 1;
 const SNACKS = 2;
 
-// The Grocy mock answers a purchase with a fixed stock log row. The row has the
-// location 1 Fridge and the due date 2027-01-01. It has the amount and the
-// price of the request.
-const MOCK_DUE_DATE = '2027-01-01';
-
-interface PendingScanRow {
-  amount: null | number;
-  dueDate: null | string;
-  id: number;
-  locationId: null | number;
-  note: null | string;
-  price: null | number;
-  priceType: 'total' | 'unit';
-  productGroupId: null | number;
-  productId: null | number;
-  quantityUnitId: null | number;
-  storeId: null | number;
-}
-
-async function listRows(request: APIRequestContext): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items;
-}
-
-async function removeRows(
-  request: APIRequestContext,
-  note: string,
-): Promise<void> {
-  const rows = await listRows(request);
-  for (const row of rows) {
-    if (row.note === note) {
-      await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-    }
-  }
-}
-
-async function createRow(
-  request: APIRequestContext,
-  body: Record<string, unknown>,
-): Promise<PendingScanRow> {
-  const response = await request.post(PENDING_SCANS, { data: body });
-  expect(response.status()).toBe(201);
-  return (await response.json()) as PendingScanRow;
-}
-
-async function storedRow(
-  request: APIRequestContext,
-  id: number,
-): Promise<PendingScanRow | undefined> {
-  const rows = await listRows(request);
-  return rows.find((row) => row.id === id);
-}
-
-function queueRows(page: Page): Locator {
-  return page.getByRole('table', { name: 'Pending scans' }).locator('tbody tr');
-}
-
-async function pickOption(
-  scope: Locator | Page,
-  label: string,
-  option: string,
-) {
-  await scope.getByLabel(label, { exact: true }).click();
-  const page = 'page' in scope ? scope.page() : scope;
-  await page.getByRole('option', { name: option, exact: true }).click();
-}
-
 test('the filter by location, product group, and each of the four states narrows the table', async ({
   page,
   request,
 }) => {
   const note = 'bulk-filter';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   // Four rows. The first is a ready Purchase row in the Pantry. The second is
   // an Inventory row with no count in the Fridge. The third is a row with no
   // product in the Pantry. The fourth is a row in the inactive Garage that the
@@ -160,7 +93,7 @@ test('the filter by location, product group, and each of the four states narrows
     await expect(rows).toContainText(name);
   }
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });
 
 test('Accept all on a filtered table books the ready rows, skips the others, and shows one line per row with the skipped count', async ({
@@ -168,7 +101,7 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
   request,
 }) => {
   const note = 'bulk-accept';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   // A ready Purchase row, a row with no product, and an Inventory row with
   // no count, all in the Freezer and in the group Snacks.
   const facts = { locationId: FREEZER, note, productGroupId: SNACKS };
@@ -219,7 +152,7 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
   expect(await storedRow(request, noProduct.id)).toBeDefined();
   expect(await storedRow(request, noCount.id)).toBeDefined();
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });
 
 test('Reject all opens the confirm with the count and removes the shown rows', async ({
@@ -227,7 +160,7 @@ test('Reject all opens the confirm with the count and removes the shown rows', a
   request,
 }) => {
   const note = 'bulk-reject';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   const facts = { locationId: FREEZER, note, productGroupId: DAIRY };
   await createRow(request, { ...facts, bookingType: 'purchase', code: '4023' });
   await createRow(request, { ...facts, bookingType: 'purchase', productId: 2 });
@@ -256,7 +189,7 @@ test('the bulk edit sets one field on the checked rows and changes nothing else 
   request,
 }) => {
   const note = 'bulk-edit';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   const first = await createRow(request, {
     amount: 2,
     bookingType: 'purchase',
@@ -311,7 +244,7 @@ test('the bulk edit sets one field on the checked rows and changes nothing else 
   });
   expect(await storedRow(request, unchecked.id)).toEqual(unchecked);
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });
 
 test('the full form of one row saves every field', async ({
@@ -320,8 +253,8 @@ test('the full form of one row saves every field', async ({
 }) => {
   const note = 'bulk-full-form';
   const savedNote = 'bulk-full-form saved';
-  await removeRows(request, note);
-  await removeRows(request, savedNote);
+  await removeRowsWithNote(request, note);
+  await removeRowsWithNote(request, savedNote);
   const created = await createRow(request, {
     bookingType: 'purchase',
     code: '4025',
@@ -357,7 +290,7 @@ test('the full form of one row saves every field', async ({
     storeId: 1,
   });
 
-  await removeRows(request, savedNote);
+  await removeRowsWithNote(request, savedNote);
 });
 
 test('Change the product on the full form opens the product pick dialog, and the pick sets the product', async ({
@@ -365,7 +298,7 @@ test('Change the product on the full form opens the product pick dialog, and the
   request,
 }) => {
   const note = 'bulk-change-product';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   const created = await createRow(request, {
     bookingType: 'purchase',
     note,
@@ -396,5 +329,5 @@ test('Change the product on the full form opens the product pick dialog, and the
     productId: 2,
   });
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });

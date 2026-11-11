@@ -5,6 +5,13 @@ import {
   type Page,
   test,
 } from '@playwright/test';
+import {
+  listRows,
+  PENDING_SCANS,
+  type PendingScanRow,
+  removeRowsWithCode,
+  sessionRows,
+} from './pending-scans.js';
 import path from 'node:path';
 
 // The camera tests of ADR 0015.
@@ -21,41 +28,16 @@ import path from 'node:path';
 const CODE = '3017620422003';
 const CAMERA_FILE = path.join(import.meta.dirname, 'camera', `${CODE}.mjpeg`);
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
 // The ZXing path loads a WebAssembly file of about one megabyte before the
 // first decode.
 const DECODER_TIMEOUT_MS = 20_000;
-
-interface PendingScanRow {
-  amount: null | number;
-  code: null | string;
-  id: number;
-}
 
 async function rowsWithCode(
   request: APIRequestContext,
   code: string,
 ): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items.filter((row) => row.code === code);
-}
-
-async function removeRowsWithCode(
-  request: APIRequestContext,
-  code: string,
-): Promise<void> {
-  const rows = await rowsWithCode(request, code);
-  for (const row of rows) {
-    await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-  }
-}
-
-function sessionRows(page: Page): Locator {
-  return page
-    .getByRole('list', { name: 'Scans of this session' })
-    .getByRole('listitem');
+  const rows = await listRows(request);
+  return rows.filter((row) => row.code === code);
 }
 
 function decoderLabel(page: Page): Locator {

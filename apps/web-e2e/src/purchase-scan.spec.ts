@@ -1,55 +1,20 @@
+import { expect, test } from '@playwright/test';
 import {
-  type APIRequestContext,
-  expect,
-  type Locator,
-  type Page,
-  test,
-} from '@playwright/test';
+  LOOKUP_TIMEOUT_MS,
+  OPEN_FACTS_MOCK_URL,
+  PENDING_SCANS,
+  type PendingScanRow,
+  pickOption,
+  removeRowsWithCode,
+  sessionRows,
+  swipeLeft,
+  typeCode,
+} from './pending-scans.js';
 
 // The tests of the Purchase scan screen: a typed code becomes a pending scan and shows in the session list within the three-second poll.
 // The API keeps its rows for the whole run, and the tests of one file run in parallel.
 // Thus each test types a code of its own and removes the open rows of that code first.
 // A repeat of the run, or a retry, then never merges into an old row.
-
-const PENDING_SCANS = '/api/v2/pending-scans';
-
-// The Open Food Facts mock of the Playwright configuration. The lookup worker
-// of the API names the source URL after it.
-const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
-
-// The lookup worker answers within a few seconds. The row shows the result
-// at the next poll of the pending scan list.
-const LOOKUP_TIMEOUT_MS = 15_000;
-
-interface PendingScanRow {
-  code: null | string;
-  id: number;
-}
-
-async function removeRowsWithCode(
-  request: APIRequestContext,
-  code: string,
-): Promise<void> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  for (const row of items) {
-    if (row.code === code) {
-      await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-    }
-  }
-}
-
-async function typeCode(page: Page, code: string): Promise<void> {
-  const field = page.getByRole('textbox', { name: 'Code' });
-  await field.fill(code);
-  await field.press('Enter');
-}
-
-function sessionRows(page: Page) {
-  return page
-    .getByRole('list', { name: 'Scans of this session' })
-    .getByRole('listitem');
-}
 
 test('a typed fixture code shows the product name, the time, and the barcode price within three seconds', async ({
   page,
@@ -126,19 +91,6 @@ test('plus and minus on a row change the amount within the poll', async ({
   await expect(row).toContainText('2 Pack', { timeout: 3000 });
 });
 
-async function swipeLeft(page: Page, row: Locator, fraction: number) {
-  const box = await row.boundingBox();
-  if (box === null) {
-    throw new Error('The row has no box on the page.');
-  }
-  const startX = box.x + box.width * 0.9;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(startX, y);
-  await page.mouse.down();
-  await page.mouse.move(startX - box.width * fraction, y, { steps: 10 });
-  await page.mouse.up();
-}
-
 test('a swipe to the left past a third of the row width removes the row', async ({
   page,
   request,
@@ -190,11 +142,6 @@ test('a short swipe snaps back and keeps the row', async ({
 const DUE_IN_SEVEN_DAYS = Temporal.Now.plainDateISO()
   .add({ days: 7 })
   .toString();
-
-async function pickOption(page: Page, label: string, option: string) {
-  await page.getByLabel(label, { exact: true }).click();
-  await page.getByRole('option', { name: option, exact: true }).click();
-}
 
 test('the defaults of the section land on the row of the next typed code, and the closed section shows them in one line', async ({
   page,

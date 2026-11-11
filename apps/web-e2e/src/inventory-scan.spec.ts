@@ -1,10 +1,11 @@
+import { type APIRequestContext, expect, test } from '@playwright/test';
 import {
-  type APIRequestContext,
-  expect,
-  type Locator,
-  type Page,
-  test,
-} from '@playwright/test';
+  listRows,
+  PENDING_SCANS,
+  type PendingScanRow,
+  sessionRows,
+  typeCode,
+} from './pending-scans.js';
 
 // The tests of the Inventory scan screen.
 // A typed code becomes one row per product with the Grocy stock from the product read.
@@ -16,26 +17,13 @@ import {
 // They remove rows by code across both booking types.
 // Thus this file uses the 13-digit form of that product barcode, a Grocycode, and a produce code of its own.
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
-interface PendingScanRow {
-  bookingType: 'inventory' | 'purchase';
-  code: null | string;
-  id: number;
-  productId: null | number;
-  scannedAt: string;
-  updatedAt: string;
-  writeInName: null | string;
-}
-
 async function inventoryRows(
   request: APIRequestContext,
   code: string,
   productId: null | number,
 ): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items.filter((row) => {
+  const rows = await listRows(request);
+  return rows.filter((row) => {
     return (
       row.bookingType === 'inventory' &&
       row.code !== null &&
@@ -57,18 +45,6 @@ async function removeInventoryRows(
   for (const row of rows) {
     await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
   }
-}
-
-async function typeCode(page: Page, code: string): Promise<void> {
-  const field = page.getByRole('textbox', { name: 'Code' });
-  await field.fill(code);
-  await field.press('Enter');
-}
-
-function sessionRows(page: Page): Locator {
-  return page
-    .getByRole('list', { name: 'Scans of this session' })
-    .getByRole('listitem');
 }
 
 test('a typed fixture code shows one row with the product name and the Grocy stock', async ({

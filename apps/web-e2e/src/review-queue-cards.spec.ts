@@ -5,6 +5,15 @@ import {
   type Page,
   test,
 } from '@playwright/test';
+import {
+  createRow,
+  listRows,
+  type PendingScanRow,
+  pickOption,
+  removeRowsWithNote,
+  storedRow,
+  swipeLeft,
+} from './pending-scans.js';
 
 // The tests of the cards view and the view switch of the review queue.
 // The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
@@ -14,8 +23,6 @@ import {
 // No other file puts a row in that location and that group, so the list shows no row of another file.
 // The swipe and the bulk edit act only on the cards of the note of the test.
 
-const PENDING_SCANS = '/api/v2/pending-scans';
-
 const FRIDGE = 1;
 const PANTRY = 2;
 const DAIRY = 1;
@@ -23,48 +30,17 @@ const DAIRY = 1;
 const PHONE = { height: 812, width: 375 };
 const LARGE = { height: 768, width: 1024 };
 
-interface PendingScanRow {
-  amount: null | number;
-  id: number;
-  locationId: null | number;
-  note: null | string;
-}
-
-async function listRows(request: APIRequestContext): Promise<PendingScanRow[]> {
-  const response = await request.get(PENDING_SCANS);
-  const { items } = (await response.json()) as { items: PendingScanRow[] };
-  return items;
-}
-
-async function removeRows(
-  request: APIRequestContext,
-  note: string,
-): Promise<void> {
-  const rows = await listRows(request);
-  for (const row of rows) {
-    if (row.note === note) {
-      await request.delete(`${PENDING_SCANS}/${String(row.id)}`);
-    }
-  }
-}
-
-async function createRow(
+// A row in the Fridge and in the group Dairy, so the filter of the tests
+// shows it.
+function createCardRow(
   request: APIRequestContext,
   body: Record<string, unknown>,
 ): Promise<PendingScanRow> {
-  const response = await request.post(PENDING_SCANS, {
-    data: { locationId: FRIDGE, productGroupId: DAIRY, ...body },
+  return createRow(request, {
+    locationId: FRIDGE,
+    productGroupId: DAIRY,
+    ...body,
   });
-  expect(response.status()).toBe(201);
-  return (await response.json()) as PendingScanRow;
-}
-
-async function storedRow(
-  request: APIRequestContext,
-  id: number,
-): Promise<PendingScanRow | undefined> {
-  const rows = await listRows(request);
-  return rows.find((row) => row.id === id);
 }
 
 function table(page: Page): Locator {
@@ -79,36 +55,12 @@ function cardsOf(page: Page, note: string): Locator {
   return cardList(page).getByRole('listitem').filter({ hasText: note });
 }
 
-async function pickOption(
-  scope: Locator | Page,
-  label: string,
-  option: string,
-) {
-  await scope.getByLabel(label, { exact: true }).click();
-  const page = 'page' in scope ? scope.page() : scope;
-  await page.getByRole('option', { name: option, exact: true }).click();
-}
-
 // The review queue on a phone, filtered to the rows of this file.
 async function openCards(page: Page) {
   await page.setViewportSize(PHONE);
   await page.goto('/review-queue');
   await pickOption(page, 'Location', 'Fridge');
   await pickOption(page, 'Product group', 'Dairy');
-}
-
-async function swipeLeft(page: Page, card: Locator, fraction: number) {
-  await card.scrollIntoViewIfNeeded();
-  const box = await card.boundingBox();
-  if (box === null) {
-    throw new Error('The card has no box on the page.');
-  }
-  const startX = box.x + box.width * 0.9;
-  const y = box.y + box.height / 2;
-  await page.mouse.move(startX, y);
-  await page.mouse.down();
-  await page.mouse.move(startX - box.width * fraction, y, { steps: 10 });
-  await page.mouse.up();
 }
 
 test('the review queue opens as the table at 1024px and as the cards at 375px', async ({
@@ -159,8 +111,8 @@ test('a swipe to the left on a card removes the row, and a short swipe keeps it'
   request,
 }) => {
   const note = 'cards-swipe';
-  await removeRows(request, note);
-  const created = await createRow(request, {
+  await removeRowsWithNote(request, note);
+  const created = await createCardRow(request, {
     bookingType: 'purchase',
     note,
     productId: 2,
@@ -185,10 +137,10 @@ test('plus and minus on an Inventory card set the count from the Grocy stock, an
   request,
 }) => {
   const note = 'cards-count';
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
   // Product 3 has the stock 1 in the unit Pack and the default location
   // Pantry.
-  const created = await createRow(request, {
+  const created = await createCardRow(request, {
     bookingType: 'inventory',
     note,
     productId: 3,
@@ -230,18 +182,18 @@ test('the bulk edit acts on the checked cards and changes no other card', async 
   request,
 }) => {
   const note = 'cards-bulk';
-  await removeRows(request, note);
-  const first = await createRow(request, {
+  await removeRowsWithNote(request, note);
+  const first = await createCardRow(request, {
     bookingType: 'purchase',
     note,
     productId: 5,
   });
-  const second = await createRow(request, {
+  const second = await createCardRow(request, {
     bookingType: 'purchase',
     note,
     productId: 2,
   });
-  const unchecked = await createRow(request, {
+  const unchecked = await createCardRow(request, {
     bookingType: 'purchase',
     note,
     productId: 3,
@@ -273,5 +225,5 @@ test('the bulk edit acts on the checked cards and changes no other card', async 
     .toEqual([PANTRY, PANTRY]);
   expect(await storedRow(request, unchecked.id)).toEqual(unchecked);
 
-  await removeRows(request, note);
+  await removeRowsWithNote(request, note);
 });
