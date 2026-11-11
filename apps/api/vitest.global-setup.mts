@@ -101,15 +101,26 @@ function stopMock(mock: Mock): Promise<void> {
   });
 }
 
+// The mocks start one after the other. On a new machine, the first start
+// downloads the native engine. Two starts at one time write and run the
+// same engine file, and the operating system then refuses to run it with
+// "text file busy". The second start finds the downloaded engine.
+async function startMocksOneByOne(imposterCli: string): Promise<void> {
+  for (const [folder, url] of [
+    ['grocy', GROCY_MOCK_URL],
+    ['open-food-facts', OPEN_FACTS_MOCK_URL],
+  ] as const) {
+    const mock = startMock(imposterCli, folder, url);
+    mocks.push(mock);
+    await waitUntilUp(mock);
+  }
+}
+
 export async function setup(): Promise<void> {
   const imposterCli = findImposterCli();
   execFileSync(process.execPath, [SPEC_SCRIPT], { stdio: 'inherit' });
-  mocks.push(
-    startMock(imposterCli, 'grocy', GROCY_MOCK_URL),
-    startMock(imposterCli, 'open-food-facts', OPEN_FACTS_MOCK_URL),
-  );
   try {
-    await Promise.all(mocks.map((mock) => waitUntilUp(mock)));
+    await startMocksOneByOne(imposterCli);
   } catch (error) {
     await teardown();
     throw error;
