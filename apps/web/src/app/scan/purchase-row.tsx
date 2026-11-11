@@ -3,9 +3,9 @@ import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import type { PendingScan } from '../api/next-api';
-import type { ScanRowLists } from './scan-row';
+import type { PendingScanRowLists } from './pending-scan-row';
 
-import { RejectButton, ScanRow } from './scan-row';
+import { PendingScanRow, RejectButton } from './pending-scan-row';
 import { dueDateText, nameOf, priceText } from './scan-text';
 
 // The amount in its unit between minus and plus, and the reject button.
@@ -17,7 +17,7 @@ function AmountControls({
 }: Readonly<{
   onChangeAmount: (delta: number) => void;
   onReject: () => void;
-  quantityUnits: ScanRowLists['quantityUnits'];
+  quantityUnits: PendingScanRowLists['quantityUnits'];
   scan: PendingScan;
 }>) {
   return (
@@ -58,13 +58,13 @@ export function PurchaseRow({
   onReject,
   scan,
 }: Readonly<{
-  lists: ScanRowLists;
+  lists: PendingScanRowLists;
   onChangeAmount: (delta: number) => void;
   onReject: () => void;
   scan: PendingScan;
 }>) {
   return (
-    <ScanRow
+    <PendingScanRow
       lists={lists}
       scan={scan}
       details={[
@@ -79,6 +79,6 @@ export function PurchaseRow({
         onChangeAmount={onChangeAmount}
         onReject={onReject}
       />
-    </ScanRow>
+    </PendingScanRow>
   );
 }

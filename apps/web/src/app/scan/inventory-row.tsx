@@ -1,10 +1,10 @@
 import { skipToken } from '@reduxjs/toolkit/query';
 
 import type { PendingScan } from '../api/next-api';
-import type { ScanRowLists } from './scan-row';
+import type { PendingScanRowLists } from './pending-scan-row';
 
 import { useGetProductQuery } from '../api/next-api';
-import { RejectButton, ScanRow } from './scan-row';
+import { PendingScanRow, RejectButton } from './pending-scan-row';
 import { dueDateText, nameOf, stockText } from './scan-text';
 import { WriteInNameField } from './write-in-name-field';
 
@@ -18,7 +18,7 @@ export function InventoryRow({
   onWriteInName,
   scan,
 }: Readonly<{
-  lists: ScanRowLists;
+  lists: PendingScanRowLists;
   onReject: () => void;
   onWriteInName: (name: string) => void;
   scan: PendingScan;
@@ -29,7 +29,7 @@ export function InventoryRow({
   const stock =
     scan.productId === null ? [] : [stockText(product, lists.quantityUnits)];
   return (
-    <ScanRow
+    <PendingScanRow
       lists={lists}
       scan={scan}
       details={[
@@ -42,6 +42,6 @@ export function InventoryRow({
         <WriteInNameField name={scan.writeInName} onSubmit={onWriteInName} />
       )}
       <RejectButton onReject={onReject} />
-    </ScanRow>
+    </PendingScanRow>
   );
 }

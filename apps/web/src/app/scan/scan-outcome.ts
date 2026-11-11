@@ -1,6 +1,6 @@
 import type { PendingScan } from '../api/next-api';
 import type { FeedbackKind } from './feedback';
-import type { ScanRowLists } from './scan-row';
+import type { PendingScanRowLists } from './pending-scan-row';
 import type { ScanBanner } from './use-scan-feedback';
 
 import { nameOf } from './scan-text';
@@ -20,14 +20,14 @@ export function outcomeOf(
   return scan.productId === null ? 'unknown' : 'known';
 }
 
-function titleOf(scan: PendingScan, lists: ScanRowLists, code: string) {
+function titleOf(scan: PendingScan, lists: PendingScanRowLists, code: string) {
   return scan.productId === null
     ? (scan.lookupResult?.name ?? code)
     : nameOf(lists.products, scan.productId, code);
 }
 
 // The detail line of a Purchase row: the amount in its unit.
-function amountText(scan: PendingScan, lists: ScanRowLists): string {
+function amountText(scan: PendingScan, lists: PendingScanRowLists): string {
   const unit = nameOf(lists.quantityUnits, scan.quantityUnitId, '');
   return `${String(scan.amount ?? 1)} ${unit}`.trim();
 }
@@ -38,7 +38,7 @@ function amountText(scan: PendingScan, lists: ScanRowLists): string {
 // code. A repeat says that the product is in the list.
 export function bannerOf(
   scan: PendingScan,
-  lists: ScanRowLists,
+  lists: PendingScanRowLists,
   wasInSession = false,
 ): ScanBanner {
   const kind = outcomeOf(scan, wasInSession);

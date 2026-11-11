@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
-import type { ScanRowLists } from './scan-row';
+import type { PendingScanRowLists } from './pending-scan-row';
 import type { DefaultsLists } from './session-defaults';
 import type { ScanDefaults } from './use-scan-defaults';
 
@@ -20,7 +20,7 @@ import { POLL_MS } from '../api/poll-interval';
 import { sessionRows } from './session-rows';
 import { useScanDefaults } from './use-scan-defaults';
 
-type ScanLists = DefaultsLists & ScanRowLists;
+type ScanLists = DefaultsLists & PendingScanRowLists;
 
 // The stored row of one create call, and whether the session already held
 // it. An Inventory repeat scan answers the open row with no change, so the

@@ -13,7 +13,7 @@ import type {
 
 import { nameOf, timeOf } from './scan-text';
 
-export interface ScanRowLists {
+export interface PendingScanRowLists {
   locations: readonly Location[] | undefined;
   products: readonly ProductListItem[] | undefined;
   quantityUnits: readonly QuantityUnit[] | undefined;
@@ -34,7 +34,7 @@ function NewProductName({ name }: Readonly<{ name: string }>) {
 function ScanName({
   products,
   scan,
-}: Readonly<{ products: ScanRowLists['products']; scan: PendingScan }>) {
+}: Readonly<{ products: PendingScanRowLists['products']; scan: PendingScan }>) {
   if (scan.productId !== null) {
     return (
       <span className="font-medium">
@@ -93,7 +93,7 @@ export function RejectButton({ onReject }: Readonly<{ onReject: () => void }>) {
 // One row of the session list, shared by the two scan screens. The row shows
 // the name and a line with the time. It shows the details of the screen and the
 // service link of a lookup result. The controls of the screen are on the right.
-export function ScanRow({
+export function PendingScanRow({
   children,
   details,
   lists,
@@ -101,7 +101,7 @@ export function ScanRow({
 }: Readonly<{
   children: ReactNode;
   details: readonly string[];
-  lists: ScanRowLists;
+  lists: PendingScanRowLists;
   scan: PendingScan;
 }>) {
   return (

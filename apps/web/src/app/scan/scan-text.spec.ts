@@ -1,6 +1,6 @@
 import { dueDateText, nameOf, priceText, stockText } from './scan-text';
 
-describe('the words of a scan row', () => {
+describe('the words of a pending scan', () => {
   const locations = [
     { id: 1, name: 'Fridge' },
     { id: 2, name: 'Pantry' },
