@@ -46,6 +46,11 @@ Use plain names. A name says what a thing is. Do not give a part of the
 system a name that makes it sound like a separate component, a pattern, or a
 process when it is not one. `GLOSSARY.md` has the approved names.
 
+## Checks
+
+A lint error is fixed in the code, never in the configuration. ADR 0016
+records the checks and the hook that guards them.
+
 ## Dependency rule
 
 Before you add a package, run `npm view <name> version`. Do not use a version
