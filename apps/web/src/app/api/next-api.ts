@@ -63,6 +63,13 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'DELETE',
       }),
     }),
+    createBooking: build.mutation<CreateBookingResponse, CreateBookingRequest>({
+      query: (queryArg) => ({
+        url: `/api/v2/bookings`,
+        method: 'POST',
+        body: queryArg.createBooking,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -113,6 +120,11 @@ export type DeletePendingScanResponse =
 export type DeletePendingScanRequest = {
   /** The id of the pending scan. */
   id: number;
+};
+export type CreateBookingResponse =
+  /** status 200 The booking with the values that Grocy stored. */ Booking;
+export type CreateBookingRequest = {
+  createBooking: CreateBooking;
 };
 export type ProductListItem = {
   /** The description of the product, or null when it has none. */
@@ -372,6 +384,44 @@ export type UpdatePendingScan = {
   /** The product name that the user typed on the scan screen. */
   writeInName?: string | null;
 };
+export type StockLogRow = {
+  /** The amount in the stock unit. */
+  amount: number;
+  /** The due date of the stock entry. */
+  dueDate: string | null;
+  /** The id of the booking in Grocy. */
+  id: number;
+  /** The id of the location. */
+  locationId: number | null;
+  /** The note. */
+  note: string | null;
+  /** The price per stock unit. */
+  price: number | null;
+  /** The purchase date. */
+  purchasedDate: string | null;
+  /** The id of the stock entry, when Grocy wrote it. */
+  stockEntryId: number | null;
+  /** The id of the store. */
+  storeId: number | null;
+  /** The Grocy transaction type. */
+  transactionType: string;
+};
+export type Booking = {
+  /** The stock log rows of the transaction. */
+  bookings: StockLogRow[];
+  /** The booking that the accept made. */
+  bookingType: 'inventory' | 'purchase';
+  /** The id of the accepted pending scan. */
+  pendingScanId: number;
+  /** The id of the product. */
+  productId: number;
+  /** The id of the Grocy transaction, or null on no change. */
+  transactionId: string | null;
+};
+export type CreateBooking = {
+  /** The id of the pending scan to accept. */
+  pendingScanId: number;
+};
 export const {
   useListProductsQuery,
   useGetProductQuery,
@@ -384,4 +434,5 @@ export const {
   useGetPendingScanQuery,
   useUpdatePendingScanMutation,
   useDeletePendingScanMutation,
+  useCreateBookingMutation,
 } = injectedRtkApi;

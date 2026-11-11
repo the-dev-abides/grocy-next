@@ -9,6 +9,7 @@
   "hooks": true,
   "useUnknown": true,
   "filterEndpoints": [
+    "createBooking",
     "createPendingScan",
     "deletePendingScan",
     "getPendingScan",
