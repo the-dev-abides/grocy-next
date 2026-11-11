@@ -16,6 +16,9 @@
       "path": "./libs/inventory/products"
     },
     {
+      "path": "./libs/inventory/review-queue"
+    },
+    {
       "path": "./libs/shared/next-api"
     },
     {

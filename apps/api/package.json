@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@grocy-next/inventory-products": "workspace:*",
+    "@grocy-next/inventory-review-queue": "workspace:*",
     "@grocy-next/shared-next-api": "workspace:*",
     "@nestjs/axios": "^12.0.1",
     "@nestjs/common": "^12.3.2",
