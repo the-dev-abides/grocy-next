@@ -1,7 +1,9 @@
 # The CI checks and the release. The workflow runs on every pull request, on
 # every push to `main`, and on every push of a version tag such as
-# `v0.0.1-alpha.1`. It runs on GitHub-hosted runners. These jobs run in
-# parallel:
+# `v0.0.1-alpha.1`. It runs on GitHub-hosted runners. The maintainer can also
+# start it by hand from the Actions tab or with `gh workflow run CI`. A run
+# that starts by hand on `main` does the same as a push to `main`. These
+# jobs run in parallel:
 #
 # - `lint` runs the lint of every project. A warning fails it.
 # - `typecheck` runs the type check of every project.
@@ -48,6 +50,7 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
