@@ -16,12 +16,9 @@ import {
   useListStoresQuery,
   useUpdatePendingScanMutation,
 } from '../api/next-api';
+import { POLL_MS } from '../api/poll-interval';
 import { sessionRows } from './session-rows';
 import { useScanDefaults } from './use-scan-defaults';
-
-// The pending scan list refreshes every three seconds while the screen is
-// open, as ADR 0014 decided.
-const POLL_MS = 3000;
 
 type ScanLists = DefaultsLists & ScanRowLists;
 
