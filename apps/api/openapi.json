@@ -1064,6 +1064,26 @@
               }
             },
             "description": "The body is not JSON"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "An id names nothing in Grocy\n\nGrocy refused the change"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
           }
         },
         "summary": "Update one pending scan.",
@@ -1348,12 +1368,16 @@
             "type": "string",
             "description": "The name of the product."
           },
+          "hasPicture": {
+            "type": "boolean",
+            "description": "Whether the product has a picture."
+          },
           "stockAmount": {
             "type": "number",
             "description": "The own stock of the product in the stock unit."
           }
         },
-        "required": ["description", "id", "name", "stockAmount"],
+        "required": ["description", "id", "name", "hasPicture", "stockAmount"],
         "additionalProperties": false
       },
       "Location": {
