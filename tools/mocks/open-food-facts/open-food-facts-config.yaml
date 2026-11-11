@@ -47,3 +47,20 @@ resources:
       statusCode: 404
       template: true
       file: responses/product-not-found.json
+
+  # The front image of the unknown test code, as the Open Facts image host
+  # serves it at 400 px height. The record of the code names the real image
+  # host, so a test that needs the image points the image URL of the row at
+  # this path. The file is one small JPEG, not the real image. The second
+  # path answers 500, for a test of a failed image download.
+  - path: /images/products/301/762/042/2003/front_en.879.400.jpg
+    method: GET
+    response:
+      file: responses/front-3017620422003.jpg
+      headers:
+        Content-Type: image/jpeg
+  - path: /images/products/301/762/042/2003/front_en.failing.400.jpg
+    method: GET
+    response:
+      statusCode: 500
+      content: 'The image store did not answer.'

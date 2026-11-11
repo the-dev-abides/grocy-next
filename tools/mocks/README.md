@@ -111,6 +111,12 @@ the live records of Open Food Facts, stored one time under
 `open-food-facts/responses`. Every other code gets the failure answer of Open
 Food Facts with status 404. The match is on the path only.
 
+The mock also serves one small JPEG at the image path of the unknown code,
+`/images/products/301/762/042/2003/front_en.879.400.jpg`, and answers 500 at
+`/images/products/301/762/042/2003/front_en.failing.400.jpg`. The image URL
+in each record names the real image host, so a test that needs the image
+points the image URL of the row at the mock.
+
 To refresh one record, run this command from the repo root and format the
 file with `pnpm nx format:write`:
 
