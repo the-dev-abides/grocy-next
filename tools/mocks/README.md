@@ -52,7 +52,7 @@ not an error. A response that shows Grocy demo data, such as the product
 
 | Entity         | Rows                                                                                 |
 | -------------- | ------------------------------------------------------------------------------------ |
-| Locations      | 1 Fridge, 2 Pantry, 3 Freezer                                                        |
+| Locations      | 1 Fridge, 2 Pantry, 3 Freezer, 4 Garage (inactive)                                   |
 | Store          | 1 Supermarket                                                                        |
 | Product groups | 1 Dairy, 2 Snacks                                                                    |
 | Quantity units | 1 Can, 2 Pack                                                                        |
@@ -72,6 +72,10 @@ can in its 13-digit form with a leading zero. A typed 12-digit code against
 that product barcode tests the code forms rule of ADR 0011.
 
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
+
+The Garage is the one inactive row of the fixture household. The master data
+lists of the Next API filter with `query[]=active=1`, so the location list
+with the filter holds three rows and the list without it holds four.
 
 ### To add a Grocy call
 

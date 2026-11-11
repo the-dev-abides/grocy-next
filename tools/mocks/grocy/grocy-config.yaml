@@ -1,8 +1,8 @@
 # The Grocy mock. ADR 0015 records the decision. The mock is the one stand-in
 # for Grocy in the end-to-end tests and in the API tests. It serves the
-# fixture household: three locations, one store, two product groups, two
-# quantity units, and three products with one product barcode and some stock
-# each. The mock holds no state. A booking returns a fixed stock log row and
+# fixture household: three active locations and one inactive location, one
+# store, two product groups, two quantity units, and three products with one
+# product barcode and some stock each. The mock holds no state. A booking returns a fixed stock log row and
 # changes nothing.
 #
 # The specification is the Grocy OpenAPI file from the reference folder, with
@@ -43,13 +43,21 @@ specFile: grocy-openapi.json
 validation:
   request: fail
 resources:
-  # The master data lists. The Grocy pages filter with `query[]=active=1`.
-  # Every fixture row is active, so one file serves the list with and
-  # without the filter.
+  # The master data lists. The Next API filters the active rows with
+  # `query[]=active=1`. The locations hold one inactive row, the Garage, so
+  # the filtered list differs from the full list. Every other table holds
+  # only active rows, so one file serves the list with and without the
+  # filter.
   - path: /api/objects/products
     method: GET
     response:
       file: responses/objects-products.json
+  - path: /api/objects/locations
+    method: GET
+    queryParams:
+      query[]: active=1
+    response:
+      file: responses/objects-locations-active.json
   - path: /api/objects/locations
     method: GET
     response:

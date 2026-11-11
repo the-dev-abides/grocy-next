@@ -22,5 +22,13 @@
     "row_created_timestamp": "2026-01-05 10:00:00",
     "is_freezer": 1,
     "active": 1
+  },
+  {
+    "id": 4,
+    "name": "Garage",
+    "description": null,
+    "row_created_timestamp": "2026-01-05 10:00:00",
+    "is_freezer": 0,
+    "active": 0
   }
 ]
