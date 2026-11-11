@@ -1,5 +1,7 @@
-# The CI checks. The workflow runs on every pull request and on every push to
-# `main`, on GitHub-hosted runners. These jobs run in parallel:
+# The CI checks and the release. The workflow runs on every pull request, on
+# every push to `main`, and on every push of a version tag such as
+# `v0.0.1-alpha.1`. It runs on GitHub-hosted runners. These jobs run in
+# parallel:
 #
 # - `lint` runs the lint of every project. A warning fails it.
 # - `typecheck` runs the type check of every project.
@@ -24,7 +26,15 @@
 #
 # On a push to `main`, the `manifest` job runs after the two `image` jobs. It
 # merges the two digests into one manifest and gives the manifest two tags:
-# the commit SHA and `main`. A pull request run pushes no image.
+# the commit SHA and `main`. A pull request run and a tag run push no image.
+#
+# On a push of a version tag, the `release` job runs after all the other
+# jobs pass. The tagged commit must be on `main`, and its `main` run must be
+# complete. The job gives the image of that `main` run a version tag: the git
+# tag without the `v`. The release image is the same image that `main`
+# published. The job then creates the GitHub release, with notes from the
+# merged pull requests. A version with a hyphen, such as `0.0.1-alpha.1`, is
+# a pre-release. No job gives an image the `latest` tag.
 #
 # A lint error, a type error, a format error, a knip report, a failed test,
 # a failed start, or a failed build fails the workflow. Each job stops after
@@ -37,15 +47,16 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*']
 
 permissions:
   contents: read
 
 # A new push to a branch cancels the run that is still in progress for that
-# branch. A push to `main` cancels nothing.
+# branch. A push to `main` and a push of a tag cancel nothing.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref_type != 'tag' }}
 
 env:
   # The API exits at start when the two Grocy variables are missing. No
@@ -53,7 +64,7 @@ env:
   # reserves the `.invalid` domain. It never resolves.
   GROCY_URL: http://grocy.invalid
   GROCY_API_KEY: ci
-  # The image name on GHCR. The `image` job and the `manifest` job use it.
+  # The image name on GHCR. The `image`, `manifest`, and `release` jobs use it.
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
@@ -239,7 +250,7 @@ jobs:
       # The image goes to GHCR by digest, with no tag. The `manifest` job
       # gives the tags to the merged manifest.
       - name: Log in to GHCR
-        if: github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
@@ -247,7 +258,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push the image by digest
-        if: github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         id: push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -259,7 +270,7 @@ jobs:
       # The job passes the digest to the `manifest` job as an empty file. The
       # file name is the digest.
       - name: Export the digest
-        if: github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         env:
           DIGEST: ${{ steps.push.outputs.digest }}
         run: |
@@ -267,7 +278,7 @@ jobs:
           touch "$RUNNER_TEMP/digests/${DIGEST#sha256:}"
 
       - name: Upload the digest
-        if: github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: digest-${{ matrix.arch }}
@@ -276,7 +287,7 @@ jobs:
           retention-days: 1
 
   manifest:
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/main'
     needs: image
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -327,3 +338,52 @@ jobs:
 
       - name: Inspect the manifest
         run: docker buildx imagetools inspect "$IMAGE:${{ steps.tags.outputs.version }}"
+
+  release:
+    if: github.ref_type == 'tag'
+    needs:
+      - lint
+      - typecheck
+      - format
+      - knip
+      - test
+      - e2e
+      - start-sqlite
+      - start-postgres
+      - image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # The `main` run of the tagged commit pushed the image with the commit
+      # SHA as its tag. This step adds the version tag to that same manifest.
+      # The step fails when no image has that SHA tag: the commit is not on
+      # `main`, or its `main` run is not complete.
+      - name: Tag the image with the version
+        run: |
+          docker buildx imagetools create \
+            --tag "$IMAGE:${TAG#v}" "$IMAGE:$GITHUB_SHA"
+          docker buildx imagetools inspect "$IMAGE:${TAG#v}"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=(--repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$TAG")
+          if [[ "$TAG" == *-* ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$TAG" "${args[@]}"
