@@ -60,6 +60,9 @@ hook that stops an agent before it writes a bypass.
 - The maintainer unlocks the configuration files with one constant at the
   top of the hook script, flipped by hand. The pre-commit hook refuses a
   commit of the script in the unlocked state.
+- The hook does not guard the CI workflow files. The maintainer reviews
+  every workflow change in the pull request diff. The failure that the hook
+  must stop is a bypass of the local checks, and CI catches that bypass.
 
 Ticket [#107](https://github.com/the-dev-abides/grocy-next/issues/107)
 holds the rule list, the plugin list, the limits, and the hook patterns.
