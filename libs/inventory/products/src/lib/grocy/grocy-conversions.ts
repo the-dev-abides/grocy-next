@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { QuantityUnitConversion } from '../product-details.ts';
+import type { QuantityUnitConversion } from '../product.ts';
 
 // Grocy returns a number as a JSON string in many places. The schema
 // coerces every number.

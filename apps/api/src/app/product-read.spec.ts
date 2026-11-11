@@ -20,10 +20,59 @@ interface OpenApiDocument {
   paths: Record<string, Record<string, OpenApiOperation>>;
 }
 
+// The stock entries of product 1 in the Grocy consume order, as the Grocy
+// mock answers them: the Fridge is the default consume location of the
+// product, so its two stock entries come first, then the open stock entry in
+// the Pantry, then the two closed Pantry stock entries by due date and then
+// by purchase date.
+const PRODUCT_1_STOCK_ENTRIES = [
+  {
+    amount: 2,
+    dueDate: '2026-12-15',
+    id: 11,
+    locationId: 1,
+    open: false,
+    purchasedDate: '2026-10-20',
+  },
+  {
+    amount: 1,
+    dueDate: '2027-01-01',
+    id: 12,
+    locationId: 1,
+    open: false,
+    purchasedDate: '2026-11-01',
+  },
+  {
+    amount: 1,
+    dueDate: '2027-02-01',
+    id: 14,
+    locationId: 2,
+    open: true,
+    purchasedDate: '2026-11-05',
+  },
+  {
+    amount: 1,
+    dueDate: '2026-12-01',
+    id: 13,
+    locationId: 2,
+    open: false,
+    purchasedDate: '2026-10-01',
+  },
+  {
+    amount: 1,
+    dueDate: '2026-12-01',
+    id: 15,
+    locationId: 2,
+    open: false,
+    purchasedDate: '2026-10-25',
+  },
+];
+
 // The product read gives the scan screens and the review queue the facts of
 // one product at display time. The product carries the fields of the list,
 // the fields that the short product form sets, the own stock in the stock
-// unit, and the picture flag. A later ticket widens it.
+// unit, the picture flag, the parent flag, the tare weight, the stock
+// entries in the Grocy consume order, and the resolved conversions.
 describe('the product read of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -41,18 +90,21 @@ describe('the product read of the Next API', () => {
     await app.close();
   });
 
-  // The fixture household has six cans of product 1 in the Fridge, location
-  // 1, with the Can, unit 1, as its stock unit and its purchase unit. No
-  // fixture product has a picture.
-  it('reads one product with its form fields, its stock amount, and its picture flag through the Grocy mock', async () => {
+  // The fixture household has six cans of product 1 in five stock entries,
+  // with the Can, unit 1, as its stock unit and its purchase unit. No fixture
+  // product has a picture. Product 1 is no parent product and has no tare
+  // weight handling, so the tare weight is null.
+  it('reads one product with its form fields, its stock, its stock entries in the Grocy order, and its conversions through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/1`);
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      conversions: [{ factor: 1, fromQuantityUnitId: 1, toQuantityUnitId: 1 }],
       defaultDueDays: 0,
       description: null,
       hasPicture: false,
       id: 1,
+      isParent: false,
       locationId: 1,
       minStockAmount: 0,
       name: 'Coca-Cola Original 330 ml',
@@ -60,7 +112,65 @@ describe('the product read of the Next API', () => {
       purchaseToStockFactor: 1,
       purchaseUnitId: 1,
       stockAmount: 6,
+      stockEntries: PRODUCT_1_STOCK_ENTRIES,
       stockUnitId: 1,
+      tareWeight: null,
+    });
+  });
+
+  // Product 3 has the conversion 1 Box = 6 Packs, so Grocy resolves four
+  // conversions: each unit to itself and the pair in both directions.
+  it('reads the resolved conversions of a product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/3`);
+
+    expect(await response.json()).toMatchObject({
+      conversions: [
+        { factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 },
+        { factor: 6, fromQuantityUnitId: 3, toQuantityUnitId: 2 },
+        { factor: 1 / 6, fromQuantityUnitId: 2, toQuantityUnitId: 3 },
+        { factor: 1, fromQuantityUnitId: 3, toQuantityUnitId: 3 },
+      ],
+      stockEntries: [
+        {
+          amount: 1,
+          dueDate: '2027-01-15',
+          id: 17,
+          locationId: 2,
+          open: false,
+          purchasedDate: '2026-01-10',
+        },
+      ],
+    });
+  });
+
+  // Product 5 is the parent product Yoghurt. Its stock amount is its own
+  // stock only, and the three packs of its child do not count. It has no
+  // own stock entry.
+  it('reads the parent flag and the own stock of a parent product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/5`);
+
+    expect(await response.json()).toMatchObject({
+      id: 5,
+      isParent: true,
+      name: 'Yoghurt',
+      stockAmount: 0,
+      stockEntries: [],
+      tareWeight: null,
+    });
+  });
+
+  // Product 7 is the Rice jar with tare weight handling on. The tare weight
+  // is a number only when the handling is on.
+  it('reads the tare weight of a tare weight product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/7`);
+
+    expect(await response.json()).toMatchObject({
+      id: 7,
+      isParent: false,
+      name: 'Rice jar',
+      stockAmount: 500,
+      stockUnitId: 4,
+      tareWeight: 250,
     });
   });
 
@@ -149,17 +259,38 @@ describe('the product read of the Next API', () => {
         'description',
         'id',
         'name',
+        'conversions',
         'defaultDueDays',
         'hasPicture',
+        'isParent',
         'locationId',
         'minStockAmount',
         'productGroupId',
         'purchaseToStockFactor',
         'purchaseUnitId',
         'stockAmount',
+        'stockEntries',
         'stockUnitId',
+        'tareWeight',
       ],
     });
+    expect(document.components.schemas['StockEntry']).toMatchObject({
+      additionalProperties: false,
+      required: [
+        'amount',
+        'dueDate',
+        'id',
+        'locationId',
+        'open',
+        'purchasedDate',
+      ],
+    });
+    expect(document.components.schemas['QuantityUnitConversion']).toMatchObject(
+      {
+        additionalProperties: false,
+        required: ['factor', 'fromQuantityUnitId', 'toQuantityUnitId'],
+      },
+    );
     expect(document.components.schemas['ProductListItem']).toMatchObject({
       additionalProperties: false,
       required: ['description', 'id', 'name'],

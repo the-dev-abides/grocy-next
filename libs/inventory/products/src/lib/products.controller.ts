@@ -17,7 +17,6 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 
 import { GrocyClient } from './grocy/grocy-client.ts';
-import { toProduct } from './product-details.ts';
 import { CreateProduct, Product, ProductId, ProductList } from './product.ts';
 import { ProductsService } from './products.service.ts';
 
@@ -93,13 +92,13 @@ export class ProductsController {
   @NoQuery()
   @ZodSerializerDto(Product)
   async read(@Param() parameters: ProductId): Promise<Product> {
-    const details = await this.grocy.readProductDetails(parameters.id);
-    if (details === null) {
+    const product = await this.products.read(parameters.id);
+    if (product === null) {
       throw new ProblemException(
         PROBLEM_TYPES.notFound,
         `No product has the id ${String(parameters.id)}.`,
       );
     }
-    return toProduct(details);
+    return product;
   }
 }

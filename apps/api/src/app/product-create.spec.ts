@@ -43,6 +43,8 @@ const MINIMAL_BODY = {
 // the details of the new product come from an Imposter store that the
 // create and the conversion row update fill. The mock does not capture the
 // description and the product group, so the details answer null for both.
+// A new product has no stock entry, and its resolved conversions in the mock
+// hold the one row from the purchase unit to the stock unit.
 describe('the product create of the Next API', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -87,10 +89,14 @@ describe('the product create of the Next API', () => {
       `/api/v2/products/${String(NEW_PRODUCT_ID)}`,
     );
     expect(await response.json()).toEqual({
+      conversions: [
+        { factor: 4.5, fromQuantityUnitId: 3, toQuantityUnitId: 2 },
+      ],
       defaultDueDays: 180,
       description: null,
       hasPicture: false,
       id: NEW_PRODUCT_ID,
+      isParent: false,
       locationId: 2,
       minStockAmount: 1,
       name: 'Nutella 400 g',
@@ -98,7 +104,9 @@ describe('the product create of the Next API', () => {
       purchaseToStockFactor: 4.5,
       purchaseUnitId: 3,
       stockAmount: 0,
+      stockEntries: [],
       stockUnitId: 2,
+      tareWeight: null,
     });
   });
 
@@ -111,10 +119,12 @@ describe('the product create of the Next API', () => {
 
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({
+      conversions: [{ factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 }],
       defaultDueDays: 0,
       description: null,
       hasPicture: false,
       id: NEW_PRODUCT_ID,
+      isParent: false,
       locationId: 1,
       minStockAmount: 0,
       name: 'Milk 1 l',
@@ -122,7 +132,9 @@ describe('the product create of the Next API', () => {
       purchaseToStockFactor: 1,
       purchaseUnitId: 2,
       stockAmount: 0,
+      stockEntries: [],
       stockUnitId: 2,
+      tareWeight: null,
     });
   });
 

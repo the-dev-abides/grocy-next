@@ -1,4 +1,4 @@
-import type { QuantityUnitConversion } from './product-details.ts';
+import type { QuantityUnitConversion } from './product.ts';
 
 // One stored conversion row of one product: a factor from one quantity unit
 // to another with the id of the row in Grocy. The Grocy trigger creates one

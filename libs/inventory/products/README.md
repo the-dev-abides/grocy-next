@@ -5,8 +5,9 @@ API client, the product schemas, the product list, the product read, and the
 product create of the Next API, and the four master data lists: the
 locations, the stores, the product groups, and the quantity units. The
 product read carries the fields of the list, the fields that the short
-product form sets, the own stock of the product in the stock unit, and the
-picture flag. The product create takes the body of the short product form,
+product form sets, the own stock of the product in the stock unit, the
+picture flag, the parent flag, the tare weight, the stock entries in the
+Grocy consume order, and the resolved conversions. The product create takes the body of the short product form,
 checks its ids against the active master data rows, creates the product in
 Grocy, and sets the factor from the purchase unit to the stock unit on the
 conversion row that the Grocy trigger created. Each master data list holds
@@ -14,7 +15,8 @@ the id and the name of every active row of the Grocy table. The Grocy API
 client also adds a product barcode, uploads a product picture, and sets the
 picture name on a product for the update that sets a product on a pending
 scan. The Grocy stock client books a purchase and an inventory for the
-accept of the review queue and reads the resolved conversions of a product.
+accept of the review queue and reads the stock entries and the resolved
+conversions of a product.
 Every call of the
 stock client goes through the Grocy API client, which maps the Grocy errors
 to the problems of ADR 0014. The API app imports `ProductsModule`. The

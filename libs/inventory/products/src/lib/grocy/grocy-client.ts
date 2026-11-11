@@ -139,16 +139,17 @@ export class GrocyClient {
     dataOf(await this.send(this.http.put(path, body, { headers })));
   }
 
+  // One Grocy read. The stock client reads the stock entries through it.
+  async get(path: string, query = {}): Promise<unknown> {
+    return dataOf(
+      await this.send(this.http.get<unknown>(path, { params: query })),
+    );
+  }
+
   // One Grocy objects read with a `query[]` filter. The stock client reads
   // the resolved conversions through it.
-  async query(table: string, filter: string): Promise<unknown> {
-    return dataOf(
-      await this.send(
-        this.http.get<unknown>(`/api/objects/${table}`, {
-          params: { 'query[]': filter },
-        }),
-      ),
-    );
+  query(table: string, filter: string): Promise<unknown> {
+    return this.get(`/api/objects/${table}`, { 'query[]': filter });
   }
 
   // One Grocy write with a body. The answer carries the refusal when Grocy

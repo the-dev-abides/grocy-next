@@ -1,4 +1,4 @@
-import type { Product } from './product.ts';
+import type { Product, QuantityUnitConversion, StockEntry } from './product.ts';
 
 // One product barcode of a product: one code linked to the product, with
 // the optional defaults for a scan. The price is the last price of the
@@ -13,34 +13,37 @@ export interface ProductBarcode {
   storeId: null | number;
 }
 
-// One resolved conversion of a product: the factor from one quantity unit
-// to another. An amount in the from unit times the factor is the amount in
-// the to unit.
-export interface QuantityUnitConversion {
-  factor: number;
-  fromQuantityUnitId: number;
-  toQuantityUnitId: number;
+// The stock facts of a product that come from two Grocy reads of their own:
+// the stock entries in the Grocy consume order and the resolved
+// conversions.
+export interface ProductStock {
+  conversions: QuantityUnitConversion[];
+  stockEntries: StockEntry[];
 }
 
-// The details of one product as the Grocy client reads them: the product of
-// the Next API, the product barcodes that the code resolution of the review
-// queue reads, and the active flag. The stock amount is the own stock in the
-// stock unit. A later ticket widens the shape with the facts that the review
-// queue shows.
-export interface ProductDetails extends Product {
+// The details of one product as one Grocy read answers them: every field of
+// the product of the Next API except the stock facts above, the product
+// barcodes that the code resolution of the review queue reads, and the
+// active flag. The stock amount is the own stock in the stock unit.
+export interface ProductDetails extends Omit<Product, keyof ProductStock> {
   barcodes: ProductBarcode[];
   isActive: boolean;
 }
 
-// This function takes the product of the Next API out of the details. The
-// response schema is strict, so the read carries the product fields and
-// nothing else.
-export function toProduct(details: ProductDetails): Product {
+// This function builds the product of the Next API from the details and the
+// stock facts. The response schema is strict, so the read carries the
+// product fields and nothing else.
+export function toProduct(
+  details: ProductDetails,
+  stock: ProductStock,
+): Product {
   return {
+    conversions: stock.conversions,
     defaultDueDays: details.defaultDueDays,
     description: details.description,
     hasPicture: details.hasPicture,
     id: details.id,
+    isParent: details.isParent,
     locationId: details.locationId,
     minStockAmount: details.minStockAmount,
     name: details.name,
@@ -48,6 +51,8 @@ export function toProduct(details: ProductDetails): Product {
     purchaseToStockFactor: details.purchaseToStockFactor,
     purchaseUnitId: details.purchaseUnitId,
     stockAmount: details.stockAmount,
+    stockEntries: stock.stockEntries,
     stockUnitId: details.stockUnitId,
+    tareWeight: details.tareWeight,
   };
 }

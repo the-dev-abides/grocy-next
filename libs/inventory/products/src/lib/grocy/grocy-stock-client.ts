@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { Inventory } from '../inventory.ts';
-import type { QuantityUnitConversion } from '../product-details.ts';
+import type { QuantityUnitConversion, StockEntry } from '../product.ts';
 import type { Purchase } from '../purchase.ts';
 import type { BookingResult } from '../stock-log-row.ts';
 
@@ -10,13 +10,18 @@ import { GrocyClient } from './grocy-client.ts';
 import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import { toGrocyInventoryBody } from './grocy-inventory.ts';
 import { toGrocyPurchaseBody } from './grocy-purchase.ts';
+import {
+  grocyStockEntriesSchema,
+  toStockEntries,
+} from './grocy-stock-entries.ts';
 import { stockLogRowsOf } from './grocy-stock-log.ts';
 
-// The stock bookings of the Grocy API, for the accept of the review queue.
-// The client sends every call through the Grocy client, which maps the
-// Grocy errors. A booking answers the stock log rows of the new transaction,
-// or 400 with the reason when Grocy refuses the booking. The caller stores
-// the reason on the pending scan.
+// The stock reads and the stock bookings of the Grocy API, for the product
+// read and for the accept of the review queue. The client sends every call
+// through the Grocy client, which maps the Grocy errors. A booking answers
+// the stock log rows of the new transaction, or 400 with the reason when
+// Grocy refuses the booking. The caller stores the reason on the pending
+// scan.
 @Injectable()
 export class GrocyStockClient {
   constructor(private readonly grocy: GrocyClient) {}
@@ -59,5 +64,15 @@ export class GrocyStockClient {
       `product_id=${String(productId)}`,
     );
     return toConversions(grocyConversionsSchema.parse(data));
+  }
+
+  // The stock entries of one product in the Grocy consume order, as the
+  // Grocy view `stock_next_use` sorts them. Grocy answers an empty list for
+  // an unknown product.
+  async readStockEntries(productId: number): Promise<StockEntry[]> {
+    const data = await this.grocy.get(
+      `/api/stock/products/${String(productId)}/entries`,
+    );
+    return toStockEntries(grocyStockEntriesSchema.parse(data));
   }
 }

@@ -19,21 +19,69 @@ const productListItemSchema = z
   .strictObject(productFields)
   .meta({ id: 'ProductListItem' });
 
+// One stock entry of a product: one amount of the product in stock, with
+// its own due date, purchase date, location, and open state. The amount is
+// in the stock unit.
+const stockEntrySchema = z
+  .strictObject({
+    amount: z.number().meta({ description: 'The amount in the stock unit.' }),
+    dueDate: z.iso
+      .date()
+      .nullable()
+      .meta({ description: 'The due date of the stock entry.' }),
+    id: z.int().meta({ description: 'The id of the stock entry.' }),
+    locationId: z
+      .int()
+      .nullable()
+      .meta({ description: 'The id of the location.' }),
+    open: z.boolean().meta({ description: 'Whether the stock entry is open.' }),
+    purchasedDate: z.iso
+      .date()
+      .nullable()
+      .meta({ description: 'The purchase date.' }),
+  })
+  .meta({ id: 'StockEntry' });
+
+// One resolved conversion of a product: the factor from one quantity unit
+// to another. An amount in the from unit times the factor is the amount in
+// the to unit.
+const quantityUnitConversionSchema = z
+  .strictObject({
+    factor: z.number().meta({
+      description:
+        'One from unit is this many to units. An amount in the from unit times the factor is the amount in the to unit.',
+    }),
+    fromQuantityUnitId: z
+      .int()
+      .meta({ description: 'The id of the from quantity unit.' }),
+    toQuantityUnitId: z
+      .int()
+      .meta({ description: 'The id of the to quantity unit.' }),
+  })
+  .meta({ id: 'QuantityUnitConversion' });
+
 // One product in the Next API, the resource of the product read and of the
 // product create. It carries the fields that the short product form sets
 // and the facts that the scan screens and the review queue need at display
-// time. A later ticket widens it with the stock entries, the conversions,
-// the parent flag, and the tare weight. The schema is strict, so a response
-// carries these fields and nothing else.
+// time: the own stock, the stock entries in the Grocy consume order, the
+// resolved conversions, the parent flag, and the tare weight. The schema is
+// strict, so a response carries these fields and nothing else.
 const productSchema = z
   .strictObject({
     ...productFields,
+    conversions: z.array(quantityUnitConversionSchema).meta({
+      description: 'The resolved conversions of the product.',
+    }),
     defaultDueDays: z.int().meta({
       description:
         'The default due days of a new stock entry. 0 means no due date, and -1 means never overdue.',
     }),
     hasPicture: z.boolean().meta({
       description: 'Whether the product has a picture.',
+    }),
+    isParent: z.boolean().meta({
+      description:
+        'Whether the product is a parent product. The stock amount of a parent product is its own stock only.',
     }),
     locationId: z
       .int()
@@ -56,9 +104,17 @@ const productSchema = z
     stockAmount: z.number().meta({
       description: 'The own stock of the product in the stock unit.',
     }),
+    stockEntries: z.array(stockEntrySchema).meta({
+      description:
+        'The stock entries of the product in the Grocy consume order: the default consume location first, then open entries, then the earliest due date, then the earliest purchase date.',
+    }),
     stockUnitId: z
       .int()
       .meta({ description: 'The id of the stock quantity unit.' }),
+    tareWeight: z.number().nullable().meta({
+      description:
+        'The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight.',
+    }),
   })
   .meta({ id: 'Product' });
 
@@ -135,6 +191,10 @@ const productFormSchema = z
   );
 
 export type ProductListItem = z.infer<typeof productListItemSchema>;
+export type QuantityUnitConversion = z.infer<
+  typeof quantityUnitConversionSchema
+>;
+export type StockEntry = z.infer<typeof stockEntrySchema>;
 
 // The DTO classes carry the schemas into the OpenAPI document and the
 // validation pipe. The class name is the schema name in the document. The

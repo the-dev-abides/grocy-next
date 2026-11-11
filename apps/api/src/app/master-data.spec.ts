@@ -92,6 +92,7 @@ describe('the master data lists of the Next API', () => {
         { id: 1, name: 'Can' },
         { id: 2, name: 'Pack' },
         { id: 3, name: 'Box' },
+        { id: 4, name: 'Gram' },
       ],
     });
   });

@@ -1,12 +1,14 @@
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 
+import type { ProductDetails } from './product-details.ts';
 import type { CreateProduct, Product } from './product.ts';
 
 import { grocyRefused } from './grocy/grocy-answers.ts';
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { toGrocyProductBody } from './grocy/grocy-product-body.ts';
 import { toGrocyProductConversionBody } from './grocy/grocy-product-conversions.ts';
+import { GrocyStockClient } from './grocy/grocy-stock-client.ts';
 import { purchaseToStockRowOf } from './product-conversion.ts';
 import { toProduct } from './product-details.ts';
 import { unknownIdOf } from './product-ids.ts';
@@ -15,7 +17,20 @@ import { unknownIdOf } from './product-ids.ts';
 // and, in a later spec, the MCP tool call these methods.
 @Injectable()
 export class ProductsService {
-  constructor(private readonly grocy: GrocyClient) {}
+  constructor(
+    private readonly grocy: GrocyClient,
+    private readonly stock: GrocyStockClient,
+  ) {}
+
+  // The product of the Next API: the details plus the stock entries and the
+  // resolved conversions, which Grocy answers in two reads of their own.
+  private async toProduct(details: ProductDetails): Promise<Product> {
+    const [conversions, stockEntries] = await Promise.all([
+      this.stock.readResolvedConversions(details.id),
+      this.stock.readStockEntries(details.id),
+    ]);
+    return toProduct(details, { conversions, stockEntries });
+  }
 
   // Grocy does not check that the ids of a product create name a row, so
   // the server checks them against the active rows of the master data tables
@@ -87,6 +102,13 @@ export class ProductsService {
         `Grocy created the product ${String(created.id)} and did not answer its details.`,
       );
     }
-    return toProduct(details);
+    return this.toProduct(details);
+  }
+
+  // The product read: the product that an id names, or null when no active
+  // product has the id.
+  async read(productId: number): Promise<null | Product> {
+    const details = await this.grocy.readProductDetails(productId);
+    return details === null ? null : this.toProduct(details);
   }
 }

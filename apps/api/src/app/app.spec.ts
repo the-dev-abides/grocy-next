@@ -113,7 +113,10 @@ describe('the API at its HTTP boundary', () => {
     });
   });
 
-  it('lists the three fixture products through the Grocy mock', async () => {
+  // The list carries the id, the name, and the description of every product
+  // and nothing else. The parent product and the tare weight product of the
+  // fixture household are plain items here.
+  it('lists the six fixture products through the Grocy mock', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products`);
 
     expect(response.status).toBe(200);
@@ -122,6 +125,9 @@ describe('the API at its HTTP boundary', () => {
         { description: null, id: 1, name: 'Coca-Cola Original 330 ml' },
         { description: null, id: 2, name: 'Philadelphia Original 150 g' },
         { description: null, id: 3, name: 'Nutella Biscuits 304 g' },
+        { description: null, id: 5, name: 'Yoghurt' },
+        { description: null, id: 6, name: 'Yoghurt Strawberry 150 g' },
+        { description: null, id: 7, name: 'Rice jar' },
       ],
     });
   });
