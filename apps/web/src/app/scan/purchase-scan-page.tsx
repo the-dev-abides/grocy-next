@@ -5,29 +5,44 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 
 import type { PendingScan } from '../api/next-api';
-import type { ScanRowLists } from './scan-row';
+import type { PurchaseSession } from './use-purchase-session';
 
 import { ScanRow } from './scan-row';
+import { SwipeRow } from './swipe-row';
 import { TypeCodeField } from './type-code-field';
 import { usePurchaseSession } from './use-purchase-session';
 
+// The scans of the session, most recent at the top. The first row has the
+// muted background. A swipe to the left rejects a row.
 function SessionList({
-  lists,
   rows,
-}: Readonly<{ lists: ScanRowLists; rows: readonly PendingScan[] }>) {
+  session,
+}: Readonly<{ rows: readonly PendingScan[]; session: PurchaseSession }>) {
   return (
     <ul aria-label="Scans of this session" className="flex-1 divide-y">
       {rows.map((scan, index) => {
         return (
-          <li
+          <SwipeRow
             key={scan.id}
             className={cn(
               'flex min-h-14 items-center gap-2 px-3 py-1',
               index === 0 ? 'bg-muted' : 'bg-background',
             )}
+            onReject={() => {
+              session.reject(scan);
+            }}
           >
-            <ScanRow lists={lists} scan={scan} />
-          </li>
+            <ScanRow
+              lists={session.lists}
+              scan={scan}
+              onChangeAmount={(delta) => {
+                session.changeAmount(scan, delta);
+              }}
+              onReject={() => {
+                session.reject(scan);
+              }}
+            />
+          </SwipeRow>
         );
       })}
       {rows.length === 0 && (
@@ -74,7 +89,8 @@ function ScanFooter({
 // above the typed code field.
 export function PurchaseScanPage() {
   const navigate = useNavigate();
-  const { addCode, hasFailed, lists, rows } = usePurchaseSession();
+  const session = usePurchaseSession();
+  const { addCode, hasFailed, rows } = session;
 
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
@@ -100,7 +116,7 @@ export function PurchaseScanPage() {
         </div>
       </div>
       <div className="flex min-h-[calc(100svh-3.25rem)] flex-col">
-        <SessionList lists={lists} rows={rows} />
+        <SessionList rows={rows} session={session} />
         <ScanFooter
           count={rows.length}
           onCode={addCode}

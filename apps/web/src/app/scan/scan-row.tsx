@@ -1,3 +1,7 @@
+import { Minus, Plus, Trash2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+
 import type {
   Location,
   PendingScan,
@@ -37,12 +41,73 @@ function ScanName({
   return <span className="font-mono text-muted-foreground">{scan.code}</span>;
 }
 
+// The amount in its unit between minus and plus, and a reject button from
+// `sm` up. Below `sm` the swipe rejects.
+function AmountControls({
+  onChangeAmount,
+  onReject,
+  quantityUnits,
+  scan,
+}: Readonly<{
+  onChangeAmount: (delta: number) => void;
+  onReject: () => void;
+  quantityUnits: ScanRowLists['quantityUnits'];
+  scan: PendingScan;
+}>) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label="Less"
+        onClick={() => {
+          onChangeAmount(-1);
+        }}
+      >
+        <Minus />
+      </Button>
+      <span className="w-16 text-center tabular-nums">
+        {scan.amount} {nameOf(quantityUnits, scan.quantityUnitId, '')}
+      </span>
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label="More"
+        onClick={() => {
+          onChangeAmount(1);
+        }}
+      >
+        <Plus />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Reject"
+        className="
+          hidden
+          sm:inline-flex
+        "
+        onClick={onReject}
+      >
+        <Trash2 />
+      </Button>
+    </div>
+  );
+}
+
 // One row of the session list: the name, a line with the time, the location,
-// the due date, and the price, and the amount in its unit.
+// the due date, and the price, and the amount controls.
 export function ScanRow({
   lists,
+  onChangeAmount,
+  onReject,
   scan,
-}: Readonly<{ lists: ScanRowLists; scan: PendingScan }>) {
+}: Readonly<{
+  lists: ScanRowLists;
+  onChangeAmount: (delta: number) => void;
+  onReject: () => void;
+  scan: PendingScan;
+}>) {
   return (
     <>
       <div className="min-w-0 flex-1">
@@ -54,9 +119,12 @@ export function ScanRow({
           {` · ${priceText(scan)}`}
         </p>
       </div>
-      <span className="w-16 text-center tabular-nums">
-        {scan.amount} {nameOf(lists.quantityUnits, scan.quantityUnitId, '')}
-      </span>
+      <AmountControls
+        quantityUnits={lists.quantityUnits}
+        scan={scan}
+        onChangeAmount={onChangeAmount}
+        onReject={onReject}
+      />
     </>
   );
 }
