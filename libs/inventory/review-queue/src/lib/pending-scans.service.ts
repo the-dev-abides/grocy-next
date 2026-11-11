@@ -18,6 +18,7 @@ import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
+import { ProductPictures } from './product-picture.ts';
 import { readActiveProduct } from './read-product.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
 import { resolveCode } from './resolve-code.ts';
@@ -46,6 +47,7 @@ export class PendingScansService {
     private readonly pendingScans: Repository<StoredPendingScan>,
     private readonly grocy: GrocyClient,
     private readonly lookups: LookupWorker,
+    private readonly pictures: ProductPictures,
   ) {}
 
   // The update that sets a product, as the spec decided: the Grocy writes
@@ -59,6 +61,7 @@ export class PendingScansService {
   ): Promise<PendingScan> {
     const product = await readActiveProduct(this.grocy, productId);
     const productBarcodeId = await this.addBarcode(product, updated.code);
+    await this.pictures.setFromLookup(product, updated.lookupResult);
     const row = withProduct(updated, product, productBarcodeId);
     return this.pendingScans.manager.transaction(async (manager) => {
       await linkNutritionFacts(manager, row);

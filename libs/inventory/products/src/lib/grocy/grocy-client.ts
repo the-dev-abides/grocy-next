@@ -19,6 +19,7 @@ import type {
 } from './grocy-master-data.ts';
 import type { GrocyProduct } from './grocy-product.ts';
 
+import { toBase64 } from './base64.ts';
 import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import {
   grocyMasterDataRowsSchema,
@@ -66,6 +67,17 @@ function grocyRefusalOf(error: unknown): GrocyRefusal | null {
     message: body.success ? body.data.error_message : statusText,
     status,
   };
+}
+
+// A Grocy refusal as the grocy-refused problem of ADR 0014, or the
+// grocy-unavailable problem for every other failure.
+function grocyProblemOf(error: unknown): unknown {
+  const grocy = grocyRefusalOf(error);
+  return grocy === null
+    ? grocyUnavailable(error)
+    : new ProblemException(PROBLEM_TYPES.grocyRefused, grocy.message, {
+        grocy,
+      });
 }
 
 // Grocy answered 500, or Grocy did not answer. The Next API answers 502, as
@@ -239,5 +251,40 @@ export class GrocyClient {
     return this.readDetails(
       `/api/stock/products/by-barcode/${encodeURIComponent(code)}`,
     );
+  }
+
+  // This method sets the picture of one product to a file that the product
+  // picture upload stored. Grocy answers 204 and no body.
+  async setProductPicture(productId: number, fileName: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.put(`/api/objects/products/${String(productId)}`, {
+          picture_file_name: fileName,
+        }),
+      );
+    } catch (error) {
+      throw grocyProblemOf(error);
+    }
+  }
+
+  // This method uploads one file as a product picture through the Grocy file
+  // API. The file name, with its extension, goes BASE64 encoded in the path,
+  // and Grocy answers 204 and no body.
+  async uploadProductPicture(
+    fileName: string,
+    bytes: Uint8Array,
+  ): Promise<void> {
+    const encodedName = toBase64(fileName);
+    try {
+      await firstValueFrom(
+        this.http.put(
+          `/api/files/productpictures/${encodeURIComponent(encodedName)}`,
+          Buffer.from(bytes),
+          { headers: { 'content-type': 'application/octet-stream' } },
+        ),
+      );
+    } catch (error) {
+      throw grocyProblemOf(error);
+    }
   }
 }

@@ -1,4 +1,7 @@
-import { storedNutritionFactsSchema } from '@grocy-next/inventory-review-queue';
+import {
+  storedNutritionFactsSchema,
+  storedPendingScanSchema,
+} from '@grocy-next/inventory-review-queue';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { setTimeout as wait } from 'node:timers/promises';
@@ -18,6 +21,7 @@ interface PendingScanBody {
   code: null | string;
   id: number;
   lastLookupAt: null | string;
+  lookupResult: null | { imageUrl: null | string; [field: string]: unknown };
   productBarcodeId: null | number;
   productId: null | number;
   quantityUnitId: null | number;
@@ -43,6 +47,13 @@ const UNKNOWN_CODE = '3017620422003';
 // before the Vitest timeout, so a failure names the row.
 const LOOKUP_TIMEOUT_MS = 15_000;
 const POLL_MS = 100;
+
+// The Open Food Facts mock serves the front image of the unknown code at the
+// first path and answers 500 at the second. The record of the code names the
+// real image host, so the tests point the image URL of the row at the mock.
+const openFactsUrl = String(process.env['OPEN_FACTS_URL']);
+const MOCK_IMAGE_URL = `${openFactsUrl}/images/products/301/762/042/2003/front_en.879.400.jpg`;
+const FAILING_IMAGE_URL = `${openFactsUrl}/images/products/301/762/042/2003/front_en.failing.400.jpg`;
 
 describe('the update of a pending scan that sets a product', () => {
   let app: INestApplication;
@@ -94,6 +105,25 @@ describe('the update of a pending scan that sets a product', () => {
 
   function nutritionFacts() {
     return app.get(DataSource).getRepository(storedNutritionFactsSchema);
+  }
+
+  // The lookup result of the row names the real image host. The test writes
+  // the image URL of the mock into the stored lookup result, so the picture
+  // download reaches the mock and no test reaches the network.
+  async function lookUpWithImage(imageUrl: string): Promise<PendingScanBody> {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: UNKNOWN_CODE,
+    });
+    const row = await pollUntilLookedUp(created.id);
+    await app
+      .get(DataSource)
+      .getRepository(storedPendingScanSchema)
+      .update(
+        { id: row.id },
+        { lookupResult: { ...row.lookupResult!, imageUrl } },
+      );
+    return read(row.id);
   }
 
   beforeAll(async () => {
@@ -232,14 +262,43 @@ describe('the update of a pending scan that sets a product', () => {
     expect(await read(created.id)).toEqual(created);
   });
 
+  // No fixture product has a picture, so the update downloads the front
+  // image from the mock, uploads it to Grocy as a product picture, and sets
+  // the picture name on the product. The Grocy mock answers both writes with
+  // 204 and holds no state, so the response carries the row only.
+  it('sets the lookup picture on a product with no picture and answers the row', async () => {
+    const row = await lookUpWithImage(MOCK_IMAGE_URL);
+    expect(row.lookupResult?.imageUrl).toBe(MOCK_IMAGE_URL);
+
+    const response = await update(row.id, { productId: 2 });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ...row,
+      locationId: 1,
+      productBarcodeId: NEW_PRODUCT_BARCODE_ID,
+      productId: 2,
+      updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+  });
+
+  // A failed image download is logged and does not fail the update.
+  it('answers the row when the image download fails', async () => {
+    const row = await lookUpWithImage(FAILING_IMAGE_URL);
+
+    const response = await update(row.id, { productId: 3 });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      productBarcodeId: NEW_PRODUCT_BARCODE_ID,
+      productId: 3,
+    });
+  });
+
   // No Next API operation reads the nutrition facts, so the test reads the
   // record from the storage.
   it('links the nutrition facts record of the code to the product and the new product barcode', async () => {
-    const created = await createAndRead({
-      bookingType: 'purchase',
-      code: UNKNOWN_CODE,
-    });
-    await pollUntilLookedUp(created.id);
+    const created = await lookUpWithImage(MOCK_IMAGE_URL);
     expect(await nutritionFacts().findBy({ code: UNKNOWN_CODE })).toMatchObject(
       [{ productBarcodeId: null, productId: null }],
     );
