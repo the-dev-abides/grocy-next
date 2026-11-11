@@ -33,6 +33,15 @@ import { grocyStockLogRowsSchema, toStockLogRows } from './grocy-stock-log.ts';
 
 // The body of a Grocy refusal: 400 with the error message.
 const grocyErrorSchema = z.looseObject({ error_message: z.string() });
+// The answer of a Grocy object create: the id of the new row.
+const grocyCreatedSchema = z.looseObject({
+  created_object_id: z.coerce.number(),
+});
+
+// The result of a product barcode create: the id of the new product barcode,
+// or the refusal that Grocy answered with 400.
+export type ProductBarcodeResult =
+  { grocy: GrocyRefusal; isRefused: true } | { id: number; isRefused: false };
 
 // Grocy answers a handled refusal with 400 and `{"error_message": ...}`. On
 // a product details read, the refusal means no match: an unknown barcode,
@@ -109,6 +118,34 @@ export class GrocyClient {
       throw grocyUnavailable(error);
     }
     return toProductDetails(grocyProductDetailsSchema.parse(data));
+  }
+
+  // This method adds a code as a product barcode of one product. Grocy
+  // answers the id of the new row, or 400 with the reason when Grocy refuses
+  // it, for example when another product has the code.
+  async createProductBarcode(
+    productId: number,
+    barcode: string,
+  ): Promise<ProductBarcodeResult> {
+    let data: unknown;
+    try {
+      ({ data } = await firstValueFrom(
+        this.http.post<unknown>('/api/objects/product_barcodes', {
+          barcode,
+          product_id: productId,
+        }),
+      ));
+    } catch (error) {
+      const grocy = grocyRefusalOf(error);
+      if (grocy !== null) {
+        return { grocy, isRefused: true };
+      }
+      throw grocyUnavailable(error);
+    }
+    return {
+      id: grocyCreatedSchema.parse(data).created_object_id,
+      isRefused: false,
+    };
   }
 
   listLocations(): Promise<MasterDataRow[]> {

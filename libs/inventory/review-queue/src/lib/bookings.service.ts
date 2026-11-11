@@ -1,7 +1,4 @@
-import type {
-  ProductDetails,
-  StockLogRow,
-} from '@grocy-next/inventory-products';
+import type { StockLogRow } from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
 
 import { GrocyClient } from '@grocy-next/inventory-products';
@@ -14,6 +11,7 @@ import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
 import { PendingScansService } from './pending-scans.service.ts';
 import { toStockUnit } from './purchase-conversion.ts';
+import { readActiveProduct } from './read-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
 
@@ -96,19 +94,6 @@ export class BookingsService {
     private readonly grocy: GrocyClient,
   ) {}
 
-  // The product id of the row must name an active product in Grocy. Grocy
-  // answers an unknown id and an inactive product with one refusal.
-  private async readProduct(productId: number): Promise<ProductDetails> {
-    const product = await this.grocy.readProductDetails(productId);
-    if (product === null) {
-      throw new ProblemException(
-        PROBLEM_TYPES.unknownId,
-        `No product has the id ${String(productId)}.`,
-      );
-    }
-    return product;
-  }
-
   // The Purchase accept: convert the amount and the price to the stock unit
   // with the resolved conversions of the product, then book the purchase in
   // Grocy. On success the row goes and the response is the booking. On a
@@ -119,7 +104,7 @@ export class BookingsService {
     productId: number,
   ): Promise<Booking> {
     const amount = purchaseAmountOf(row);
-    const product = await this.readProduct(productId);
+    const product = await readActiveProduct(this.grocy, productId);
     const conversions = await this.grocy.readResolvedConversions(productId);
     const stock = toStockUnit(
       {

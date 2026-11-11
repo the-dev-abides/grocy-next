@@ -85,7 +85,10 @@ describe('the update and the delete of a pending scan', () => {
   });
 
   // The row carries a write-in name, so the lookup worker does not take it
-  // and the row stays as created until the update.
+  // and the row stays as created until the update. The update sets product
+  // 1, which has the new code, so the update adds no product barcode. An
+  // update that sets a product clears the write-in name and the unit, as
+  // the spec decided.
   it('updates every writable field of a pending scan', async () => {
     const created = await createAndRead({
       bookingType: 'purchase',
@@ -121,10 +124,10 @@ describe('the update and the delete of a pending scan', () => {
       priceType: 'total',
       productGroupId: 2,
       productId: 1,
-      quantityUnitId: 1,
+      quantityUnitId: null,
       storeId: 1,
       updatedAt: expect.stringMatching(TIMESTAMP),
-      writeInName: 'Cola',
+      writeInName: null,
     });
     expect(body.updatedAt > created.updatedAt).toBe(true);
     expect(await read(created.id)).toEqual(body);

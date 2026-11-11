@@ -24,12 +24,15 @@ export interface QuantityUnitConversion {
 
 // The details of one product as the Grocy client reads them: the product of
 // the Next API, the product barcodes that the code resolution of the review
-// queue reads, the active flag, and the two units that the accept converts
-// between. The stock amount is the own stock in the stock unit. A later
-// ticket widens the shape with the facts that the review queue shows.
+// queue reads, the active flag, the default location, the picture flag, and
+// the two units that the accept converts between. The stock amount is the
+// own stock in the stock unit. A later ticket widens the shape with the
+// facts that the review queue shows.
 export interface ProductDetails extends Product {
   barcodes: ProductBarcode[];
+  hasPicture: boolean;
   isActive: boolean;
+  locationId: null | number;
   purchaseUnitId: number;
   stockUnitId: number;
 }

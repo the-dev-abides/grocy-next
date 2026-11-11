@@ -1,3 +1,5 @@
+import type { ProductDetails } from '@grocy-next/inventory-products';
+
 import { GrocyClient } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
@@ -16,8 +18,10 @@ import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
+import { readActiveProduct } from './read-product.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
 import { resolveCode } from './resolve-code.ts';
+import { changedProductIdOf, hasBarcode, withProduct } from './set-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
 
@@ -38,6 +42,42 @@ export class PendingScansService {
     private readonly grocy: GrocyClient,
     private readonly lookups: LookupWorker,
   ) {}
+
+  // The update that sets a product, as the spec decided: the Grocy writes
+  // first, in order, and the update stops on the first failure with the
+  // Grocy problem. Then the row takes the rules of the product set.
+  private async setProduct(
+    updated: StoredPendingScan,
+    productId: number,
+  ): Promise<PendingScan> {
+    const product = await readActiveProduct(this.grocy, productId);
+    const productBarcodeId = await this.addBarcode(product, updated.code);
+    return this.pendingScans.save(
+      withProduct(updated, product, productBarcodeId),
+    );
+  }
+
+  // The code goes to the product as a product barcode when the row has a
+  // code and the product has no product barcode with that code. The result
+  // is the id of the new product barcode, or null when none was added. A
+  // Grocy refusal is the grocy-refused problem of ADR 0014.
+  private async addBarcode(
+    product: ProductDetails,
+    code: null | string,
+  ): Promise<null | number> {
+    if (code === null || hasBarcode(product, code)) {
+      return null;
+    }
+    const result = await this.grocy.createProductBarcode(product.id, code);
+    if (result.isRefused) {
+      throw new ProblemException(
+        PROBLEM_TYPES.grocyRefused,
+        result.grocy.message,
+        { grocy: result.grocy },
+      );
+    }
+    return result.id;
+  }
 
   // The create call of ADR 0010: the Grocy reads first, then one database
   // transaction over the Grocy Next storage. The repeat rule runs inside the
@@ -98,10 +138,15 @@ export class PendingScansService {
   }
 
   // The update of ADR 0014: a JSON merge patch on the writable fields. The
-  // response is the row as stored.
+  // response is the row as stored. An update that sets a product on a row
+  // that had none, or changes it, also writes to Grocy.
   async update(id: number, body: UpdatePendingScan): Promise<PendingScan> {
     const row = await this.read(id);
-    return this.pendingScans.save(updatedPendingScan(row, body, now()));
+    const updated = updatedPendingScan(row, body, now());
+    const productId = changedProductIdOf(row, updated);
+    return productId === null
+      ? this.pendingScans.save(updated)
+      : this.setProduct(updated, productId);
   }
 
   // The reject of ADR 0010. The response is the row as it was before the
