@@ -906,6 +906,46 @@
         "tags": ["MasterData"]
       }
     },
+    "/api/v2/quantity-unit-conversions": {
+      "get": {
+        "operationId": "listQuantityUnitConversions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every household quantity unit conversion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuantityUnitConversionList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "List every household quantity unit conversion.",
+        "tags": ["MasterData"]
+      }
+    },
     "/api/v2/pending-scans": {
       "post": {
         "operationId": "createPendingScan",
@@ -1791,6 +1831,20 @@
               "$ref": "#/components/schemas/QuantityUnit"
             },
             "description": "Every active quantity unit."
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "QuantityUnitConversionList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuantityUnitConversion"
+            },
+            "description": "Every household quantity unit conversion."
           }
         },
         "required": ["items"],

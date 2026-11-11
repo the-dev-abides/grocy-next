@@ -1,9 +1,12 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-// The four master data lists of the Next API: the locations, the stores, the
+import { quantityUnitConversionSchema } from './product.ts';
+
+// The master data lists of the Next API: the locations, the stores, the
 // product groups, and the quantity units. Each item is the id and the name
-// of one active row of the Grocy table. The lists exist because the web app
+// of one active row of the Grocy table. The list of the household quantity
+// unit conversions is the fifth list. The lists exist because the web app
 // reads nothing from Grocy directly. Milestone 4 and milestone 6 widen the
 // shapes, so each table has a schema of its own.
 function masterDataRowSchema(id: string, noun: string) {
@@ -45,4 +48,13 @@ export class ProductGroupList extends createZodDto(
 ) {}
 export class QuantityUnitList extends createZodDto(
   masterDataListSchema(quantityUnitSchema, 'Every active quantity unit.'),
+) {}
+
+// The household quantity unit conversions: the conversions with no product.
+// The short product form reads them for the stock unit proposal.
+export class QuantityUnitConversionList extends createZodDto(
+  masterDataListSchema(
+    quantityUnitConversionSchema,
+    'Every household quantity unit conversion.',
+  ),
 ) {}

@@ -11,12 +11,14 @@ import { GrocyClient } from './grocy/grocy-client.ts';
 import {
   LocationList,
   ProductGroupList,
+  QuantityUnitConversionList,
   QuantityUnitList,
   StoreList,
 } from './master-data.ts';
 
-// The four master data list operations of the Next API. Each list holds the
-// active rows of one Grocy table. The controller is a surface and holds no
+// The master data list operations of the Next API. Each of the four lists
+// holds the active rows of one Grocy table. The fifth list holds the
+// household quantity unit conversions. The controller is a surface and holds no
 // rules.
 @Controller()
 export class MasterDataController {
@@ -78,5 +80,21 @@ export class MasterDataController {
   @ZodSerializerDto(QuantityUnitList)
   async listQuantityUnits(): Promise<QuantityUnitList> {
     return { items: await this.grocy.listQuantityUnits() };
+  }
+
+  @Get('quantity-unit-conversions')
+  @ApiOperation({
+    operationId: 'listQuantityUnitConversions',
+    summary: 'List every household quantity unit conversion.',
+  })
+  @ApiOkResponse({
+    description: 'Every household quantity unit conversion.',
+    type: QuantityUnitConversionList,
+  })
+  @ApiProblemResponses(PROBLEM_TYPES.validation, PROBLEM_TYPES.grocyUnavailable)
+  @NoQuery()
+  @ZodSerializerDto(QuantityUnitConversionList)
+  async listQuantityUnitConversions(): Promise<QuantityUnitConversionList> {
+    return { items: await this.grocy.listHouseholdConversions() };
   }
 }

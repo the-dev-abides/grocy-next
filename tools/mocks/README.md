@@ -159,6 +159,11 @@ factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
 it in Boxes converts to the stock unit. Product 1 has no conversion from the
 Pack to the Can, so a Purchase of it in Packs has no path to the stock unit.
 
+The table of the conversions holds one household conversion, 1 Pack = 500
+Gram, with no product. It also holds the conversion 1 Box = 6 Packs of
+product 3. The household conversion list of the Next API reads the table
+with no filter and leaves out the row of product 3.
+
 The Garage is the one inactive row of the fixture household. The master data
 lists of the Next API filter with `query[]=active=1`, so the location list
 with the filter holds three rows and the list without it holds four.

@@ -45,7 +45,7 @@ const stockEntrySchema = z
 // One resolved conversion of a product: the factor from one quantity unit
 // to another. An amount in the from unit times the factor is the amount in
 // the to unit.
-const quantityUnitConversionSchema = z
+export const quantityUnitConversionSchema = z
   .strictObject({
     factor: z.number().meta({
       description:

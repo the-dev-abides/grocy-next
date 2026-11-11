@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 
 import type { ProductConversion } from '../product-conversion.ts';
 import type { ProductDetails } from '../product-details.ts';
-import type { ProductListItem } from '../product.ts';
+import type { ProductListItem, QuantityUnitConversion } from '../product.ts';
 import type {
   CreatedObjectResult,
   GrocyAnswer,
@@ -31,6 +31,10 @@ import {
   grocyErrorSchema,
   resultOf,
 } from './grocy-answers.ts';
+import {
+  grocyConversionRowsSchema,
+  toHouseholdConversions,
+} from './grocy-household-conversions.ts';
 import {
   grocyMasterDataRowsSchema,
   toMasterDataRows,
@@ -197,6 +201,15 @@ export class GrocyClient {
 
   listQuantityUnits(): Promise<MasterDataRow[]> {
     return this.listActiveRows('quantity_units');
+  }
+
+  // The household conversions: the rows of the Grocy table
+  // `quantity_unit_conversions` with no product. The objects endpoint
+  // returns every row in one response, and the client leaves out the rows
+  // of a product.
+  async listHouseholdConversions(): Promise<QuantityUnitConversion[]> {
+    const data = await this.get('/api/objects/quantity_unit_conversions');
+    return toHouseholdConversions(grocyConversionRowsSchema.parse(data));
   }
 
   // The store is `shopping_locations` in Grocy.

@@ -25,6 +25,7 @@ const LIST_PATHS = [
   '/api/v2/stores',
   '/api/v2/product-groups',
   '/api/v2/quantity-units',
+  '/api/v2/quantity-unit-conversions',
 ];
 
 describe('the master data lists of the Next API', () => {
@@ -97,6 +98,18 @@ describe('the master data lists of the Next API', () => {
     });
   });
 
+  // The Grocy table holds the household conversion 1 Pack = 500 Gram, with
+  // no product, and the conversion 1 Box = 6 Packs of product 3. The list
+  // holds the household conversion only.
+  it('lists the household quantity unit conversions and leaves out the conversions of a product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/quantity-unit-conversions`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      items: [{ factor: 500, fromQuantityUnitId: 2, toQuantityUnitId: 4 }],
+    });
+  });
+
   it('refuses an unknown query field on every list with a validation problem', async () => {
     for (const path of LIST_PATHS) {
       const response = await fetch(`${baseUrl}${path}?active=0`);
@@ -113,7 +126,7 @@ describe('the master data lists of the Next API', () => {
     }
   });
 
-  it('declares the four lists in the OpenAPI document with one strict schema per table', async () => {
+  it('declares the master data lists in the OpenAPI document with one strict schema per table', async () => {
     const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
 
     const document = (await response.json()) as OpenApiDocument;
@@ -128,6 +141,7 @@ describe('the master data lists of the Next API', () => {
       'listStores',
       'listProductGroups',
       'listQuantityUnits',
+      'listQuantityUnitConversions',
     ]);
     for (const name of ['Location', 'Store', 'ProductGroup', 'QuantityUnit']) {
       expect(document.components.schemas[name]).toMatchObject({
@@ -143,5 +157,16 @@ describe('the master data lists of the Next API', () => {
         required: ['items'],
       });
     }
+    expect(
+      document.components.schemas['QuantityUnitConversionList'],
+    ).toMatchObject({
+      additionalProperties: false,
+      properties: {
+        items: {
+          items: { $ref: '#/components/schemas/QuantityUnitConversion' },
+        },
+      },
+      required: ['items'],
+    });
   });
 });
