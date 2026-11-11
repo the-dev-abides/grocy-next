@@ -6,8 +6,16 @@ import { firstValueFrom } from 'rxjs';
 
 import type { ProductDetails } from '../product-details.ts';
 import type { Product } from '../product.ts';
+import type {
+  GrocyMasterDataTable,
+  MasterDataRow,
+} from './grocy-master-data.ts';
 import type { GrocyProduct } from './grocy-product.ts';
 
+import {
+  grocyMasterDataRowsSchema,
+  toMasterDataRows,
+} from './grocy-master-data.ts';
 import {
   grocyProductDetailsSchema,
   toProductDetails,
@@ -43,6 +51,24 @@ function grocyUnavailable(error: unknown): unknown {
 export class GrocyClient {
   constructor(private readonly http: HttpService) {}
 
+  // The active rows of one master data table. The Grocy objects endpoint
+  // returns every row in one response and filters with `query[]=active=1`.
+  private async listActiveRows(
+    table: GrocyMasterDataTable,
+  ): Promise<MasterDataRow[]> {
+    let data: unknown;
+    try {
+      ({ data } = await firstValueFrom(
+        this.http.get<unknown>(`/api/objects/${table}`, {
+          params: { 'query[]': 'active=1' },
+        }),
+      ));
+    } catch (error) {
+      throw grocyUnavailable(error);
+    }
+    return toMasterDataRows(grocyMasterDataRowsSchema.parse(data));
+  }
+
   private async readDetails(path: string): Promise<null | ProductDetails> {
     let data: unknown;
     try {
@@ -54,6 +80,23 @@ export class GrocyClient {
       throw grocyUnavailable(error);
     }
     return toProductDetails(grocyProductDetailsSchema.parse(data));
+  }
+
+  listLocations(): Promise<MasterDataRow[]> {
+    return this.listActiveRows('locations');
+  }
+
+  listProductGroups(): Promise<MasterDataRow[]> {
+    return this.listActiveRows('product_groups');
+  }
+
+  listQuantityUnits(): Promise<MasterDataRow[]> {
+    return this.listActiveRows('quantity_units');
+  }
+
+  // The store is `shopping_locations` in Grocy.
+  listStores(): Promise<MasterDataRow[]> {
+    return this.listActiveRows('shopping_locations');
   }
 
   // The objects endpoint returns every product in one response. Grocy has no

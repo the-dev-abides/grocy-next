@@ -607,6 +607,166 @@
         "tags": ["Products"]
       }
     },
+    "/api/v2/locations": {
+      "get": {
+        "operationId": "listLocations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every active location.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "List every active location.",
+        "tags": ["MasterData"]
+      }
+    },
+    "/api/v2/stores": {
+      "get": {
+        "operationId": "listStores",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every active store.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "List every active store.",
+        "tags": ["MasterData"]
+      }
+    },
+    "/api/v2/product-groups": {
+      "get": {
+        "operationId": "listProductGroups",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every active product group.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductGroupList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "List every active product group.",
+        "tags": ["MasterData"]
+      }
+    },
+    "/api/v2/quantity-units": {
+      "get": {
+        "operationId": "listQuantityUnits",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every active quantity unit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuantityUnitList"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "List every active quantity unit.",
+        "tags": ["MasterData"]
+      }
+    },
     "/api/v2/pending-scans": {
       "post": {
         "operationId": "createPendingScan",
@@ -991,6 +1151,130 @@
               "$ref": "#/components/schemas/Product"
             },
             "description": "Every product."
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the location."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the location."
+          }
+        },
+        "required": ["id", "name"],
+        "additionalProperties": false
+      },
+      "LocationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Location"
+            },
+            "description": "Every active location."
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "Store": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the store."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the store."
+          }
+        },
+        "required": ["id", "name"],
+        "additionalProperties": false
+      },
+      "StoreList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Store"
+            },
+            "description": "Every active store."
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "ProductGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the product group."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product group."
+          }
+        },
+        "required": ["id", "name"],
+        "additionalProperties": false
+      },
+      "ProductGroupList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductGroup"
+            },
+            "description": "Every active product group."
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "QuantityUnit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the quantity unit."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the quantity unit."
+          }
+        },
+        "required": ["id", "name"],
+        "additionalProperties": false
+      },
+      "QuantityUnitList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuantityUnit"
+            },
+            "description": "Every active quantity unit."
           }
         },
         "required": ["items"],

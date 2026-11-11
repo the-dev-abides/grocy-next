@@ -1,9 +1,11 @@
 # inventory-products
 
 The Products subdomain of the Inventory domain. The library holds the Grocy
-API client, the product schemas, and the product list operation of the Next
-API. The API app imports `ProductsModule`. The operation follows the
-conventions of `shared-next-api`.
+API client, the product schemas, the product list operation of the Next API,
+and the four master data lists: the locations, the stores, the product
+groups, and the quantity units. Each list holds the id and the name of every
+active row of the Grocy table. The API app imports `ProductsModule`. The
+operations follow the conventions of `shared-next-api`.
 
 The Grocy API client reads two variables at start:
 
