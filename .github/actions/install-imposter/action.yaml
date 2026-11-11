@@ -1,0 +1,32 @@
+# This action installs the Imposter CLI on a GitHub-hosted runner. ADR 0015
+# records the decision. The `test` job and the `e2e` job run it, because the
+# API tests and the end-to-end tests start the two Imposter mocks under
+# `tools/mocks`. The action downloads the pinned CLI release, checks its
+# SHA-256 checksum against the `checksums.txt` file of the release, and puts
+# the binary on the PATH. The CLI downloads the pinned native engine on the
+# first start. The Imposter project files under `tools/mocks` pin the engine
+# version and this CLI version. Change the versions together.
+name: Install the Imposter CLI
+description: Downloads the pinned Imposter CLI, checks its checksum, and puts it on the PATH.
+
+runs:
+  using: composite
+  steps:
+    - name: Download the Imposter CLI
+      shell: bash
+      env:
+        IMPOSTER_CLI_VERSION: 1.13.0
+        IMPOSTER_CLI_SHA256: b178bee55a2cc6c10dd0624df2cedb1fc089ce6557b520c7f35de34daa9120be
+      run: |
+        folder="$RUNNER_TEMP/imposter-cli"
+        archive="$folder/imposter-cli_linux_amd64.tar.gz"
+        mkdir -p "$folder"
+        curl -sSfL -o "$archive" \
+          "https://github.com/imposter-project/imposter-cli/releases/download/v$IMPOSTER_CLI_VERSION/imposter-cli_linux_amd64.tar.gz"
+        echo "$IMPOSTER_CLI_SHA256  $archive" | sha256sum --check --strict
+        tar -xzf "$archive" -C "$folder" imposter
+        echo "$folder" >> "$GITHUB_PATH"
+
+    - name: Show the Imposter CLI version
+      shell: bash
+      run: imposter version
