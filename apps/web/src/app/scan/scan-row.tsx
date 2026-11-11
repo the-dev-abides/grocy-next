@@ -95,8 +95,30 @@ function AmountControls({
   );
 }
 
+// The service name of a lookup result as a link to the product page, for
+// the attribution that ADR 0011 decided.
+function ServiceLink({ scan }: Readonly<{ scan: PendingScan }>) {
+  if (scan.lookupResult === null) {
+    return null;
+  }
+  return (
+    <>
+      {' · '}
+      <a
+        href={scan.lookupResult.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="underline"
+      >
+        {scan.lookupResult.service}
+      </a>
+    </>
+  );
+}
+
 // One row of the session list: the name, a line with the time, the location,
-// the due date, and the price, and the amount controls.
+// the due date, the price, and the service link of a lookup result, and the
+// amount controls.
 export function ScanRow({
   lists,
   onChangeAmount,
@@ -117,6 +139,7 @@ export function ScanRow({
           {` · ${nameOf(lists.locations, scan.locationId, 'Product default')}`}
           {` · ${dueDateText(scan.dueDate)}`}
           {` · ${priceText(scan)}`}
+          <ServiceLink scan={scan} />
         </p>
       </div>
       <AmountControls
