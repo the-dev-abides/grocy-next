@@ -12,20 +12,29 @@ import type { RowActions } from './use-row-actions';
 
 import { useGetProductQuery } from '../api/next-api';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
+import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { type RowState, stateOf } from './row-state';
 import { amountText, rowName } from './row-text';
 import { useRowActions } from './use-row-actions';
 
 // The reject button on every row. The accept button on a ready row, and the
-// Accept again button on a failed row. A row that needs a product or a count
+// Accept again button on a failed row. A row that needs a product shows Pick
+// product and New product in place of the accept. A row that needs a count
 // has no accept.
 function RowButtons({
   actions,
+  lists,
+  scan,
   state,
-}: Readonly<{ actions: RowActions; state: RowState }>) {
+}: Readonly<{
+  actions: RowActions;
+  lists: QueueLists;
+  scan: PendingScan;
+  state: RowState;
+}>) {
   return (
-    <div className="flex items-center justify-end gap-0.5">
+    <div className="flex flex-wrap items-center justify-end gap-1">
       <Button
         variant="ghost"
         size="icon"
@@ -55,6 +64,9 @@ function RowButtons({
         >
           <RotateCw data-icon="inline-start" /> Accept again
         </Button>
+      )}
+      {state === 'needs-product' && (
+        <ProductButtons actions={actions} lists={lists} scan={scan} />
       )}
     </div>
   );
@@ -156,7 +168,7 @@ export function QueueRow({
       <ProductCell lists={lists} name={name} scan={scan} state={state} />
       <FactCells lists={lists} product={product} scan={scan} state={state} />
       <TableCell className="text-right">
-        <RowButtons actions={actions} state={state} />
+        <RowButtons actions={actions} lists={lists} scan={scan} state={state} />
       </TableCell>
     </TableRow>
   );
