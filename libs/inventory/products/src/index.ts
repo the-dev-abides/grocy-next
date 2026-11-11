@@ -1,3 +1,4 @@
+export { grocyRefused } from './lib/grocy/grocy-answers.ts';
 export { GrocyClient } from './lib/grocy/grocy-client.ts';
 export { GrocyStockClient } from './lib/grocy/grocy-stock-client.ts';
 export type { Inventory } from './lib/inventory.ts';

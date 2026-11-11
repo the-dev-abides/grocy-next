@@ -1,6 +1,6 @@
 import type { ProductDetails } from '@grocy-next/inventory-products';
 
-import { GrocyClient } from '@grocy-next/inventory-products';
+import { GrocyClient, grocyRefused } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -82,11 +82,7 @@ export class PendingScansService {
     }
     const result = await this.grocy.createProductBarcode(product.id, code);
     if (result.isRefused) {
-      throw new ProblemException(
-        PROBLEM_TYPES.grocyRefused,
-        result.grocy.message,
-        { grocy: result.grocy },
-      );
+      throw grocyRefused(result.grocy);
     }
     return result.id;
   }

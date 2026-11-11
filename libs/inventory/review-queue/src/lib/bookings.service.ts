@@ -4,7 +4,11 @@ import type {
 } from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
 
-import { GrocyClient, GrocyStockClient } from '@grocy-next/inventory-products';
+import {
+  GrocyClient,
+  grocyRefused,
+  GrocyStockClient,
+} from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -174,11 +178,7 @@ export class BookingsService {
         { id: row.id },
         { error: result.grocy.message, updatedAt: now() },
       );
-      throw new ProblemException(
-        PROBLEM_TYPES.grocyRefused,
-        result.grocy.message,
-        { grocy: result.grocy },
-      );
+      throw grocyRefused(result.grocy);
     }
     await this.rows.delete({ id: row.id });
     return toBooking(row, productId, result.rows);
