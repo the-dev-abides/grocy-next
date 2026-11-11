@@ -12,6 +12,7 @@
     "createPendingScan",
     "deletePendingScan",
     "getPendingScan",
+    "getProduct",
     "listLocations",
     "listPendingScans",
     "listProductGroups",

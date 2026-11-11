@@ -4,6 +4,9 @@ const injectedRtkApi = api.injectEndpoints({
     listProducts: build.query<ListProductsResponse, ListProductsRequest>({
       query: () => ({ url: `/api/v2/products` }),
     }),
+    getProduct: build.query<GetProductResponse, GetProductRequest>({
+      query: (queryArg) => ({ url: `/api/v2/products/${queryArg.id}` }),
+    }),
     listLocations: build.query<ListLocationsResponse, ListLocationsRequest>({
       query: () => ({ url: `/api/v2/locations` }),
     }),
@@ -66,6 +69,11 @@ const injectedRtkApi = api.injectEndpoints({
 export { injectedRtkApi as nextApi };
 export type ListProductsResponse = /** status 200 Every product. */ ProductList;
 export type ListProductsRequest = void;
+export type GetProductResponse = /** status 200 The product. */ Product;
+export type GetProductRequest = {
+  /** The id of the product. */
+  id: number;
+};
 export type ListLocationsResponse =
   /** status 200 Every active location. */ LocationList;
 export type ListLocationsRequest = void;
@@ -145,6 +153,62 @@ export type Problem = {
   title: string;
   /** The stable URI of the cause. */
   type: string;
+};
+export type QuantityUnitConversion = {
+  /** One from unit is this many to units. An amount in the from unit times the factor is the amount in the to unit. */
+  factor: number;
+  /** The id of the from quantity unit. */
+  fromQuantityUnitId: number;
+  /** The id of the to quantity unit. */
+  toQuantityUnitId: number;
+};
+export type StockEntry = {
+  /** The amount in the stock unit. */
+  amount: number;
+  /** The due date of the stock entry. */
+  dueDate: string | null;
+  /** The id of the stock entry. */
+  id: number;
+  /** The id of the location. */
+  locationId: number | null;
+  /** Whether the stock entry is open. */
+  open: boolean;
+  /** The purchase date. */
+  purchasedDate: string | null;
+};
+export type Product = {
+  /** The description of the product, or null when it has none. */
+  description: string | null;
+  /** The id of the product. */
+  id: number;
+  /** The name of the product. */
+  name: string;
+  /** The resolved conversions of the product. */
+  conversions: QuantityUnitConversion[];
+  /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */
+  defaultDueDays: number;
+  /** Whether the product has a picture. */
+  hasPicture: boolean;
+  /** Whether the product is a parent product. The stock amount of a parent product is its own stock only. */
+  isParent: boolean;
+  /** The id of the default location. */
+  locationId: number | null;
+  /** The minimum stock amount in the stock unit. */
+  minStockAmount: number;
+  /** The id of the product group, or null. */
+  productGroupId: number | null;
+  /** The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. */
+  purchaseToStockFactor: number;
+  /** The id of the purchase quantity unit. */
+  purchaseUnitId: number;
+  /** The own stock of the product in the stock unit. */
+  stockAmount: number;
+  /** The stock entries of the product in the Grocy consume order: the default consume location first, then open entries, then the earliest due date, then the earliest purchase date. */
+  stockEntries: StockEntry[];
+  /** The id of the stock quantity unit. */
+  stockUnitId: number;
+  /** The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight. */
+  tareWeight: number | null;
 };
 export type Location = {
   /** The id of the location. */
@@ -310,6 +374,7 @@ export type UpdatePendingScan = {
 };
 export const {
   useListProductsQuery,
+  useGetProductQuery,
   useListLocationsQuery,
   useListStoresQuery,
   useListProductGroupsQuery,
