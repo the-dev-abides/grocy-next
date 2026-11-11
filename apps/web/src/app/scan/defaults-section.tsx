@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import type { PendingScan } from '../api/next-api';
 import type { DueRule } from './due-rule';
 import type { DefaultsLists, SessionDefaults } from './session-defaults';
 
@@ -132,14 +133,19 @@ function DueValueField({
 
 // The due date rule: the kind, and the days or the date of the kind.
 function DueRuleField({
+  label,
   onChange,
   rule,
-}: Readonly<{ onChange: (rule: DueRule) => void; rule: DueRule }>) {
+}: Readonly<{
+  label: string;
+  onChange: (rule: DueRule) => void;
+  rule: DueRule;
+}>) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium">
-        Due date
+        {label}
       </label>
       <div className="flex gap-2">
         <Select
@@ -168,12 +174,16 @@ function DueRuleField({
   );
 }
 
-// The four fields of the session defaults.
+// The fields of the session defaults: the location, on the Purchase screen
+// the store, the product group, and the due date rule. On the Inventory
+// screen the due date is the due date of the stock that an increase adds.
 function DefaultsFields({
+  bookingType,
   defaults,
   lists,
   onChange,
 }: Readonly<{
+  bookingType: PendingScan['bookingType'];
   defaults: SessionDefaults;
   lists: DefaultsLists;
   onChange: (patch: Partial<SessionDefaults>) => void;
@@ -195,15 +205,17 @@ function DefaultsFields({
           onChange({ locationId });
         }}
       />
-      <RowSelect
-        label="Store"
-        none="No store"
-        rows={lists.stores}
-        value={defaults.storeId}
-        onChange={(storeId) => {
-          onChange({ storeId });
-        }}
-      />
+      {bookingType === 'purchase' && (
+        <RowSelect
+          label="Store"
+          none="No store"
+          rows={lists.stores}
+          value={defaults.storeId}
+          onChange={(storeId) => {
+            onChange({ storeId });
+          }}
+        />
+      )}
       <RowSelect
         label="Product group"
         none="Product default"
@@ -214,6 +226,9 @@ function DefaultsFields({
         }}
       />
       <DueRuleField
+        label={
+          bookingType === 'purchase' ? 'Due date' : 'Due date of added stock'
+        }
         rule={defaults.dueRule}
         onChange={(dueRule) => {
           onChange({ dueRule });
@@ -227,11 +242,13 @@ function DefaultsFields({
 // header button opens and closes it. The closed header shows the active
 // defaults in one line. Reset puts every default back to unset.
 export function DefaultsSection({
+  bookingType,
   defaults,
   lists,
   onChange,
   onReset,
 }: Readonly<{
+  bookingType: PendingScan['bookingType'];
   defaults: SessionDefaults;
   lists: DefaultsLists;
   onChange: (patch: Partial<SessionDefaults>) => void;
@@ -259,13 +276,14 @@ export function DefaultsSection({
         <span className="font-medium">Defaults</span>
         {!isOpen && (
           <span className="min-w-0 flex-1 truncate text-muted-foreground">
-            {defaultsSummary(defaults, lists)}
+            {defaultsSummary(defaults, lists, bookingType)}
           </span>
         )}
       </button>
       {isOpen && (
         <div className="flex flex-col gap-3 border-b p-3">
           <DefaultsFields
+            bookingType={bookingType}
             defaults={defaults}
             lists={lists}
             onChange={onChange}

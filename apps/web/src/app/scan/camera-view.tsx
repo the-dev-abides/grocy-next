@@ -67,9 +67,9 @@ function Banner({ banner }: Readonly<{ banner: ScanBanner }>) {
         <p className="truncate font-medium">{banner.title}</p>
         <p className="truncate text-xs opacity-90">{banner.detail}</p>
       </div>
-      {banner.kind === 'repeat' && (
+      {banner.pill !== undefined && (
         <span className="rounded-full bg-white/25 px-2 text-xs font-medium">
-          +1
+          {banner.pill}
         </span>
       )}
     </div>

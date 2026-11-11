@@ -40,6 +40,20 @@ describe('the session defaults of a scan screen', () => {
     });
   });
 
+  it('sends no price and no price type for the Inventory screen, which has no price', () => {
+    expect(
+      createFieldsOf(
+        {
+          ...INITIAL_DEFAULTS,
+          dueRule: { days: 3, kind: 'days' },
+          locationId: 2,
+        },
+        null,
+        today,
+      ),
+    ).toEqual({ dueDate: '2026-11-14', locationId: 2 });
+  });
+
   it('sends no price for a blank price or a text that is not a number', () => {
     const fields = createFieldsOf(
       INITIAL_DEFAULTS,
@@ -50,7 +64,7 @@ describe('the session defaults of a scan screen', () => {
   });
 
   it('writes the summary line of the collapsed section', () => {
-    expect(defaultsSummary(INITIAL_DEFAULTS, lists)).toBe(
+    expect(defaultsSummary(INITIAL_DEFAULTS, lists, 'purchase')).toBe(
       'Product default · No store · Product default · Default group',
     );
     expect(
@@ -62,7 +76,14 @@ describe('the session defaults of a scan screen', () => {
           storeId: 1,
         },
         lists,
+        'purchase',
       ),
     ).toBe('Pantry · Supermarket · +7 days · Dairy');
+  });
+
+  it('leaves the store out of the summary line of the Inventory screen', () => {
+    expect(defaultsSummary(INITIAL_DEFAULTS, lists, 'inventory')).toBe(
+      'Product default · Product default · Default group',
+    );
   });
 });

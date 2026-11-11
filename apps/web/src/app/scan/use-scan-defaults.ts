@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import type { PendingScan } from '../api/next-api';
 import type {
   CreateFields,
   NextPrice,
@@ -24,8 +25,11 @@ export interface ScanDefaults {
 // This hook holds the session defaults and the price for the next scan in
 // memory, as ADR 0010 decided. Nothing is stored. A scan takes the create
 // fields of the moment: the defaults with the due date rule turned into a
-// date, and the price. The price clears, and the price type stays.
-export function useScanDefaults(): ScanDefaults {
+// date, and on the Purchase screen the price. The price clears, and the
+// price type stays. The Inventory screen has no price and sends none.
+export function useScanDefaults(
+  bookingType: PendingScan['bookingType'],
+): ScanDefaults {
   const [defaults, setDefaults] = useState(INITIAL_DEFAULTS);
   const [nextPrice, setNextPrice] = useState(INITIAL_NEXT_PRICE);
   return {
@@ -42,7 +46,10 @@ export function useScanDefaults(): ScanDefaults {
     },
     takeCreateFields: () => {
       setNextPrice((current) => ({ ...current, price: '' }));
-      return createFieldsOf(defaults, nextPrice);
+      return createFieldsOf(
+        defaults,
+        bookingType === 'purchase' ? nextPrice : null,
+      );
     },
   };
 }

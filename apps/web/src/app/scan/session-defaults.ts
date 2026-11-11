@@ -55,13 +55,15 @@ function priceOf(price: string): null | number {
 
 // This function turns the defaults and the price for the next scan into the
 // fields of one create call. An unset default is left out of the body, so
-// the server stores null for it. The due date rule becomes a date now.
+// the server stores null for it. The due date rule becomes a date now. The
+// Inventory screen has no price, so it gives null and sends no price field.
 export function createFieldsOf(
   defaults: SessionDefaults,
-  nextPrice: NextPrice,
+  nextPrice: NextPrice | null,
   today: Temporal.PlainDate = Temporal.Now.plainDateISO(),
 ): CreateFields {
-  const fields: CreateFields = { priceType: nextPrice.priceType };
+  const fields: CreateFields =
+    nextPrice === null ? {} : { priceType: nextPrice.priceType };
   const dueDate = dueDateOf(defaults.dueRule, today);
   if (dueDate !== null) {
     fields.dueDate = dueDate;
@@ -75,22 +77,27 @@ export function createFieldsOf(
   if (defaults.storeId !== null) {
     fields.storeId = defaults.storeId;
   }
-  const price = priceOf(nextPrice.price);
+  const price = nextPrice === null ? null : priceOf(nextPrice.price);
   if (price !== null) {
     fields.price = price;
   }
   return fields;
 }
 
-// The one line of the collapsed defaults section: the location, the store,
-// the due date rule, and the product group.
+// The one line of the collapsed defaults section: the location, the store
+// on the Purchase screen, the due date rule, and the product group.
 export function defaultsSummary(
   defaults: SessionDefaults,
   lists: DefaultsLists,
+  bookingType: PendingScan['bookingType'],
 ): string {
+  const store =
+    bookingType === 'purchase'
+      ? [nameOf(lists.stores, defaults.storeId, 'No store')]
+      : [];
   return [
     nameOf(lists.locations, defaults.locationId, 'Product default'),
-    nameOf(lists.stores, defaults.storeId, 'No store'),
+    ...store,
     dueRuleText(defaults.dueRule),
     nameOf(lists.productGroups, defaults.productGroupId, 'Default group'),
   ].join(' · ');

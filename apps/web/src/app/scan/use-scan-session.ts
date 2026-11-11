@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { PendingScan } from '../api/next-api';
+import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 import type { ScanRowLists } from './scan-row';
 import type { DefaultsLists } from './session-defaults';
 import type { ScanDefaults } from './use-scan-defaults';
@@ -17,7 +17,6 @@ import {
   useUpdatePendingScanMutation,
 } from '../api/next-api';
 import { sessionRows } from './session-rows';
-import { nextAmount } from './swipe';
 import { useScanDefaults } from './use-scan-defaults';
 
 // The pending scan list refreshes every three seconds while the screen is
@@ -26,14 +25,22 @@ const POLL_MS = 3000;
 
 type ScanLists = DefaultsLists & ScanRowLists;
 
-export interface PurchaseSession {
-  addCode: (code: string) => Promise<null | PendingScan>;
-  changeAmount: (scan: PendingScan, delta: number) => void;
+// The stored row of one create call, and whether the session already held
+// it. An Inventory repeat scan answers the open row with no change, so the
+// row itself does not show that it was a repeat.
+interface AddedScan {
+  scan: PendingScan;
+  wasInSession: boolean;
+}
+
+export interface ScanSession {
+  addCode: (code: string) => Promise<AddedScan | null>;
   hasFailed: boolean;
   lists: ScanLists;
   reject: (scan: PendingScan) => void;
   rows: readonly PendingScan[];
   scanDefaults: ScanDefaults;
+  update: (scan: PendingScan, patch: UpdatePendingScan) => void;
 }
 
 // The five master data lists that name a row and the defaults.
@@ -47,14 +54,16 @@ function useScanLists(): ScanLists {
   };
 }
 
-// The scan session of the Purchase screen: the rows that this screen created
-// or merged, the master data lists that name a row, the defaults and the
-// price for the next scan, the create call of a typed code, the update of
-// plus and minus, and the delete of the swipe. The session is not stored. A
+// The scan session of a scan screen: the rows of the booking type that this
+// screen created or merged, the master data lists that name a row, the
+// defaults and the price for the next scan, the create call of a code, the
+// update of a row, and the delete of the swipe. The session is not stored. A
 // new screen starts a new session. Every call refetches the list, so the row
 // changes before the next poll. The create call returns the stored row, or
 // null when the call failed, so the screen gives the feedback of the outcome.
-export function usePurchaseSession(): PurchaseSession {
+export function useScanSession(
+  bookingType: PendingScan['bookingType'],
+): ScanSession {
   const [sessionIds, setSessionIds] = useState<ReadonlySet<number>>(
     () => new Set(),
   );
@@ -63,12 +72,12 @@ export function usePurchaseSession(): PurchaseSession {
     pollingInterval: POLL_MS,
   });
   const lists = useScanLists();
-  const scanDefaults = useScanDefaults();
+  const scanDefaults = useScanDefaults(bookingType);
   const [createPendingScan] = useCreatePendingScanMutation();
   const [updatePendingScan] = useUpdatePendingScanMutation();
   const [deletePendingScan] = useDeletePendingScanMutation();
 
-  async function send(call: Promise<PendingScan>): Promise<null | PendingScan> {
+  async function send(call: Promise<PendingScan>): Promise<AddedScan | null> {
     let scan: PendingScan;
     try {
       scan = await call;
@@ -76,10 +85,11 @@ export function usePurchaseSession(): PurchaseSession {
       setHasFailed(true);
       return null;
     }
+    const wasInSession = sessionIds.has(scan.id);
     setSessionIds((ids) => new Set([...ids, scan.id]));
     setHasFailed(false);
     await pendingScans.refetch();
-    return scan;
+    return { scan, wasInSession };
   }
 
   return {
@@ -87,15 +97,7 @@ export function usePurchaseSession(): PurchaseSession {
       const fields = scanDefaults.takeCreateFields();
       return send(
         createPendingScan({
-          createPendingScan: { ...fields, bookingType: 'purchase', code },
-        }).unwrap(),
-      );
-    },
-    changeAmount: (scan, delta) => {
-      void send(
-        updatePendingScan({
-          id: scan.id,
-          updatePendingScan: { amount: nextAmount(scan.amount, delta) },
+          createPendingScan: { ...fields, bookingType, code },
         }).unwrap(),
       );
     },
@@ -104,7 +106,12 @@ export function usePurchaseSession(): PurchaseSession {
     reject: (scan) => {
       void send(deletePendingScan({ id: scan.id }).unwrap());
     },
-    rows: sessionRows(pendingScans.data?.items ?? [], sessionIds, 'purchase'),
+    rows: sessionRows(pendingScans.data?.items ?? [], sessionIds, bookingType),
     scanDefaults,
+    update: (scan, patch) => {
+      void send(
+        updatePendingScan({ id: scan.id, updatePendingScan: patch }).unwrap(),
+      );
+    },
   };
 }

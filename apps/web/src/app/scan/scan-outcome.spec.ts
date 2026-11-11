@@ -54,6 +54,14 @@ describe('the outcome of a create call', () => {
       outcomeOf(row({ amount: 2, scannedAt: '2026-11-11T10:00:05.000Z' })),
     ).toBe('repeat');
   });
+
+  // An Inventory repeat scan answers the open row with no change, so the
+  // row has one time for the create and the scan. The session knows the row.
+  it('is a repeat when the session already holds the row', () => {
+    expect(
+      outcomeOf(row({ bookingType: 'inventory', productId: 1 }), true),
+    ).toBe('repeat');
+  });
 });
 
 describe('the banner of a create call', () => {
@@ -67,6 +75,33 @@ describe('the banner of a create call', () => {
     expect(bannerOf(row({ productId: 1, quantityUnitId: 1 }), lists)).toEqual({
       detail: '1 Can',
       kind: 'known',
+      title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('names the product and the code for a known product on the Inventory screen', () => {
+    expect(
+      bannerOf(
+        row({ amount: null, bookingType: 'inventory', productId: 1 }),
+        lists,
+      ),
+    ).toEqual({
+      detail: '5449000000996',
+      kind: 'known',
+      title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('says that the product is in the list for an Inventory repeat, with no plus one', () => {
+    expect(
+      bannerOf(
+        row({ amount: null, bookingType: 'inventory', productId: 1 }),
+        lists,
+        true,
+      ),
+    ).toEqual({
+      detail: 'Already in the list',
+      kind: 'repeat',
       title: 'Coca-Cola Original 330 ml',
     });
   });
@@ -93,6 +128,7 @@ describe('the banner of a create call', () => {
     ).toEqual({
       detail: '2 Can',
       kind: 'repeat',
+      pill: '+1',
       title: 'Coca-Cola Original 330 ml',
     });
   });
@@ -103,6 +139,6 @@ describe('the banner of a create call', () => {
         row({ amount: 2, code: '4011', scannedAt: '2026-11-11T10:00:05.000Z' }),
         lists,
       ),
-    ).toEqual({ detail: '2', kind: 'repeat', title: '4011' });
+    ).toEqual({ detail: '2', kind: 'repeat', pill: '+1', title: '4011' });
   });
 });

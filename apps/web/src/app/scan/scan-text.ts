@@ -1,4 +1,4 @@
-import type { PendingScan } from '../api/next-api';
+import type { PendingScan, Product } from '../api/next-api';
 
 interface Named {
   id: number;
@@ -39,4 +39,17 @@ export function priceText(
 // The due date of a row, or the words for the Grocy product default.
 export function dueDateText(dueDate: null | string): string {
   return dueDate ?? 'default due';
+}
+
+// The Grocy stock of the product of an Inventory row, in the stock unit of
+// the product, or the words while the product read has not answered.
+export function stockText(
+  product: Pick<Product, 'stockAmount' | 'stockUnitId'> | undefined,
+  quantityUnits: readonly Named[] | undefined,
+): string {
+  if (product === undefined) {
+    return 'The stock loads';
+  }
+  const unit = nameOf(quantityUnits, product.stockUnitId, '');
+  return `In Grocy: ${String(product.stockAmount)} ${unit}`.trim();
 }

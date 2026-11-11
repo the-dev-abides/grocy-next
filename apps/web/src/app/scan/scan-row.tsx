@@ -1,4 +1,6 @@
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+import { Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -9,7 +11,7 @@ import type {
   QuantityUnit,
 } from '../api/next-api';
 
-import { dueDateText, nameOf, priceText, timeOf } from './scan-text';
+import { nameOf, timeOf } from './scan-text';
 
 export interface ScanRowLists {
   locations: readonly Location[] | undefined;
@@ -17,8 +19,18 @@ export interface ScanRowLists {
   quantityUnits: readonly QuantityUnit[] | undefined;
 }
 
-// The name of a pending scan: the product, the lookup result, or the bare
-// code. The words come from the three facts of ADR 0010.
+// A name with the hint that the review queue makes a new product of it.
+function NewProductName({ name }: Readonly<{ name: string }>) {
+  return (
+    <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+      <span className="truncate font-medium">{name}</span>
+      <span className="text-xs text-muted-foreground">New product</span>
+    </span>
+  );
+}
+
+// The name of a pending scan: the product, the write-in name, the lookup
+// result, or the bare code. The words come from the facts of ADR 0010.
 function ScanName({
   products,
   scan,
@@ -30,69 +42,13 @@ function ScanName({
       </span>
     );
   }
+  if (scan.writeInName !== null) {
+    return <NewProductName name={scan.writeInName} />;
+  }
   if (scan.lookupResult !== null) {
-    return (
-      <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-        <span className="truncate font-medium">{scan.lookupResult.name}</span>
-        <span className="text-xs text-muted-foreground">New product</span>
-      </span>
-    );
+    return <NewProductName name={scan.lookupResult.name} />;
   }
   return <span className="font-mono text-muted-foreground">{scan.code}</span>;
-}
-
-// The amount in its unit between minus and plus, and a reject button from
-// `sm` up. Below `sm` the swipe rejects.
-function AmountControls({
-  onChangeAmount,
-  onReject,
-  quantityUnits,
-  scan,
-}: Readonly<{
-  onChangeAmount: (delta: number) => void;
-  onReject: () => void;
-  quantityUnits: ScanRowLists['quantityUnits'];
-  scan: PendingScan;
-}>) {
-  return (
-    <div className="flex items-center gap-1">
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="Less"
-        onClick={() => {
-          onChangeAmount(-1);
-        }}
-      >
-        <Minus />
-      </Button>
-      <span className="w-16 text-center tabular-nums">
-        {scan.amount} {nameOf(quantityUnits, scan.quantityUnitId, '')}
-      </span>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="More"
-        onClick={() => {
-          onChangeAmount(1);
-        }}
-      >
-        <Plus />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Reject"
-        className="
-          hidden
-          sm:inline-flex
-        "
-        onClick={onReject}
-      >
-        <Trash2 />
-      </Button>
-    </div>
-  );
 }
 
 // The service name of a lookup result as a link to the product page, for
@@ -116,18 +72,36 @@ function ServiceLink({ scan }: Readonly<{ scan: PendingScan }>) {
   );
 }
 
-// One row of the session list: the name, a line with the time, the location,
-// the due date, the price, and the service link of a lookup result, and the
-// amount controls.
+// The reject button of a row, from `sm` up. Below `sm` the swipe rejects.
+export function RejectButton({ onReject }: Readonly<{ onReject: () => void }>) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Reject"
+      className="
+        hidden
+        sm:inline-flex
+      "
+      onClick={onReject}
+    >
+      <Trash2 />
+    </Button>
+  );
+}
+
+// One row of the session list, shared by the two scan screens: the name, a
+// line with the time, the details of the screen, and the service link of a
+// lookup result, and the controls of the screen on the right.
 export function ScanRow({
+  children,
+  details,
   lists,
-  onChangeAmount,
-  onReject,
   scan,
 }: Readonly<{
+  children: ReactNode;
+  details: readonly string[];
   lists: ScanRowLists;
-  onChangeAmount: (delta: number) => void;
-  onReject: () => void;
   scan: PendingScan;
 }>) {
   return (
@@ -136,18 +110,11 @@ export function ScanRow({
         <ScanName products={lists.products} scan={scan} />
         <p className="truncate text-xs text-muted-foreground">
           <time dateTime={scan.scannedAt}>{timeOf(scan.scannedAt)}</time>
-          {` · ${nameOf(lists.locations, scan.locationId, 'Product default')}`}
-          {` · ${dueDateText(scan.dueDate)}`}
-          {` · ${priceText(scan)}`}
+          {details.map((detail) => ` · ${detail}`).join('')}
           <ServiceLink scan={scan} />
         </p>
       </div>
-      <AmountControls
-        quantityUnits={lists.quantityUnits}
-        scan={scan}
-        onChangeAmount={onChangeAmount}
-        onReject={onReject}
-      />
+      {children}
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { dueDateText, nameOf, priceText } from './scan-text';
+import { dueDateText, nameOf, priceText, stockText } from './scan-text';
 
 describe('the words of a scan row', () => {
   const locations = [
@@ -31,5 +31,16 @@ describe('the words of a scan row', () => {
   it('writes the due date or the default', () => {
     expect(dueDateText('2026-12-01')).toBe('2026-12-01');
     expect(dueDateText(null)).toBe('default due');
+  });
+
+  it('writes the Grocy stock of a product in its stock unit', () => {
+    const quantityUnits = [{ id: 1, name: 'Can' }];
+    expect(stockText({ stockAmount: 6, stockUnitId: 1 }, quantityUnits)).toBe(
+      'In Grocy: 6 Can',
+    );
+  });
+
+  it('writes that the stock loads while the product read has not answered', () => {
+    expect(stockText(undefined, [])).toBe('The stock loads');
   });
 });
