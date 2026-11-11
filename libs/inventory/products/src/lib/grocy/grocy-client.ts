@@ -1,17 +1,25 @@
+import type { GrocyRefusal } from '@grocy-next/shared-next-api';
+
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
+import { z } from 'zod';
 
-import type { ProductDetails } from '../product-details.ts';
+import type {
+  ProductDetails,
+  QuantityUnitConversion,
+} from '../product-details.ts';
 import type { ProductListItem } from '../product.ts';
+import type { Purchase, PurchaseResult } from '../purchase.ts';
 import type {
   GrocyMasterDataTable,
   MasterDataRow,
 } from './grocy-master-data.ts';
 import type { GrocyProduct } from './grocy-product.ts';
 
+import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import {
   grocyMasterDataRowsSchema,
   toMasterDataRows,
@@ -20,6 +28,11 @@ import {
   grocyProductDetailsSchema,
   toProductDetails,
 } from './grocy-product-details.ts';
+import { toGrocyPurchaseBody } from './grocy-purchase.ts';
+import { grocyStockLogRowsSchema, toStockLogRows } from './grocy-stock-log.ts';
+
+// The body of a Grocy refusal: 400 with the error message.
+const grocyErrorSchema = z.looseObject({ error_message: z.string() });
 
 // Grocy answers a handled refusal with 400 and `{"error_message": ...}`. On
 // a product details read, the refusal means no match: an unknown barcode,
@@ -28,6 +41,22 @@ function isGrocyRefusal(error: unknown): boolean {
   return (
     isAxiosError(error) && error.response?.status === HttpStatus.BAD_REQUEST
   );
+}
+
+// The status and the message of a Grocy refusal, for the `grocy` field of
+// the grocy-refused problem. A refusal body with no message gives the
+// status text of the response.
+function grocyRefusalOf(error: unknown): GrocyRefusal | null {
+  if (!isGrocyRefusal(error) || !isAxiosError(error) || !error.response) {
+    return null;
+  }
+  const { status, statusText } = error.response;
+  const data: unknown = error.response.data;
+  const body = grocyErrorSchema.safeParse(data);
+  return {
+    message: body.success ? body.data.error_message : statusText,
+    status,
+  };
 }
 
 // Grocy answered 500, or Grocy did not answer. The Next API answers 502, as
@@ -114,9 +143,57 @@ export class GrocyClient {
     });
   }
 
+  // This method books a purchase of one product. Grocy answers the stock log
+  // rows of the new transaction, or 400 with the reason when Grocy refuses
+  // the purchase. The caller stores the reason on the pending scan.
+  async purchase(
+    productId: number,
+    purchase: Purchase,
+  ): Promise<PurchaseResult> {
+    let data: unknown;
+    try {
+      ({ data } = await firstValueFrom(
+        this.http.post<unknown>(
+          `/api/stock/products/${String(productId)}/add`,
+          toGrocyPurchaseBody(purchase),
+        ),
+      ));
+    } catch (error) {
+      const grocy = grocyRefusalOf(error);
+      if (grocy !== null) {
+        return { grocy, isRefused: true };
+      }
+      throw grocyUnavailable(error);
+    }
+    return {
+      isRefused: false,
+      rows: toStockLogRows(grocyStockLogRowsSchema.parse(data)),
+    };
+  }
+
   // The product details by id, or null when no active product has the id.
   readProductDetails(productId: number): Promise<null | ProductDetails> {
     return this.readDetails(`/api/stock/products/${String(productId)}`);
+  }
+
+  // The resolved conversions of one product: every pair of quantity units
+  // with a path between them and the factor of the path. Grocy answers an
+  // empty list for an unknown product.
+  async readResolvedConversions(
+    productId: number,
+  ): Promise<QuantityUnitConversion[]> {
+    let data: unknown;
+    try {
+      ({ data } = await firstValueFrom(
+        this.http.get<unknown>(
+          '/api/objects/quantity_unit_conversions_resolved',
+          { params: { 'query[]': `product_id=${String(productId)}` } },
+        ),
+      ));
+    } catch (error) {
+      throw grocyUnavailable(error);
+    }
+    return toConversions(grocyConversionsSchema.parse(data));
   }
 
   // The product details by product barcode, or null when no product barcode

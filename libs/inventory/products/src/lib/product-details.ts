@@ -13,14 +13,25 @@ export interface ProductBarcode {
   storeId: null | number;
 }
 
+// One resolved conversion of a product: the factor from one quantity unit
+// to another. An amount in the from unit times the factor is the amount in
+// the to unit.
+export interface QuantityUnitConversion {
+  factor: number;
+  fromQuantityUnitId: number;
+  toQuantityUnitId: number;
+}
+
 // The details of one product as the Grocy client reads them: the product of
 // the Next API, the product barcodes that the code resolution of the review
-// queue reads, and the active flag. The stock amount is the own stock in
-// the stock unit. A later ticket widens the shape with the facts that the
-// accept and the review queue need.
+// queue reads, the active flag, and the two units that the accept converts
+// between. The stock amount is the own stock in the stock unit. A later
+// ticket widens the shape with the facts that the review queue shows.
 export interface ProductDetails extends Product {
   barcodes: ProductBarcode[];
   isActive: boolean;
+  purchaseUnitId: number;
+  stockUnitId: number;
 }
 
 // This function takes the product of the Next API out of the details. The

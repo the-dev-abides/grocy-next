@@ -28,6 +28,8 @@ export const grocyProductDetailsSchema = z.looseObject({
     description: z.string().nullable(),
     id: grocyNumber,
     name: z.string(),
+    qu_id_purchase: grocyNumber,
+    qu_id_stock: grocyNumber,
   }),
   product_barcodes: z.array(grocyProductBarcodeSchema),
   stock_amount: grocyNumber,
@@ -52,6 +54,8 @@ export function toProductDetails(details: GrocyProductDetails): ProductDetails {
     id: details.product.id,
     isActive: details.product.active !== 0,
     name: details.product.name,
+    purchaseUnitId: details.product.qu_id_purchase,
     stockAmount: details.stock_amount,
+    stockUnitId: details.product.qu_id_stock,
   };
 }
