@@ -43,7 +43,8 @@ export class PendingScansService {
   // transaction over the Grocy Next storage. The repeat rule runs inside the
   // transaction, before the write. The lookup worker takes a new row after
   // the transaction, so the worker reads a stored row. A repeat scan adds to
-  // a row that the worker already took. A lookup result is never in the
+  // a row that the worker already took. A repeat Inventory scan writes
+  // nothing and returns the open row. A lookup result is never in the
   // create response.
   async create(
     body: CreatePendingScan,
@@ -60,10 +61,11 @@ export class PendingScansService {
           const pendingScan = await manager.save(storedPendingScanSchema, row);
           return { isMerged: false, pendingScan };
         }
-        const pendingScan = await manager.save(
-          storedPendingScanSchema,
-          mergedPendingScan(target, match, row.scannedAt),
-        );
+        const merged = mergedPendingScan(target, match, row.scannedAt);
+        const pendingScan =
+          merged === null
+            ? target
+            : await manager.save(storedPendingScanSchema, merged);
         return { isMerged: true, pendingScan };
       },
     );

@@ -1,8 +1,7 @@
-import type { EntityManager } from 'typeorm';
+import type { EntityManager, FindOptionsWhere } from 'typeorm';
 
-import { In } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
 
-import type { BookingType } from './pending-scan.ts';
 import type { ProductMatch } from './resolve-code.ts';
 import type {
   PendingScanToStore,
@@ -18,40 +17,55 @@ import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 // gives the fact through this parameter, not through a body field.
 export type RepeatRule = 'merge' | 'no merge';
 
-// This function finds the open pending scan that a new scan adds to: the
-// most recent row with the same booking type and a code that is one code
-// with the new code. A row with no code is never a merge target, and a new
-// scan with no code has no target.
+// This function finds the open pending scan that a new scan repeats: the
+// most recent row with the same booking type that holds the same thing. A
+// Purchase row holds the same thing when its code is one code with the new
+// code. An Inventory row holds the same thing when it has the same product,
+// so that one product has at most one open Inventory pending scan, or the
+// same code when the scan has no product. A row with no code is never a
+// merge target, and a new scan with no code has no target.
 export function findRepeatTarget(
   manager: EntityManager,
   row: PendingScanToStore,
 ): Promise<null | StoredPendingScan> {
-  return row.code === null
-    ? Promise.resolve(null)
-    : queryRepeatTarget(manager, row.bookingType, row.code);
+  if (row.code === null) {
+    return Promise.resolve(null);
+  }
+  const sameCode = { code: In(codeForms(row.code)) };
+  const sameProduct = { code: Not(IsNull()), productId: row.productId };
+  const isProductMatch =
+    row.bookingType === 'inventory' && row.productId !== null;
+  return queryRepeatTarget(manager, {
+    bookingType: row.bookingType,
+    ...(isProductMatch ? sameProduct : sameCode),
+  });
 }
 
 function queryRepeatTarget(
   manager: EntityManager,
-  bookingType: BookingType,
-  code: string,
+  where: FindOptionsWhere<StoredPendingScan>,
 ): Promise<null | StoredPendingScan> {
   return manager
     .createQueryBuilder(storedPendingScanSchema, 'pendingScan')
-    .where({ bookingType, code: In(codeForms(code)) })
+    .where(where)
     .orderBy('pendingScan.scannedAt', 'DESC')
     .addOrderBy('pendingScan.id', 'DESC')
     .getOne();
 }
 
-// This function adds a repeat scan to its target row. Purchase: add the
-// product barcode amount when the product barcode has one, else one, and
-// set the scan time to now.
+// This function adds a repeat scan to its target row and returns the row to
+// store, or null when the repeat changes nothing. Purchase: add the product
+// barcode amount when the product barcode has one, else one, and set the
+// scan time to now. Inventory: change nothing. The Inventory scan screen
+// makes the list of the products, and the review queue sets the amounts.
 export function mergedPendingScan(
   target: StoredPendingScan,
   match: null | ProductMatch,
   now: string,
-): StoredPendingScan {
+): null | StoredPendingScan {
+  if (target.bookingType === 'inventory') {
+    return null;
+  }
   return {
     ...target,
     amount:
