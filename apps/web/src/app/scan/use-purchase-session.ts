@@ -24,7 +24,7 @@ import { useScanDefaults } from './use-scan-defaults';
 // open, as ADR 0014 decided.
 const POLL_MS = 3000;
 
-export type ScanLists = DefaultsLists & ScanRowLists;
+type ScanLists = DefaultsLists & ScanRowLists;
 
 export interface PurchaseSession {
   addCode: (code: string) => Promise<null | PendingScan>;
