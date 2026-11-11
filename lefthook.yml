@@ -1,0 +1,18 @@
+# The pre-commit hook. `pnpm install` installs it. ADR 0016 records the
+# decision. The hook runs the lint, the type check, and the format check on
+# the projects that the staged files touch. It refuses a commit of the Claude
+# Code hook script in the unlocked state.
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint and typecheck
+      run: pnpm nx affected -t lint typecheck --files="$(printf '%s' '{staged_files}' | tr ' ' ',')"
+    - name: format
+      run: pnpm nx format:check --files="$(printf '%s' '{staged_files}' | tr ' ' ',')"
+    - name: hook locked
+      glob: 'tools/checks/src/pre-tool-use.mjs'
+      run: |
+        if git show :tools/checks/src/pre-tool-use.mjs | grep -q 'const IS_UNLOCKED = true'; then
+          echo 'The Claude Code hook script is unlocked. Set IS_UNLOCKED to false before you commit it.'
+          exit 1
+        fi
