@@ -45,6 +45,16 @@ describe('the web app', () => {
     ).toBeDefined();
   });
 
+  it('renders the review queue under /review-queue', async () => {
+    renderAt('/review-queue');
+
+    expect(
+      await screen.findByText(
+        'The review queue did not load. Check that the API runs.',
+      ),
+    ).toBeDefined();
+  });
+
   it('shows the sidebar with the scan items, the review queue, and the stock item', () => {
     renderAt('/review-queue');
 

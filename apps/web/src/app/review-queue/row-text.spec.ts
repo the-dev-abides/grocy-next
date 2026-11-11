@@ -1,4 +1,4 @@
-import { amountText, bookingTypeLabel, unitOf } from './row-text';
+import { amountText, bookingTypeLabel, rowName, unitOf } from './row-text';
 
 const quantityUnits = [
   { id: 1, name: 'Can' },
@@ -81,5 +81,69 @@ describe('the words of a review queue row', () => {
   it('names the booking type', () => {
     expect(bookingTypeLabel.purchase).toBe('Purchase');
     expect(bookingTypeLabel.inventory).toBe('Inventory');
+  });
+});
+
+describe('the name of a review queue row', () => {
+  const products = [{ id: 1, name: 'Coca-Cola Original 330 ml' }];
+  const lookupResult = {
+    brand: 'Ferrero',
+    imageUrl: null,
+    name: 'Nutella',
+    netQuantity: 400,
+    netQuantityUnit: 'g',
+    quantityText: '400 g',
+    service: 'Open Food Facts',
+    sourceUrl: 'https://world.openfoodfacts.org/product/3017620422003',
+  };
+
+  it('is the product name when the row has a product', () => {
+    expect(
+      rowName(
+        {
+          code: '5449000000996',
+          lookupResult: null,
+          productId: 1,
+          writeInName: null,
+        },
+        products,
+      ),
+    ).toBe('Coca-Cola Original 330 ml');
+  });
+
+  it('is the write-in name, then the lookup name, then the bare code', () => {
+    expect(
+      rowName(
+        {
+          code: '3017620422003',
+          lookupResult,
+          productId: null,
+          writeInName: 'Hazelnut spread',
+        },
+        products,
+      ),
+    ).toBe('Hazelnut spread');
+    expect(
+      rowName(
+        {
+          code: '3017620422003',
+          lookupResult,
+          productId: null,
+          writeInName: null,
+        },
+        products,
+      ),
+    ).toBe('Nutella');
+    expect(
+      rowName(
+        {
+          code: '4011',
+          lookupResult: null,
+          productId: null,
+          writeInName: null,
+        },
+        products,
+      ),
+    ).toBe('4011');
   });
 });

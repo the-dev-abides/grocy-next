@@ -1,5 +1,10 @@
 import type { Booking } from '../api/next-api';
-import { bookingText, failureText, isGrocyRefused } from './result-text';
+import {
+  bookingText,
+  failureText,
+  isGrocyRefused,
+  summaryText,
+} from './result-text';
 
 const locations = [
   { id: 1, name: 'Fridge' },
@@ -96,8 +101,8 @@ describe('the failure line of an accept', () => {
         error: 'TypeError: Failed to fetch',
         status: 'FETCH_ERROR',
       }),
-    ).toBe('The accept did not reach the API.');
-    expect(failureText(undefined)).toBe('The accept did not reach the API.');
+    ).toBe('The API did not answer.');
+    expect(failureText(undefined)).toBe('The API did not answer.');
   });
 
   it('knows a grocy-refused problem, whose message the row shows', () => {
@@ -109,5 +114,13 @@ describe('the failure line of an accept', () => {
     ).toBe(true);
     expect(isGrocyRefused(problem)).toBe(false);
     expect(isGrocyRefused(undefined)).toBe(false);
+  });
+});
+
+describe('the summary of the result panel', () => {
+  it('counts the booked rows and the failed rows', () => {
+    expect(summaryText(1, 0)).toBe('1 booked');
+    expect(summaryText(2, 1)).toBe('2 booked, 1 failed');
+    expect(summaryText(0, 1)).toBe('0 booked, 1 failed');
   });
 });

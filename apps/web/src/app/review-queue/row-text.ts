@@ -57,3 +57,17 @@ export function amountText(
   }
   return '—';
 }
+
+// The name of a row: the product, the write-in name, the lookup result, or
+// the bare code, from the facts of ADR 0010.
+export function rowName(
+  scan: Pick<
+    PendingScan,
+    'code' | 'lookupResult' | 'productId' | 'writeInName'
+  >,
+  products: readonly Named[] | undefined,
+): string {
+  return scan.productId === null
+    ? (scan.writeInName ?? scan.lookupResult?.name ?? scan.code ?? '')
+    : nameOf(products, scan.productId, '');
+}

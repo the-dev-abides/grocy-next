@@ -59,11 +59,11 @@ function problemOf(error: unknown): null | ProblemFacts {
 }
 
 // The failure line of an accept: the title and the detail of the problem,
-// or the words for a call that got no answer.
+// or the words for a call that got no answer. The reject shares the words.
 export function failureText(error: unknown): string {
   const problem = problemOf(error);
   return problem === null
-    ? 'The accept did not reach the API.'
+    ? 'The API did not answer.'
     : `${problem.title}. ${problem.detail}`;
 }
 
@@ -71,4 +71,13 @@ export function failureText(error: unknown): string {
 // so the row shows the message and the result line stays silent.
 export function isGrocyRefused(error: unknown): boolean {
   return problemOf(error)?.type === GROCY_REFUSED;
+}
+
+// The first line of the result panel: how many rows were booked and how
+// many failed.
+export function summaryText(bookedCount: number, failedCount: number): string {
+  const booked = `${String(bookedCount)} booked`;
+  return failedCount === 0
+    ? booked
+    : `${booked}, ${String(failedCount)} failed`;
 }
