@@ -1,12 +1,14 @@
 import type { GrocyRefusal } from '@grocy-next/shared-next-api';
+import type { AxiosResponse } from 'axios';
+import type { Observable } from 'rxjs';
 
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
-import { z } from 'zod';
 
+import type { ProductConversion } from '../product-conversion.ts';
 import type {
   ProductDetails,
   QuantityUnitConversion,
@@ -14,50 +16,49 @@ import type {
 import type { ProductListItem } from '../product.ts';
 import type { Purchase, PurchaseResult } from '../purchase.ts';
 import type {
+  CreatedObjectResult,
+  GrocyAnswer,
+  GrocyWritableTable,
+} from './grocy-answers.ts';
+import type {
   GrocyMasterDataTable,
   MasterDataRow,
 } from './grocy-master-data.ts';
+import type { GrocyProductBody } from './grocy-product-body.ts';
+import type { GrocyProductConversionBody } from './grocy-product-conversions.ts';
 import type { GrocyProduct } from './grocy-product.ts';
 
 import { toBase64 } from './base64.ts';
+import {
+  createdIdOf,
+  dataOf,
+  grocyErrorSchema,
+  resultOf,
+} from './grocy-answers.ts';
 import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import {
   grocyMasterDataRowsSchema,
   toMasterDataRows,
 } from './grocy-master-data.ts';
 import {
+  grocyProductConversionsSchema,
+  toProductConversions,
+} from './grocy-product-conversions.ts';
+import {
   grocyProductDetailsSchema,
   toProductDetails,
 } from './grocy-product-details.ts';
 import { toGrocyPurchaseBody } from './grocy-purchase.ts';
-import { grocyStockLogRowsSchema, toStockLogRows } from './grocy-stock-log.ts';
-
-// The body of a Grocy refusal: 400 with the error message.
-const grocyErrorSchema = z.looseObject({ error_message: z.string() });
-// The answer of a Grocy object create: the id of the new row.
-const grocyCreatedSchema = z.looseObject({
-  created_object_id: z.coerce.number(),
-});
-
-// The result of a product barcode create: the id of the new product barcode,
-// or the refusal that Grocy answered with 400.
-export type ProductBarcodeResult =
-  { grocy: GrocyRefusal; isRefused: true } | { id: number; isRefused: false };
-
-// Grocy answers a handled refusal with 400 and `{"error_message": ...}`. On
-// a product details read, the refusal means no match: an unknown barcode,
-// a Grocycode of another type, or an unknown or inactive product.
-function isGrocyRefusal(error: unknown): boolean {
-  return (
-    isAxiosError(error) && error.response?.status === HttpStatus.BAD_REQUEST
-  );
-}
+import { stockLogRowsOf } from './grocy-stock-log.ts';
 
 // The status and the message of a Grocy refusal, for the `grocy` field of
 // the grocy-refused problem. A refusal body with no message gives the
 // status text of the response.
 function grocyRefusalOf(error: unknown): GrocyRefusal | null {
-  if (!isGrocyRefusal(error) || !isAxiosError(error) || !error.response) {
+  if (
+    !isAxiosError(error) ||
+    error.response?.status !== HttpStatus.BAD_REQUEST
+  ) {
     return null;
   }
   const { status, statusText } = error.response;
@@ -67,17 +68,6 @@ function grocyRefusalOf(error: unknown): GrocyRefusal | null {
     message: body.success ? body.data.error_message : statusText,
     status,
   };
-}
-
-// A Grocy refusal as the grocy-refused problem of ADR 0014, or the
-// grocy-unavailable problem for every other failure.
-function grocyProblemOf(error: unknown): unknown {
-  const grocy = grocyRefusalOf(error);
-  return grocy === null
-    ? grocyUnavailable(error)
-    : new ProblemException(PROBLEM_TYPES.grocyRefused, grocy.message, {
-        grocy,
-      });
 }
 
 // Grocy answered 500, or Grocy did not answer. The Next API answers 502, as
@@ -101,63 +91,97 @@ function grocyUnavailable(error: unknown): unknown {
 export class GrocyClient {
   constructor(private readonly http: HttpService) {}
 
+  // One Grocy call. A 400 comes back as the refusal. Every other failure is
+  // the grocy-unavailable problem.
+  private async send(
+    request: Observable<AxiosResponse<unknown>>,
+  ): Promise<GrocyAnswer> {
+    try {
+      const { data } = await firstValueFrom(request);
+      return { data, grocy: null };
+    } catch (error) {
+      const grocy = grocyRefusalOf(error);
+      if (grocy === null) {
+        throw grocyUnavailable(error);
+      }
+      return { data: null, grocy };
+    }
+  }
+
+  // One Grocy objects read with a `query[]` filter.
+  private async query(table: string, filter: string): Promise<unknown> {
+    return dataOf(
+      await this.send(
+        this.http.get<unknown>(`/api/objects/${table}`, {
+          params: { 'query[]': filter },
+        }),
+      ),
+    );
+  }
+
   // The active rows of one master data table. The Grocy objects endpoint
   // returns every row in one response and filters with `query[]=active=1`.
   private async listActiveRows(
     table: GrocyMasterDataTable,
   ): Promise<MasterDataRow[]> {
-    let data: unknown;
-    try {
-      ({ data } = await firstValueFrom(
-        this.http.get<unknown>(`/api/objects/${table}`, {
-          params: { 'query[]': 'active=1' },
-        }),
-      ));
-    } catch (error) {
-      throw grocyUnavailable(error);
-    }
+    const data = await this.query(table, 'active=1');
     return toMasterDataRows(grocyMasterDataRowsSchema.parse(data));
   }
 
+  // The product details, or null on a refusal. The refusal means no match: an
+  // unknown barcode, a Grocycode of another type, or an unknown or inactive
+  // product.
   private async readDetails(path: string): Promise<null | ProductDetails> {
-    let data: unknown;
-    try {
-      ({ data } = await firstValueFrom(this.http.get<unknown>(path)));
-    } catch (error) {
-      if (isGrocyRefusal(error)) {
-        return null;
-      }
-      throw grocyUnavailable(error);
-    }
-    return toProductDetails(grocyProductDetailsSchema.parse(data));
+    const answer = await this.send(this.http.get<unknown>(path));
+    return answer.grocy === null
+      ? toProductDetails(grocyProductDetailsSchema.parse(answer.data))
+      : null;
+  }
+
+  // One row into one Grocy table through the Grocy objects endpoint. Grocy
+  // answers the id of the new row, or 400 with the reason when Grocy refuses
+  // the row, for example when a unique column has the value already.
+  private async createObject(
+    table: GrocyWritableTable,
+    body: unknown,
+  ): Promise<CreatedObjectResult> {
+    const answer = await this.send(
+      this.http.post<unknown>(`/api/objects/${table}`, body),
+    );
+    return resultOf(answer, createdIdOf);
+  }
+
+  // One Grocy update. Grocy answers 204 and no body.
+  private async put(path: string, body: unknown, headers = {}): Promise<void> {
+    dataOf(await this.send(this.http.put(path, body, { headers })));
+  }
+
+  // This method creates one product. Grocy answers the id of the new row, or
+  // 400 with the reason when Grocy refuses it, for example when another
+  // product has the name. Grocy does not check that the ids of the body name
+  // a row, so the caller checks them first.
+  createProduct(body: GrocyProductBody): Promise<CreatedObjectResult> {
+    return this.createObject('products', body);
   }
 
   // This method adds a code as a product barcode of one product. Grocy
-  // answers the id of the new row, or 400 with the reason when Grocy refuses
-  // it, for example when another product has the code.
-  async createProductBarcode(
+  // refuses it, for example, when another product has the code.
+  createProductBarcode(
     productId: number,
     barcode: string,
-  ): Promise<ProductBarcodeResult> {
-    let data: unknown;
-    try {
-      ({ data } = await firstValueFrom(
-        this.http.post<unknown>('/api/objects/product_barcodes', {
-          barcode,
-          product_id: productId,
-        }),
-      ));
-    } catch (error) {
-      const grocy = grocyRefusalOf(error);
-      if (grocy !== null) {
-        return { grocy, isRefused: true };
-      }
-      throw grocyUnavailable(error);
-    }
-    return {
-      id: grocyCreatedSchema.parse(data).created_object_id,
-      isRefused: false,
-    };
+  ): Promise<CreatedObjectResult> {
+    return this.createObject('product_barcodes', {
+      barcode,
+      product_id: productId,
+    });
+  }
+
+  // This method adds one conversion row of one product. Grocy refuses it,
+  // for example, when the product has a row for the pair of units already.
+  createProductConversion(
+    body: GrocyProductConversionBody,
+  ): Promise<CreatedObjectResult> {
+    return this.createObject('quantity_unit_conversions', body);
   }
 
   listLocations(): Promise<MasterDataRow[]> {
@@ -199,50 +223,32 @@ export class GrocyClient {
     productId: number,
     purchase: Purchase,
   ): Promise<PurchaseResult> {
-    let data: unknown;
-    try {
-      ({ data } = await firstValueFrom(
-        this.http.post<unknown>(
-          `/api/stock/products/${String(productId)}/add`,
-          toGrocyPurchaseBody(purchase),
-        ),
-      ));
-    } catch (error) {
-      const grocy = grocyRefusalOf(error);
-      if (grocy !== null) {
-        return { grocy, isRefused: true };
-      }
-      throw grocyUnavailable(error);
-    }
-    return {
-      isRefused: false,
-      rows: toStockLogRows(grocyStockLogRowsSchema.parse(data)),
-    };
+    const answer = await this.send(
+      this.http.post<unknown>(
+        `/api/stock/products/${String(productId)}/add`,
+        toGrocyPurchaseBody(purchase),
+      ),
+    );
+    return resultOf(answer, stockLogRowsOf);
+  }
+
+  // The conversion rows of one product in the Grocy table
+  // `quantity_unit_conversions`: the rows that the Grocy trigger created for
+  // the product and the rows that the household added. Grocy answers an
+  // empty list for an unknown product.
+  async readProductConversions(
+    productId: number,
+  ): Promise<ProductConversion[]> {
+    const data = await this.query(
+      'quantity_unit_conversions',
+      `product_id=${String(productId)}`,
+    );
+    return toProductConversions(grocyProductConversionsSchema.parse(data));
   }
 
   // The product details by id, or null when no active product has the id.
   readProductDetails(productId: number): Promise<null | ProductDetails> {
     return this.readDetails(`/api/stock/products/${String(productId)}`);
-  }
-
-  // The resolved conversions of one product: every pair of quantity units
-  // with a path between them and the factor of the path. Grocy answers an
-  // empty list for an unknown product.
-  async readResolvedConversions(
-    productId: number,
-  ): Promise<QuantityUnitConversion[]> {
-    let data: unknown;
-    try {
-      ({ data } = await firstValueFrom(
-        this.http.get<unknown>(
-          '/api/objects/quantity_unit_conversions_resolved',
-          { params: { 'query[]': `product_id=${String(productId)}` } },
-        ),
-      ));
-    } catch (error) {
-      throw grocyUnavailable(error);
-    }
-    return toConversions(grocyConversionsSchema.parse(data));
   }
 
   // The product details by product barcode, or null when no product barcode
@@ -253,38 +259,42 @@ export class GrocyClient {
     );
   }
 
+  // The resolved conversions of one product: every pair of quantity units
+  // with a path between them and the factor of the path. Grocy answers an
+  // empty list for an unknown product.
+  async readResolvedConversions(
+    productId: number,
+  ): Promise<QuantityUnitConversion[]> {
+    const data = await this.query(
+      'quantity_unit_conversions_resolved',
+      `product_id=${String(productId)}`,
+    );
+    return toConversions(grocyConversionsSchema.parse(data));
+  }
+
+  // This method sets the factor of one conversion row.
+  setConversionFactor(id: number, factor: number): Promise<void> {
+    return this.put(`/api/objects/quantity_unit_conversions/${String(id)}`, {
+      factor,
+    });
+  }
+
   // This method sets the picture of one product to a file that the product
-  // picture upload stored. Grocy answers 204 and no body.
-  async setProductPicture(productId: number, fileName: string): Promise<void> {
-    try {
-      await firstValueFrom(
-        this.http.put(`/api/objects/products/${String(productId)}`, {
-          picture_file_name: fileName,
-        }),
-      );
-    } catch (error) {
-      throw grocyProblemOf(error);
-    }
+  // picture upload stored.
+  setProductPicture(productId: number, fileName: string): Promise<void> {
+    return this.put(`/api/objects/products/${String(productId)}`, {
+      picture_file_name: fileName,
+    });
   }
 
   // This method uploads one file as a product picture through the Grocy file
-  // API. The file name, with its extension, goes BASE64 encoded in the path,
-  // and Grocy answers 204 and no body.
-  async uploadProductPicture(
-    fileName: string,
-    bytes: Uint8Array,
-  ): Promise<void> {
+  // API. The file name, with its extension, goes BASE64 encoded in the path.
+  uploadProductPicture(fileName: string, bytes: Uint8Array): Promise<void> {
     const encodedName = toBase64(fileName);
-    try {
-      await firstValueFrom(
-        this.http.put(
-          `/api/files/productpictures/${encodeURIComponent(encodedName)}`,
-          Buffer.from(bytes),
-          { headers: { 'content-type': 'application/octet-stream' } },
-        ),
-      );
-    } catch (error) {
-      throw grocyProblemOf(error);
-    }
+    return this.put(
+      `/api/files/productpictures/${encodeURIComponent(encodedName)}`,
+      Buffer.from(bytes),
+      { 'content-type': 'application/octet-stream' },
+    );
   }
 }

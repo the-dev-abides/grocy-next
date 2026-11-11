@@ -24,9 +24,14 @@ const grocyStockLogRowSchema = z.looseObject({
   transaction_type: z.string(),
 });
 
-export const grocyStockLogRowsSchema = z.array(grocyStockLogRowSchema);
+const grocyStockLogRowsSchema = z.array(grocyStockLogRowSchema);
 
-export function toStockLogRows(
+// The stock log rows of a booking answer, as the result of the booking.
+export function stockLogRowsOf(data: unknown): { rows: StockLogRow[] } {
+  return { rows: toStockLogRows(grocyStockLogRowsSchema.parse(data)) };
+}
+
+function toStockLogRows(
   rows: z.infer<typeof grocyStockLogRowsSchema>,
 ): StockLogRow[] {
   return rows.map((row) => {

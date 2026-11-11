@@ -68,8 +68,7 @@ const productListSchema = z.strictObject({
   items: z.array(productListItemSchema).meta({ description: 'Every product.' }),
 });
 
-// The path parameter of a read. The id arrives as text and becomes an
-// integer.
+// The path parameter of a read. The id arrives as text and becomes an integer.
 const productIdSchema = z.strictObject({
   id: z.coerce
     .number()
@@ -78,11 +77,69 @@ const productIdSchema = z.strictObject({
     .meta({ description: 'The id of the product.' }),
 });
 
+// The body of the short product form. Grocy requires the name, the
+// location, and the two units. Every other field is optional, and an absent
+// field means unset, as ADR 0014 decided: no description, no product group,
+// the factor 1, no due date rule, and no minimum stock. The product has no
+// conversion row when the purchase unit is the stock unit, so the factor is
+// then 1.
+const productFormSchema = z
+  .strictObject({
+    defaultDueDays: z.int().min(-1).default(0).meta({
+      description:
+        'The default due days of a new stock entry. 0 means no due date, and -1 means never overdue.',
+    }),
+    description: z
+      .string()
+      .optional()
+      .meta({ description: 'The description of the product.' }),
+    locationId: z
+      .int()
+      .positive()
+      .meta({ description: 'The id of the default location.' }),
+    minStockAmount: z
+      .number()
+      .min(0)
+      .default(0)
+      .meta({ description: 'The minimum stock amount in the stock unit.' }),
+    name: z.string().min(1).meta({ description: 'The name of the product.' }),
+    productGroupId: z
+      .int()
+      .positive()
+      .optional()
+      .meta({ description: 'The id of the product group.' }),
+    purchaseToStockFactor: z.number().positive().default(1).meta({
+      description:
+        'The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.',
+    }),
+    purchaseUnitId: z
+      .int()
+      .positive()
+      .meta({ description: 'The id of the purchase quantity unit.' }),
+    stockUnitId: z
+      .int()
+      .positive()
+      .meta({ description: 'The id of the stock quantity unit.' }),
+  })
+  .refine(
+    (body) => {
+      return (
+        body.purchaseUnitId !== body.stockUnitId ||
+        body.purchaseToStockFactor === 1
+      );
+    },
+    {
+      message: 'must be 1 when the purchase unit is the stock unit',
+      path: ['purchaseToStockFactor'],
+    },
+  );
+
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 
 // The DTO classes carry the schemas into the OpenAPI document and the
 // validation pipe. The class name is the schema name in the document. The
 // list item enters the document through its meta id.
 export class Product extends createZodDto(productSchema) {}
+export class CreateProduct extends createZodDto(productFormSchema) {}
 export class ProductList extends createZodDto(productListSchema) {}
 export class ProductId extends createZodDto(productIdSchema) {}
