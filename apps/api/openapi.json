@@ -607,6 +607,69 @@
         "tags": ["Products"]
       }
     },
+    "/api/v2/products/{id}": {
+      "get": {
+        "operationId": "getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The id of the product.",
+            "schema": {
+              "maximum": 9007199254740991,
+              "exclusiveMinimum": true,
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "Read one product.",
+        "tags": ["Products"]
+      }
+    },
     "/api/v2/locations": {
       "get": {
         "operationId": "listLocations",
@@ -1120,7 +1183,7 @@
         "required": ["detail", "instance", "status", "title", "type"],
         "additionalProperties": false
       },
-      "Product": {
+      "ProductListItem": {
         "type": "object",
         "properties": {
           "description": {
@@ -1148,12 +1211,38 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Product"
+              "$ref": "#/components/schemas/ProductListItem"
             },
             "description": "Every product."
           }
         },
         "required": ["items"],
+        "additionalProperties": false
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "The description of the product, or null when it has none.",
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the product."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product."
+          },
+          "stockAmount": {
+            "type": "number",
+            "description": "The own stock of the product in the stock unit."
+          }
+        },
+        "required": ["description", "id", "name", "stockAmount"],
         "additionalProperties": false
       },
       "Location": {
