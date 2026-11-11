@@ -578,6 +578,82 @@
       }
     },
     "/api/v2/products": {
+      "post": {
+        "operationId": "createProduct",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProduct"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The product as Grocy stores it.",
+            "headers": {
+              "Location": {
+                "description": "The path of the new product.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The request fails the schema"
+          },
+          "415": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "The body is not JSON"
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "An id names nothing in Grocy\n\nGrocy refused the change"
+          },
+          "502": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Grocy is unavailable"
+          }
+        },
+        "summary": "Create a product.",
+        "tags": ["Products"]
+      },
       "get": {
         "operationId": "listProducts",
         "parameters": [],
@@ -1314,6 +1390,153 @@
         "required": ["detail", "instance", "status", "title", "type"],
         "additionalProperties": false
       },
+      "CreateProduct": {
+        "type": "object",
+        "properties": {
+          "defaultDueDays": {
+            "default": 0,
+            "description": "The default due days of a new stock entry. 0 means no due date, and -1 means never overdue.",
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 9007199254740991
+          },
+          "description": {
+            "description": "The description of the product.",
+            "type": "string"
+          },
+          "locationId": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "description": "The id of the default location.",
+            "minimum": 0
+          },
+          "minStockAmount": {
+            "default": 0,
+            "description": "The minimum stock amount in the stock unit.",
+            "type": "number",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The name of the product."
+          },
+          "productGroupId": {
+            "description": "The id of the product group.",
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "purchaseToStockFactor": {
+            "default": 1,
+            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.",
+            "type": "number",
+            "exclusiveMinimum": true,
+            "minimum": 0
+          },
+          "purchaseUnitId": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "description": "The id of the purchase quantity unit.",
+            "minimum": 0
+          },
+          "stockUnitId": {
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "description": "The id of the stock quantity unit.",
+            "minimum": 0
+          }
+        },
+        "required": ["locationId", "name", "purchaseUnitId", "stockUnitId"],
+        "additionalProperties": false
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "The description of the product, or null when it has none.",
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the product."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the product."
+          },
+          "defaultDueDays": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The default due days of a new stock entry. 0 means no due date, and -1 means never overdue."
+          },
+          "hasPicture": {
+            "type": "boolean",
+            "description": "Whether the product has a picture."
+          },
+          "locationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the default location.",
+            "nullable": true
+          },
+          "minStockAmount": {
+            "type": "number",
+            "description": "The minimum stock amount in the stock unit."
+          },
+          "productGroupId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the product group, or null.",
+            "nullable": true
+          },
+          "purchaseToStockFactor": {
+            "type": "number",
+            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units."
+          },
+          "purchaseUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the purchase quantity unit."
+          },
+          "stockAmount": {
+            "type": "number",
+            "description": "The own stock of the product in the stock unit."
+          },
+          "stockUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the stock quantity unit."
+          }
+        },
+        "required": [
+          "description",
+          "id",
+          "name",
+          "defaultDueDays",
+          "hasPicture",
+          "locationId",
+          "minStockAmount",
+          "productGroupId",
+          "purchaseToStockFactor",
+          "purchaseUnitId",
+          "stockAmount",
+          "stockUnitId"
+        ],
+        "additionalProperties": false
+      },
       "ProductListItem": {
         "type": "object",
         "properties": {
@@ -1348,36 +1571,6 @@
           }
         },
         "required": ["items"],
-        "additionalProperties": false
-      },
-      "Product": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "description": "The description of the product, or null when it has none.",
-            "type": "string",
-            "nullable": true
-          },
-          "id": {
-            "type": "integer",
-            "minimum": -9007199254740991,
-            "maximum": 9007199254740991,
-            "description": "The id of the product."
-          },
-          "name": {
-            "type": "string",
-            "description": "The name of the product."
-          },
-          "hasPicture": {
-            "type": "boolean",
-            "description": "Whether the product has a picture."
-          },
-          "stockAmount": {
-            "type": "number",
-            "description": "The own stock of the product in the stock unit."
-          }
-        },
-        "required": ["description", "id", "name", "hasPicture", "stockAmount"],
         "additionalProperties": false
       },
       "Location": {
