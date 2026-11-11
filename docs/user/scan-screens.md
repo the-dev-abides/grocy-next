@@ -156,6 +156,8 @@ date, and the price.
 
 - A repeat scan of a product adds 1 to the amount of its row. The screen does
   not add a second row.
+- When you type a price before a repeat scan, the row takes that price and
+  its type. A repeat scan with no typed price keeps the price of the row.
 - Tap the minus button or the plus button to change the amount. The amount
   does not go below 0.
 

@@ -291,6 +291,51 @@ describe('the pending scans of the Next API', () => {
     expect(items).toEqual([body]);
   });
 
+  // A scan screen sends the price that the user typed for the next scan. A
+  // repeat scan with a price gives the merged row that price and its price
+  // type. The repeat scan above sends no price, so the row keeps its price.
+  it('gives the merged row the price and the price type of a repeat scan with a price', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    const body = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+      price: 4.5,
+      priceType: 'total',
+    });
+
+    expect(body).toMatchObject({
+      amount: 2,
+      id: first.id,
+      price: 4.5,
+      priceType: 'total',
+    });
+  });
+
+  it('gives the merged row the unit price type when a repeat scan has a price and no price type', async () => {
+    const first = await createAndRead({
+      bookingType: 'purchase',
+      code: '7622300441937',
+      price: 3,
+      priceType: 'total',
+    });
+
+    const body = await createAndRead({
+      bookingType: 'purchase',
+      code: '7622300441937',
+      price: 1.25,
+    });
+
+    expect(body).toMatchObject({
+      id: first.id,
+      price: 1.25,
+      priceType: 'unit',
+    });
+  });
+
   it('moves the merged row to the top of the list', async () => {
     const first = await createAndRead({
       bookingType: 'purchase',

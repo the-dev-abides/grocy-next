@@ -2,6 +2,7 @@ import type { EntityManager, FindOptionsWhere } from 'typeorm';
 
 import { In, IsNull, Not } from 'typeorm';
 
+import type { CreatePendingScan } from './pending-scan.ts';
 import type { ProductMatch } from './resolve-code.ts';
 import type {
   PendingScanToStore,
@@ -9,7 +10,7 @@ import type {
 } from './storage/stored-pending-scan.ts';
 
 import { codeForms } from './code-forms.ts';
-import { DEFAULT_PURCHASE_AMOUNT } from './pending-scan-to-store.ts';
+import { bodyPrice, DEFAULT_PURCHASE_AMOUNT } from './pending-scan-to-store.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 
 // Whether a create applies the repeat rule of ADR 0010. A create from a scan
@@ -56,11 +57,14 @@ function queryRepeatTarget(
 // This function adds a repeat scan to its target row and returns the row to
 // store, or null when the repeat changes nothing. Purchase: add the product
 // barcode amount when the product barcode has one, else one, and set the
-// scan time to now. Inventory: change nothing. The Inventory scan screen
-// makes the list of the products, and the review queue sets the amounts.
+// scan time to now. When the body of the repeat scan has a price, the row
+// takes that price and its price type. Else the row keeps its price.
+// Inventory: change nothing. The Inventory scan screen makes the list of the
+// products, and the review queue sets the amounts.
 export function mergedPendingScan(
   target: StoredPendingScan,
   match: null | ProductMatch,
+  body: CreatePendingScan,
   now: string,
 ): null | StoredPendingScan {
   if (target.bookingType === 'inventory') {
@@ -68,6 +72,7 @@ export function mergedPendingScan(
   }
   return {
     ...target,
+    ...bodyPrice(body),
     amount:
       (target.amount ?? 0) +
       (match?.barcode?.amount ?? DEFAULT_PURCHASE_AMOUNT),

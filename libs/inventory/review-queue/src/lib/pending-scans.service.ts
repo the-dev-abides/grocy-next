@@ -109,7 +109,7 @@ export class PendingScansService {
           const pendingScan = await manager.save(storedPendingScanSchema, row);
           return { isMerged: false, pendingScan };
         }
-        const merged = mergedPendingScan(target, match, row.scannedAt);
+        const merged = mergedPendingScan(target, match, body, row.scannedAt);
         const pendingScan =
           merged === null
             ? target

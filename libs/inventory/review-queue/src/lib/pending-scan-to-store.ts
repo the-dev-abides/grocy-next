@@ -56,6 +56,14 @@ function productFields(
   };
 }
 
+// The price of the body with its price type, or null when the body has no
+// price. The default price type is the unit price.
+export function bodyPrice(body: CreatePendingScan): null | PriceFields {
+  return body.price === undefined
+    ? null
+    : { price: body.price, priceType: body.priceType ?? DEFAULT_PRICE_TYPE };
+}
+
 // A price from the body keeps its price type. The last price of a product
 // barcode is the price of one product barcode amount. It enters as a unit
 // price in the unit of the product barcode: the last price divided by the
@@ -65,11 +73,9 @@ function priceFields(
   body: CreatePendingScan,
   barcode: Omit<ProductBarcode, 'barcode' | 'id'>,
 ): PriceFields {
-  if (body.price !== undefined) {
-    return {
-      price: body.price,
-      priceType: body.priceType ?? DEFAULT_PRICE_TYPE,
-    };
+  const price = bodyPrice(body);
+  if (price !== null) {
+    return price;
   }
   if (barcode.price !== null) {
     return {
