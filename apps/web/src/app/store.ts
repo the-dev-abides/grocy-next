@@ -1,12 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type Store } from '@reduxjs/toolkit';
 
-import { api } from './api';
+import { nextApi } from './api/next-api';
 
-export const store = configureStore({
+// The store is typed as a plain Redux store. The declaration emit of the
+// type check must name every type of an exported value, and the API slice
+// exports only the types that the screens import. No screen reads the state
+// type of the store; the hooks of the API slice carry their own types.
+export const store: Store = configureStore({
   // The API middleware manages the cache lifetimes of the API slice.
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware().concat(nextApi.middleware),
   reducer: {
-    [api.reducerPath]: api.reducer,
+    [nextApi.reducerPath]: nextApi.reducer,
   },
 });

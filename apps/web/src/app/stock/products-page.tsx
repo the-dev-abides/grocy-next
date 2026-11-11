@@ -5,14 +5,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-import type { Product } from '../api';
+import type { ProductListItem } from '../api/next-api';
 
-import { useListProductsQuery } from '../api';
+import { useListProductsQuery } from '../api/next-api';
 import { Page } from '../shell/page';
 
 // The product list of milestone 1, under Stock in the shell. The list comes
-// as an `items` envelope. The grid has one column on a phone, two on a
-// tablet, and three on a large screen.
+// as an `items` envelope from the API slice. The grid has one column on a
+// phone, two on a tablet, and three on a large screen.
 export function ProductsPage() {
   const { data, isError, isLoading } = useListProductsQuery(undefined);
   const products = data?.items;
@@ -36,7 +36,9 @@ export function ProductsPage() {
   );
 }
 
-function ProductList({ products }: Readonly<{ products: readonly Product[] }>) {
+function ProductList({
+  products,
+}: Readonly<{ products: readonly ProductListItem[] }>) {
   if (products.length === 0) {
     return <p>Grocy has no products.</p>;
   }
