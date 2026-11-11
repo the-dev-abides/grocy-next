@@ -1,8 +1,8 @@
 [
   {
     "id": 101,
-    "product_id": 1,
-    "amount": 1,
+    "product_id": ${context.request.pathParams.productId},
+    "amount": ${context.request.body:$.amount},
     "best_before_date": "2027-01-01",
     "purchased_date": "2026-11-10",
     "used_date": null,
@@ -17,7 +17,7 @@
     "recipe_id": null,
     "correlation_id": null,
     "transaction_id": "69131a2b3c4e6",
-    "stock_row_id": 11,
+    "stock_row_id": null,
     "shopping_location_id": null,
     "user_id": 1,
     "note": null,

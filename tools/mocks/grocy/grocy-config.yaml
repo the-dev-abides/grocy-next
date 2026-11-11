@@ -79,8 +79,11 @@ resources:
     response:
       file: responses/objects-product-barcodes.json
 
-  # The resolved conversions of one product. Each fixture product has one
-  # row: the stock unit to itself with factor 1.
+  # The resolved conversions of one product. Each fixture product has the
+  # row from the stock unit to itself with factor 1. Product 3 also has the
+  # conversion between the Box and the Pack, so a Purchase in Boxes converts
+  # to the stock unit. Product 1 has no conversion from the Pack to the Can,
+  # so a Purchase of it in Packs has no path to the stock unit.
   - path: /api/objects/quantity_unit_conversions_resolved
     method: GET
     queryParams:
@@ -160,13 +163,45 @@ resources:
       statusCode: 400
       content: '{"error_message": "Product does not exist or is inactive"}'
 
-  # The bookings. A purchase and an inventory each return one fixed stock log
-  # row. The row names product 1 and amount 1 for every request. The mock
-  # changes nothing.
+  # The purchase. Grocy refuses a purchase into an inactive location when the
+  # request has no due date. The Garage is the one inactive location, so a
+  # purchase with location 4 and no due date gets that Grocy error. Every
+  # other purchase returns one stock log row with the product of the path,
+  # the amount of the request, and the price of the request when the request
+  # has one. The other fields of the row are fixed. The mock changes nothing.
+  # The two templates are not JSON files, because the placeholders are not
+  # JSON, so the resource names the content type.
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.location_id
+          value: 4
+        - jsonPath: $.best_before_date
+          operator: NotExists
+    response:
+      statusCode: 400
+      content: '{"error_message": "Location does not exist"}'
+  - path: /api/stock/products/{productId}/add
+    method: POST
+    requestBody:
+      jsonPath: $.price
+      operator: Exists
+    response:
+      template: true
+      file: responses/stock-log-purchase.json.template
+      headers:
+        Content-Type: application/json
   - path: /api/stock/products/{productId}/add
     method: POST
     response:
-      file: responses/stock-log-purchase.json
+      template: true
+      file: responses/stock-log-purchase-no-price.json.template
+      headers:
+        Content-Type: application/json
+
+  # The inventory returns one fixed stock log row. The row names product 1
+  # and amount 1 for every request. The mock changes nothing.
   - path: /api/stock/products/{productId}/inventory
     method: POST
     response:

@@ -41,8 +41,14 @@ the specification differs from the Grocy code, and why none of them fails the
 validation.
 
 Each Grocy call has one static response file under `grocy/responses`, matched
-on the path and the query. A booking returns a fixed stock log row and
-changes nothing. The mock holds no state.
+on the path, the query, or a value in the body. The mock holds no state. An
+inventory returns a fixed stock log row and changes nothing. A purchase
+returns one stock log row with the product of the path, the amount of the
+request, and the price of the request when the request has one. The other
+fields of the row are fixed. The two purchase files are templates, not JSON
+files, because the placeholders are not JSON. A purchase with the inactive
+location 4 and no due date gets the Grocy error `Location does not exist`,
+as Grocy answers it.
 
 A request that no resource matches gets the example from the specification,
 not an error. A response that shows Grocy demo data, such as the product
@@ -55,7 +61,7 @@ not an error. A response that shows Grocy demo data, such as the product
 | Locations      | 1 Fridge, 2 Pantry, 3 Freezer, 4 Garage (inactive)                                   |
 | Store          | 1 Supermarket                                                                        |
 | Product groups | 1 Dairy, 2 Snacks                                                                    |
-| Quantity units | 1 Can, 2 Pack                                                                        |
+| Quantity units | 1 Can, 2 Pack, 3 Box                                                                 |
 | Products       | 1 Coca-Cola Original 330 ml, 2 Philadelphia Original 150 g, 3 Nutella Biscuits 304 g |
 
 | Product | Product barcode | Stock unit | Stock | Location | Product group |
@@ -72,6 +78,11 @@ can in its 13-digit form with a leading zero. A typed 12-digit code against
 that product barcode tests the code forms rule of ADR 0011.
 
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
+
+Each product has the resolved conversion from its stock unit to itself with
+factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
+it in Boxes converts to the stock unit. Product 1 has no conversion from the
+Pack to the Can, so a Purchase of it in Packs has no path to the stock unit.
 
 The Garage is the one inactive row of the fixture household. The master data
 lists of the Next API filter with `query[]=active=1`, so the location list
