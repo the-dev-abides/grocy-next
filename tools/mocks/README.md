@@ -150,7 +150,9 @@ Products 4 and 5 have no stock entry.
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
 The camera tests of the end-to-end project own this code. The second unknown
 code is 8076809513722, Barilla Basilico 400 g. The end-to-end test of the
-lookup result types it. No product barcode has it.
+lookup result types it. No product barcode has it. The third unknown code is
+5000157024671, Heinz Beanz 415 g. The end-to-end test of the short product
+form creates a row of it through the API. No product barcode has it.
 
 Each product has the resolved conversion from its stock unit to itself with
 factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
@@ -175,17 +177,23 @@ with the filter holds three rows and the list without it holds four.
 
 ## The Open Food Facts mock
 
-The mock answers `GET /api/v3/product/{code}` for the five fixture codes with
+The mock answers `GET /api/v3/product/{code}` for the six fixture codes with
 the live records of Open Food Facts, stored one time under
 `open-food-facts/responses`: the three product barcodes of the fixture
-household and the two unknown codes. Every other code gets the failure answer of Open
-Food Facts with status 404. The match is on the path only.
+household and the three unknown codes. Every other code gets the failure
+answer of Open Food Facts with status 404. The match is on the path only.
 
 The mock also serves one small JPEG at the image path of the unknown code,
 `/images/products/301/762/042/2003/front_en.879.400.jpg`, and answers 500 at
 `/images/products/301/762/042/2003/front_en.failing.400.jpg`. The image URL
-in each record names the real image host, so a test that needs the image
-points the image URL of the row at the mock.
+in the records of the first two unknown codes names the real image host, so a
+test that needs the image points the image URL of the row at the mock. The
+record of the third unknown code, 5000157024671, names the end-to-end mock on
+port 18081 as its image host, at
+`/images/products/500/015/702/4671/front_en.459.400.jpg`, where the mock
+serves the same small JPEG. The end-to-end test of the short product form
+sets the new product on that row through the browser, and the API downloads
+the picture from the mock. The API tests do not read that record.
 
 To refresh one record, run this command from the repo root and format the
 file with `pnpm nx format:write`:
