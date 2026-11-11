@@ -17,6 +17,13 @@ vi.hoisted(() => {
   process.env['DB_FILE'] = ':memory:';
 });
 
+interface OpenApiOperation {
+  responses: Record<string, { description: string }>;
+}
+interface OpenApiDocument {
+  paths: Record<string, Record<string, OpenApiOperation>>;
+}
+
 interface PendingScanBody {
   code: null | string;
   id: number;
@@ -311,6 +318,27 @@ describe('the update of a pending scan that sets a product', () => {
     });
     expect(await nutritionFacts().findBy({ code: UNKNOWN_CODE })).toMatchObject(
       [{ productBarcodeId: NEW_PRODUCT_BARCODE_ID, productId: 2 }],
+    );
+  });
+
+  // The update that sets a product can fail with the problems of the Grocy
+  // writes, so the operation declares them.
+  it('declares the problems of the Grocy writes on the update in the OpenAPI document', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
+
+    const document = (await response.json()) as OpenApiDocument;
+    const update = document.paths['/api/v2/pending-scans/{id}']?.['patch'];
+    expect(Object.keys(update?.responses ?? {})).toEqual([
+      '200',
+      '400',
+      '404',
+      '409',
+      '415',
+      '422',
+      '502',
+    ]);
+    expect(update?.responses['422']?.description).toBe(
+      'An id names nothing in Grocy\n\nGrocy refused the change',
     );
   });
 

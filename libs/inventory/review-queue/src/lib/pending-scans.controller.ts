@@ -125,7 +125,8 @@ export class PendingScansController {
   }
 
   // The update is a JSON merge patch on the writable fields. An absent field
-  // stays as it is. A field set to null clears it.
+  // stays as it is. A field set to null clears it. An update that sets a
+  // product writes to Grocy, so it can fail with the Grocy problems.
   @Patch(':id')
   @ApiOperation({
     operationId: 'updatePendingScan',
@@ -140,6 +141,9 @@ export class PendingScansController {
     PROBLEM_TYPES.notJson,
     PROBLEM_TYPES.notFound,
     PROBLEM_TYPES.bookingTypeFixed,
+    PROBLEM_TYPES.unknownId,
+    PROBLEM_TYPES.grocyRefused,
+    PROBLEM_TYPES.grocyUnavailable,
   )
   @NoQuery()
   @ZodSerializerDto(PendingScan)
