@@ -1,11 +1,11 @@
 # The Open Food Facts mock. ADR 0015 and ADR 0011 record the decision. The
-# mock answers the v3 product read for the four fixture codes with the live
+# mock answers the v3 product read for the five fixture codes with the live
 # records of Open Food Facts, stored one time. Every other code gets the
 # failure answer of Open Food Facts. The mock holds no state.
 #
 # The API sends `GET /api/v3/product/{code}?product_type=all&fields=...`.
 # The match is on the path only, so the field list does not matter. The live
-# service redirects a code that another Open Facts service holds. The four
+# service redirects a code that another Open Facts service holds. The five
 # fixture codes are Open Food Facts codes, so the mock sends no redirect.
 plugin: rest
 resources:
@@ -17,6 +17,17 @@ resources:
       code: '3017620422003'
     response:
       file: responses/product-3017620422003.json
+
+  # The second unknown test code, Barilla Basilico 400 g. The end-to-end
+  # test of the lookup result on the Purchase scan screen types this code.
+  # The camera tests own the first unknown code, and a typed code merges
+  # into an open row of the same code, so the two tests need two codes.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '8076809513722'
+    response:
+      file: responses/product-8076809513722.json
 
   # The three fixture product codes. A product barcode resolves each of them
   # in Grocy, so the lookup does not run for them. The records are here for

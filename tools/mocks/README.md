@@ -148,6 +148,9 @@ The stock entries of each product, in the Grocy consume order:
 Products 4 and 5 have no stock entry.
 
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
+The camera tests of the end-to-end project own this code. The second unknown
+code is 8076809513722, Barilla Basilico 400 g. The end-to-end test of the
+lookup result types it. No product barcode has it.
 
 Each product has the resolved conversion from its stock unit to itself with
 factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
@@ -172,9 +175,10 @@ with the filter holds three rows and the list without it holds four.
 
 ## The Open Food Facts mock
 
-The mock answers `GET /api/v3/product/{code}` for the four fixture codes with
+The mock answers `GET /api/v3/product/{code}` for the five fixture codes with
 the live records of Open Food Facts, stored one time under
-`open-food-facts/responses`. Every other code gets the failure answer of Open
+`open-food-facts/responses`: the three product barcodes of the fixture
+household and the two unknown codes. Every other code gets the failure answer of Open
 Food Facts with status 404. The match is on the path only.
 
 The mock also serves one small JPEG at the image path of the unknown code,
