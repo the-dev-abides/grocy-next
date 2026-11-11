@@ -3,25 +3,13 @@ import type { TableColumnOptions } from 'typeorm/schema-builder/options/TableCol
 
 import { Table } from 'typeorm';
 
+import type { ColumnType } from './table-columns.ts';
+
+import { columnOf, idColumnOf } from './table-columns.ts';
+
 const TABLE_NAME = 'pending_scan';
 
-type ColumnType =
-  'date' | 'float' | 'integer' | 'text' | 'varchar' | DateConstructor;
-
-// One column of the table. The driver of the connection maps the TypeORM
-// type name to its own type.
-function columnOf(
-  driver: Driver,
-  name: string,
-  type: ColumnType,
-  isNullable = true,
-): TableColumnOptions {
-  return { isNullable, name, type: driver.normalizeType({ type }) };
-}
-
-// The columns of the pending scan table. The types are the TypeORM names of
-// the entity schema, so one migration creates the table on SQLite and
-// PostgreSQL.
+// The columns of the pending scan table.
 function columnsOf(driver: Driver): TableColumnOptions[] {
   const column = (
     name: string,
@@ -29,13 +17,7 @@ function columnsOf(driver: Driver): TableColumnOptions[] {
     isNullable = true,
   ): TableColumnOptions => columnOf(driver, name, type, isNullable);
   return [
-    {
-      generationStrategy: 'increment',
-      isGenerated: true,
-      isPrimary: true,
-      name: 'id',
-      type: driver.normalizeType({ type: 'integer' }),
-    },
+    idColumnOf(driver),
     column('code', 'varchar'),
     column('bookingType', 'varchar', false),
     column('productId', 'integer'),
