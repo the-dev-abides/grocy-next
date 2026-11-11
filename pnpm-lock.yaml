@@ -445,7 +445,11 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3
 
-  apps/web-e2e: {}
+  apps/web-e2e:
+    devDependencies:
+      zxing-wasm:
+        specifier: ^3.1.6
+        version: 3.1.6(@types/emscripten@1.41.6)
 
   libs/inventory/products:
     dependencies:

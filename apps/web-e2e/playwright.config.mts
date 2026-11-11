@@ -24,6 +24,9 @@ const IMPOSTER_FLAGS = '--auto-restart=false --log-level info';
 // the API takes longer than the Playwright default of one minute.
 const START_TIMEOUT_MS = 180_000;
 
+// The test file of the camera path.
+const CAMERA_TESTS = /camera\.spec\.ts$/u;
+
 // The API writes its SQLite file into a new temporary folder on every run.
 const databaseFolder = mkdtempSync(path.join(tmpdir(), 'grocy-next-e2e-'));
 
@@ -41,12 +44,17 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // The camera tests run on Chromium only, with the Chromium fake camera.
+    // Firefox has only a built-in test pattern, and WebKit has no fake
+    // camera, as ADR 0015 decided.
     {
       name: 'firefox',
+      testIgnore: CAMERA_TESTS,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
+      testIgnore: CAMERA_TESTS,
       use: { ...devices['Desktop Safari'] },
     },
   ],
