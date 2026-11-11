@@ -225,7 +225,7 @@ interface CreatePendingScan {
   // The product name that the user typed on the scan screen.
   writeInName?: string;
 }
-export interface UpdatePendingScan {
+interface UpdatePendingScan {
   // The amount.
   amount?: null | number;
   // The booking that the accept makes. Set at create.
