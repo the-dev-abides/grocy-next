@@ -53,7 +53,9 @@ inactive location 4 and no due date gets the Grocy error `Location does not
 exist`, as Grocy answers it. An inventory with a new amount equal to the
 fixture stock of the product gets the Grocy error `The new amount cannot
 equal the current stock amount`, as Grocy answers it, so a test of the
-no-change accept sees that the Next API did not call Grocy. An inventory with
+no-change accept sees that the Next API did not call Grocy. For the tare
+weight product 7 the fixture stock is the own stock 500 plus the tare weight
+250, so the new amount 750 gets that Grocy error. An inventory with
 the inactive location 4 and no due date gets the same Grocy error as a
 purchase. The mock holds no stock, so it cannot book the difference. An
 inventory of product 1 returns a decrease: two stock log rows with negative
@@ -81,25 +83,46 @@ the create and the factor of the update. The description and the product
 group are not captured, because a field that the request left out renders
 as `<nil>`, so the details of product 4 answer null for both.
 
+The resolved conversions of product 4 hold one row, from the purchase unit
+to the stock unit with the factor of the store. When the two units are
+equal, that row is the row from the stock unit to itself with factor 1. The
+template cannot leave a row out, so the product has no other row.
+
+The stock entries of a product come from the Grocy view `stock_next_use`,
+which sorts them in the consume order: the stock entries at the default
+consume location of the product first, then the open stock entries, then
+the earliest due date, then the earliest purchase date. Each stock entries
+file holds its rows in that order. Product 1 has five stock entries in two
+locations, and the Fridge is its default consume location, so each rule of
+the order moves one row. The first two rows are the two stock entries that
+the inventory decrease of product 1 takes from. An unknown product gets an
+empty list, as Grocy answers it.
+
 A request that no resource matches gets the example from the specification,
 not an error. A response that shows Grocy demo data, such as the product
 "Cookies", means that the resource is missing.
 
 ### The fixture household
 
-| Entity         | Rows                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------ |
-| Locations      | 1 Fridge, 2 Pantry, 3 Freezer, 4 Garage (inactive)                                   |
-| Store          | 1 Supermarket                                                                        |
-| Product groups | 1 Dairy, 2 Snacks                                                                    |
-| Quantity units | 1 Can, 2 Pack, 3 Box                                                                 |
-| Products       | 1 Coca-Cola Original 330 ml, 2 Philadelphia Original 150 g, 3 Nutella Biscuits 304 g |
+| Entity         | Rows                                                                                                                                    |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Locations      | 1 Fridge, 2 Pantry, 3 Freezer, 4 Garage (inactive)                                                                                      |
+| Store          | 1 Supermarket                                                                                                                           |
+| Product groups | 1 Dairy, 2 Snacks                                                                                                                       |
+| Quantity units | 1 Can, 2 Pack, 3 Box, 4 Gram                                                                                                            |
+| Products       | 1 Coca-Cola Original 330 ml, 2 Philadelphia Original 150 g, 3 Nutella Biscuits 304 g, 5 Yoghurt, 6 Yoghurt Strawberry 150 g, 7 Rice jar |
 
-| Product | Product barcode | Stock unit | Stock | Location | Product group |
-| ------- | --------------- | ---------- | ----- | -------- | ------------- |
-| 1       | 5449000000996   | Can        | 6     | Fridge   | none          |
-| 2       | 7622300441937   | Pack       | 2     | Fridge   | Dairy         |
-| 3       | 8000500310427   | Pack       | 1     | Pantry   | Snacks        |
+| Product | Product barcode | Stock unit | Stock | Location | Product group | Note                                                  |
+| ------- | --------------- | ---------- | ----- | -------- | ------------- | ----------------------------------------------------- |
+| 1       | 5449000000996   | Can        | 6     | Fridge   | none          | The default consume location is the Fridge.           |
+| 2       | 7622300441937   | Pack       | 2     | Fridge   | Dairy         |                                                       |
+| 3       | 8000500310427   | Pack       | 1     | Pantry   | Snacks        |                                                       |
+| 5       | none            | Pack       | 0     | Fridge   | Dairy         | The parent product of product 6. No own stock.        |
+| 6       | none            | Pack       | 3     | Fridge   | Dairy         | The child of product 5.                               |
+| 7       | none            | Gram       | 500   | Pantry   | none          | Tare weight handling is on. The tare weight is 250 g. |
+
+Product 4 is the product that the product create answers. It is not in the
+product list, because the mock holds no state.
 
 The product barcode 5449000000996 has the last price 0.85. The product
 barcode 8000500310427 has the amount 2, so a scan of it carries a product
@@ -107,6 +130,22 @@ barcode amount. Product 1 has a
 second product barcode, 0049000006346: the UPC-A code 049000006346 of the
 can in its 13-digit form with a leading zero. A typed 12-digit code against
 that product barcode tests the code forms rule of ADR 0011.
+
+The stock entries of each product, in the Grocy consume order:
+
+| Product | Stock entry | Amount | Location | Open | Due date   | Purchase date |
+| ------- | ----------- | ------ | -------- | ---- | ---------- | ------------- |
+| 1       | 11          | 2      | Fridge   | no   | 2026-12-15 | 2026-10-20    |
+| 1       | 12          | 1      | Fridge   | no   | 2027-01-01 | 2026-11-01    |
+| 1       | 14          | 1      | Pantry   | yes  | 2027-02-01 | 2026-11-05    |
+| 1       | 13          | 1      | Pantry   | no   | 2026-12-01 | 2026-10-01    |
+| 1       | 15          | 1      | Pantry   | no   | 2026-12-01 | 2026-10-25    |
+| 2       | 16          | 2      | Fridge   | no   | 2026-12-01 | 2026-01-10    |
+| 3       | 17          | 1      | Pantry   | no   | 2027-01-15 | 2026-01-10    |
+| 6       | 20          | 3      | Fridge   | no   | 2026-11-25 | 2026-11-08    |
+| 7       | 21          | 500    | Pantry   | no   | 2027-06-30 | 2026-10-15    |
+
+Products 4 and 5 have no stock entry.
 
 The unknown code is 3017620422003, Nutella 400 g. No product barcode has it.
 

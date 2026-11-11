@@ -1,9 +1,10 @@
 # The Grocy mock. ADR 0015 records the decision. The mock is the one stand-in
 # for Grocy in the end-to-end tests and in the API tests. It serves the
 # fixture household: three active locations and one inactive location, one
-# store, two product groups, two quantity units, and three products with one
-# product barcode and some stock each. The mock holds no state. A booking returns a fixed stock log row and
-# changes nothing.
+# store, two product groups, four quantity units, and six products: three
+# plain products with one product barcode and some stock each, a parent
+# product with one child, and a tare weight product. The mock holds no
+# state. A booking returns a fixed stock log row and changes nothing.
 #
 # The specification is the Grocy OpenAPI file from the reference folder, with
 # the five entity enums and the server path `/api` that Grocy writes into the
@@ -199,6 +200,38 @@ resources:
       query[]: product_id=3
     response:
       file: responses/objects-quantity-unit-conversions-resolved-product-3.json
+  # The resolved conversions of the new product 4 hold one row, from the
+  # purchase unit to the stock unit with the factor of the store `product`.
+  # When the two units are equal, that row is the row from the stock unit to
+  # itself with factor 1, as Grocy resolves it. The template cannot leave a
+  # row out, so the product has no other row.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=4
+    response:
+      template: true
+      file: responses/objects-quantity-unit-conversions-resolved-product-4.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=5
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-5.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=6
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-6.json
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=7
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-7.json
 
   # The product details by barcode. The three fixture codes and the second
   # product barcode of product 1 resolve. Every other code gets the Grocy
@@ -238,8 +271,11 @@ resources:
   # that the product create answered. Its template reads the store `product`,
   # so the details show the fields of the create request and the factor of
   # the conversion row update. The template holds no quantity unit object
-  # and no location object, because the store holds the ids only. Every
-  # other id gets the Grocy error.
+  # and no location object, because the store holds the ids only. Product 5
+  # is the parent product Yoghurt with no own stock and `has_childs` true,
+  # product 6 is its child with three packs, and product 7 is the tare weight
+  # product Rice jar with tare weight handling on, the tare weight 250, and
+  # 500 grams in stock. Every other id gets the Grocy error.
   - path: /api/stock/products/{productId}
     method: GET
     pathParams:
@@ -269,9 +305,72 @@ resources:
         Content-Type: application/json
   - path: /api/stock/products/{productId}
     method: GET
+    pathParams:
+      productId: '5'
+    response:
+      file: responses/stock-product-5.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '6'
+    response:
+      file: responses/stock-product-6.json
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '7'
+    response:
+      file: responses/stock-product-7.json
+  - path: /api/stock/products/{productId}
+    method: GET
     response:
       statusCode: 400
       content: '{"error_message": "Product does not exist or is inactive"}'
+
+  # The stock entries of one product. Grocy reads them from the view
+  # `stock_next_use`, which sorts them in the consume order: the stock
+  # entries at the default consume location of the product first, then the
+  # open stock entries, then the earliest due date, then the earliest
+  # purchase date. Each file holds the rows in that order. Product 1 has five
+  # stock entries in two locations, with the Fridge as its default consume
+  # location, so each rule of the order moves one row. The two stock entries
+  # that the inventory decrease of product 1 below takes from are the first
+  # two rows. The parent product 5 has no own stock entry. Grocy answers an
+  # empty list for an unknown product, as does the mock.
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-product-1-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '2'
+    response:
+      file: responses/stock-product-2-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '3'
+    response:
+      file: responses/stock-product-3-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '6'
+    response:
+      file: responses/stock-product-6-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '7'
+    response:
+      file: responses/stock-product-7-entries.json
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    response:
+      file: responses/stock-product-entries-none.json
 
   # The purchase. Grocy refuses a purchase into an inactive location when the
   # request has no due date. The Garage is the one inactive location, so a
@@ -313,7 +412,9 @@ resources:
   # The inventory. Grocy refuses a new amount that equals the stock of the
   # product, and the Next API calls no Grocy in that case, so a new amount
   # equal to the fixture stock gets that Grocy error, and a test of the
-  # no-change accept sees that the Next API did not call Grocy. Grocy refuses
+  # no-change accept sees that the Next API did not call Grocy. For the tare
+  # weight product the fixture stock is the own stock plus the tare weight.
+  # Grocy refuses
   # an increase into the inactive location 4 when the request has no due
   # date, as on a purchase. The mock holds no stock, so it cannot book the
   # difference. An inventory of product 1 answers a decrease: two stock log
@@ -352,6 +453,18 @@ resources:
     requestBody:
       jsonPath: $.new_amount
       value: 1
+    response:
+      statusCode: 400
+      content: '{"error_message": "The new amount cannot equal the current stock amount"}'
+  # The tare weight product 7: the new amount is the gross weight, and Grocy
+  # compares it with the stock 500 plus the tare weight 250.
+  - path: /api/stock/products/{productId}/inventory
+    method: POST
+    pathParams:
+      productId: '7'
+    requestBody:
+      jsonPath: $.new_amount
+      value: 750
     response:
       statusCode: 400
       content: '{"error_message": "The new amount cannot equal the current stock amount"}'

@@ -1,0 +1,13 @@
+[
+  {
+    "product_id": 4,
+    "from_qu_id": ${stores.product.qu_id_purchase},
+    "from_qu_name": "",
+    "from_qu_name_plural": "",
+    "to_qu_id": ${stores.product.qu_id_stock},
+    "to_qu_name": "",
+    "to_qu_name_plural": "",
+    "factor": ${stores.product.factor},
+    "path": "/${stores.product.qu_id_purchase}/${stores.product.qu_id_stock}/"
+  }
+]

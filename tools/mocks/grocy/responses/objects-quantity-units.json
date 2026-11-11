@@ -25,5 +25,14 @@
     "name_plural": "Boxes",
     "plural_forms": null,
     "active": 1
+  },
+  {
+    "id": 4,
+    "name": "Gram",
+    "description": null,
+    "row_created_timestamp": "2026-01-05 10:00:00",
+    "name_plural": "Grams",
+    "plural_forms": null,
+    "active": 1
   }
 ]

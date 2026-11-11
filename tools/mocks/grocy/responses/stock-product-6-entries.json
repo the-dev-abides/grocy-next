@@ -1,0 +1,18 @@
+[
+  {
+    "priority": -1,
+    "id": 20,
+    "product_id": 6,
+    "amount": 3,
+    "best_before_date": "2026-11-25",
+    "purchased_date": "2026-11-08",
+    "stock_id": "69131a2b3cd91",
+    "price": 0.59,
+    "open": 0,
+    "opened_date": null,
+    "row_created_timestamp": "2026-11-08 18:00:00",
+    "location_id": 1,
+    "shopping_location_id": 1,
+    "note": null
+  }
+]
