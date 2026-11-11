@@ -26,6 +26,7 @@ interface PendingScanRow {
   bookingType: 'inventory' | 'purchase';
   id: number;
   note: null | string;
+  productBarcodeId: null | number;
   productId: null | number;
 }
 
@@ -226,6 +227,75 @@ test('a failed accept keeps the row with the red tint, the Grocy message, and Ac
   // mouse leaves the row first, so the hover colour does not apply.
   await page.mouse.move(0, 0);
   await expect(row).toHaveCSS('background-color', 'oklch(0.869 0.054 11.1)');
+
+  await removeRows(request, (item) => item.id === created.id);
+});
+
+test('a row with no product shows Pick product and New product and no accept', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-needs-product';
+  await removeRows(request, (row) => row.note === note);
+  const created = await createRow(request, {
+    bookingType: 'purchase',
+    code: '4018',
+    note,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+
+  await expect(row).toContainText('Needs a product');
+  await expect(row.getByRole('button', { name: 'Pick product' })).toBeVisible();
+  await expect(row.getByRole('button', { name: 'New product' })).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Accept' })).toHaveCount(0);
+
+  await removeRows(request, (item) => item.id === created.id);
+});
+
+test('the product pick dialog finds a fixture product by a part of its name and sets it on the row', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-pick-product';
+  await removeRows(request, (row) => row.note === note);
+  const created = await createRow(request, {
+    bookingType: 'purchase',
+    code: '4019',
+    note,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await row.getByRole('button', { name: 'Pick product' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Pick the product' });
+  await expect(dialog).toContainText(
+    'The code 4019 is added to the product that you pick.',
+  );
+  await dialog
+    .getByRole('textbox', { name: 'Search the products' })
+    .fill('phila');
+  const hits = dialog
+    .getByRole('list', { name: 'Products' })
+    .getByRole('button');
+  await expect(hits).toHaveCount(1);
+  await hits.click();
+
+  // The server added the code to product 2 in Grocy and set the product on
+  // the row, so the row is ready. The Grocy mock answers the product barcode
+  // id 5.
+  await expect(dialog).toBeHidden();
+  await expect(row).toContainText('Philadelphia Original 150 g');
+  await expect(row).toContainText('Ready');
+  await expect(row.getByRole('button', { name: 'Accept' })).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Pick product' })).toHaveCount(
+    0,
+  );
+  const rows = await listRows(request);
+  expect(rows.find((item) => item.id === created.id)).toMatchObject({
+    productBarcodeId: 5,
+    productId: 2,
+  });
 
   await removeRows(request, (item) => item.id === created.id);
 });
