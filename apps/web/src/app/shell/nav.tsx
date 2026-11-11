@@ -8,6 +8,9 @@ import {
 } from 'lucide-react';
 import { NavLink } from 'react-router';
 
+import { useListPendingScansQuery } from '../api/next-api';
+import { POLL_MS } from '../api/poll-interval';
+
 interface NavItem {
   icon: LucideIcon;
   label: string;
@@ -26,15 +29,18 @@ export const scanItems: readonly NavItem[] = [
   { icon: ClipboardList, label: 'Inventory', to: '/scan/inventory' },
 ];
 
+// The review queue item carries the count of pending scans as a badge.
+const reviewQueueItem: NavItem = {
+  icon: Inbox,
+  label: 'Review queue',
+  to: '/review-queue',
+};
+
 // The sidebar groups, in the order of ADR 0013. The review queue group has
-// no label. The badge with the count of pending scans comes with the pending
-// scan list.
+// no label.
 const groups: readonly Group[] = [
   { items: scanItems, label: 'Scan', name: 'scan' },
-  {
-    items: [{ icon: Inbox, label: 'Review queue', to: '/review-queue' }],
-    name: 'review-queue',
-  },
+  { items: [reviewQueueItem], name: 'review-queue' },
   {
     items: [{ icon: Package, label: 'Products', to: '/stock' }],
     label: 'Stock',
@@ -50,6 +56,43 @@ const RAIL_LABEL = `
   md:group-focus-within/side:opacity-100
   lg:opacity-100
 `;
+
+// On the icon rail the badge is a small dot at the top right of the icon.
+// It takes its place next to the label when the rail opens, and on a large
+// screen.
+const RAIL_BADGE = `
+  md:absolute md:top-1 md:left-6 md:px-1 md:text-[10px]
+  md:group-hover/side:static md:group-hover/side:px-1.5
+  md:group-hover/side:text-xs
+  md:group-focus-within/side:static md:group-focus-within/side:px-1.5
+  md:group-focus-within/side:text-xs
+  lg:static lg:px-1.5 lg:text-xs
+`;
+
+// The count of pending scans, from the same three-second poll as the
+// screens. No badge while the queue is empty or the list has not loaded.
+function QueueBadge({ isRail }: Readonly<{ isRail: boolean }>) {
+  const count = useListPendingScansQuery(undefined, {
+    pollingInterval: POLL_MS,
+  }).data?.items.length;
+  if (count === undefined || count === 0) {
+    return null;
+  }
+  return (
+    <span
+      title="Pending scans"
+      className={cn(
+        `
+          rounded-full bg-sidebar-primary px-1.5 py-px text-xs font-medium
+          text-sidebar-primary-foreground tabular-nums
+        `,
+        isRail && RAIL_BADGE,
+      )}
+    >
+      {count}
+    </span>
+  );
+}
 
 function NavGroup({
   group,
@@ -103,6 +146,7 @@ function NavGroup({
             <span className={cn('flex-1', isRail && RAIL_LABEL)}>
               {item.label}
             </span>
+            {item === reviewQueueItem && <QueueBadge isRail={isRail} />}
           </NavLink>
         );
       })}
