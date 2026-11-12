@@ -29,6 +29,41 @@ const PRODUCT_TOOLS = [
   'list_quantity_unit_conversions',
 ];
 
+// The master data lists of the Grocy mock, as the Next API lists them. The
+// mock has one inactive location, the Garage, and the list leaves it out.
+// The conversion list holds the household conversion 1 Box = 24 Cans only.
+const MASTER_DATA_LISTS = [
+  {
+    items: [
+      { id: 1, name: 'Fridge' },
+      { id: 2, name: 'Pantry' },
+      { id: 3, name: 'Freezer' },
+    ],
+    tool: 'list_locations',
+  },
+  { items: [{ id: 1, name: 'Supermarket' }], tool: 'list_stores' },
+  {
+    items: [
+      { id: 1, name: 'Dairy' },
+      { id: 2, name: 'Snacks' },
+    ],
+    tool: 'list_product_groups',
+  },
+  {
+    items: [
+      { id: 1, name: 'Can' },
+      { id: 2, name: 'Pack' },
+      { id: 3, name: 'Box' },
+      { id: 4, name: 'Gram' },
+    ],
+    tool: 'list_quantity_units',
+  },
+  {
+    items: [{ factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 }],
+    tool: 'list_quantity_unit_conversions',
+  },
+];
+
 // The product tools and the master data tools at the MCP endpoint. Each tool
 // returns the body of the Next API operation that it mirrors.
 describe('the product tools and the master data tools of the MCP server', () => {
@@ -175,4 +210,17 @@ describe('the product tools and the master data tools of the MCP server', () => 
       tareWeight: null,
     });
   });
+
+  it.each(MASTER_DATA_LISTS)(
+    'returns the list of $tool as structured content',
+    async ({ items, tool }) => {
+      const result = await client.callTool({ arguments: {}, name: tool });
+
+      expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toEqual({ items });
+      expect(result.content).toEqual([
+        { text: JSON.stringify({ items }), type: 'text' },
+      ]);
+    },
+  );
 });

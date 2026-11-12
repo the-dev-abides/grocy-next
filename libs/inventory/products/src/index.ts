@@ -2,6 +2,7 @@ export { grocyRefused } from './lib/grocy/grocy-answers.ts';
 export { GrocyClient } from './lib/grocy/grocy-client.ts';
 export { GrocyStockClient } from './lib/grocy/grocy-stock-client.ts';
 export type { Inventory } from './lib/inventory.ts';
+export { MasterDataTools } from './lib/master-data.tools.ts';
 export type { QuantityUnitConversion } from './lib/product.ts';
 export type { ProductBarcode, ProductDetails } from './lib/product-details.ts';
 export { ProductsModule } from './lib/products.module.ts';

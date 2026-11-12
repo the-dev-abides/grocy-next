@@ -1,6 +1,10 @@
 import type { DynamicModule, Type } from '@nestjs/common';
 
-import { ProductsModule, ProductsTools } from '@grocy-next/inventory-products';
+import {
+  MasterDataTools,
+  ProductsModule,
+  ProductsTools,
+} from '@grocy-next/inventory-products';
 import { Injectable, Logger, Module, UseGuards } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { McpModule } from '@nestjs/mcp';
@@ -18,7 +22,7 @@ const SERVER_NAME = 'grocy-next';
 
 // This list holds the tool providers of the domain libraries. Add a new tool
 // provider here, and add its module to the imports below.
-const TOOL_PROVIDERS = [ProductsTools];
+const TOOL_PROVIDERS = [ProductsTools, MasterDataTools];
 
 // With no token, the module only writes the log line at start.
 @Injectable()
