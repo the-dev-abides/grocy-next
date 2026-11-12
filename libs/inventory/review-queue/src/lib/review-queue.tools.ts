@@ -1,8 +1,4 @@
-import {
-  NoToolInput,
-  ToolInput,
-  toolInputOf,
-} from '@grocy-next/shared-next-api';
+import { NoInputTool, toolInputOf } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
@@ -88,14 +84,12 @@ export class ReviewQueueTools {
     return this.pendingScans.delete(input.id);
   }
 
-  @Tool({
+  @NoInputTool({
     description:
       'List every pending scan in the review queue, the most recent first. The result is an `items` list of the pending scans.',
-    inputSchema: toolInputOf(NoToolInput),
     name: 'list_pending_scans',
     outputSchema: PendingScanList.schema,
   })
-  @ToolInput(NoToolInput)
   async listPendingScans(): Promise<PendingScanList> {
     return this.pendingScans.list();
   }

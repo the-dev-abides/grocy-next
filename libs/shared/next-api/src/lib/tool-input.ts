@@ -1,7 +1,8 @@
 import type { ArgumentMetadata, PipeTransform, Type } from '@nestjs/common';
-import type { McpSchema } from '@nestjs/mcp';
+import type { McpSchema, ToolOptions } from '@nestjs/mcp';
 
-import { UsePipes } from '@nestjs/common';
+import { applyDecorators, UsePipes } from '@nestjs/common';
+import { Tool } from '@nestjs/mcp';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -20,7 +21,7 @@ interface ZodDtoClass extends Type {
 // Schema stays the JSON Schema of the strict Zod schema, so `tools/list`
 // still shows `additionalProperties: false`. The tool method must declare
 // its input parameter with the same Zod DTO class, so that the pipe checks
-// the input. A tool method that does not read its input uses `ToolInput`.
+// the input. A tool with no input uses `NoInputTool`.
 export function toolInputOf(dto: ZodDtoClass): McpSchema {
   const standard = dto.schema['~standard'];
   return {
@@ -31,10 +32,9 @@ export function toolInputOf(dto: ZodDtoClass): McpSchema {
   };
 }
 
-// The input of an MCP tool that takes no field. The tool of an operation
-// with no input gives this DTO to `toolInputOf` and to `ToolInput`, so that
-// the pipe refuses every field.
-export class NoToolInput extends createZodDto(z.strictObject({})) {}
+// The input of an MCP tool that takes no field. The pipe refuses every
+// field.
+class NoToolInput extends createZodDto(z.strictObject({})) {}
 
 // The pipe of one tool method that declares no input parameter. The adapter
 // gives the input as a body parameter. The global validation pipe sees no
@@ -52,9 +52,15 @@ class ToolInputPipe implements PipeTransform {
   }
 }
 
-// This decorator gives the input of an MCP tool method its Zod DTO class when
-// the method declares no input parameter, for example a list tool. Then the
-// validation pipe of the Next API checks the input.
-export function ToolInput(dto: ZodDtoClass): MethodDecorator {
-  return UsePipes(new ToolInputPipe(dto));
+// This decorator marks an MCP tool with no input, for example a list tool.
+// The tool method declares no input parameter. The decorator sets the input
+// schema of the tool to the empty strict object, and it gives the input that
+// Zod DTO class. Then the validation pipe of the Next API refuses every field.
+export function NoInputTool(
+  options: Omit<ToolOptions, 'inputSchema'>,
+): MethodDecorator {
+  return applyDecorators(
+    Tool({ ...options, inputSchema: toolInputOf(NoToolInput) }),
+    UsePipes(new ToolInputPipe(NoToolInput)),
+  );
 }

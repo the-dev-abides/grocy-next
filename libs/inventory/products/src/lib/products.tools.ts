@@ -1,8 +1,4 @@
-import {
-  NoToolInput,
-  ToolInput,
-  toolInputOf,
-} from '@grocy-next/shared-next-api';
+import { NoInputTool, toolInputOf } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
@@ -40,14 +36,12 @@ export class ProductsTools {
     return this.products.create(input);
   }
 
-  @Tool({
+  @NoInputTool({
     description:
       'List every product. The result is an `items` list of the id, the name, and the description of each product.',
-    inputSchema: toolInputOf(NoToolInput),
     name: 'list_products',
     outputSchema: ProductList.schema,
   })
-  @ToolInput(NoToolInput)
   async listProducts(): Promise<ProductList> {
     return { items: await this.grocy.listProducts() };
   }
