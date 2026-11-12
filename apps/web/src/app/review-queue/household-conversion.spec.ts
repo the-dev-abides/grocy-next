@@ -1,4 +1,4 @@
-import { householdFactorOf } from './household-conversion';
+import { isHouseholdResolved } from './household-conversion';
 
 const GRAM = 4;
 const KILOGRAM = 5;
@@ -16,34 +16,31 @@ const ounceToGram = {
   toQuantityUnitId: GRAM,
 };
 
-describe('the factor between two units through the household conversions', () => {
-  it('is the factor of a household conversion from the one unit to the other', () => {
-    expect(householdFactorOf(KILOGRAM, GRAM, [kilogramToGram])).toBe(1000);
+describe('whether the household conversions resolve a pair of units', () => {
+  it('is true for a household conversion from the one unit to the other', () => {
+    expect(isHouseholdResolved(KILOGRAM, GRAM, [kilogramToGram])).toBe(true);
   });
 
-  it('is the inverse factor of a household conversion in the other direction', () => {
-    expect(householdFactorOf(GRAM, KILOGRAM, [kilogramToGram])).toBeCloseTo(
-      0.001,
-      9,
+  it('is true for a household conversion in the other direction', () => {
+    expect(isHouseholdResolved(GRAM, KILOGRAM, [kilogramToGram])).toBe(true);
+  });
+
+  // 1 kg = 1000 g, and 1 oz = 28.349523125 g. Thus the Gram joins the
+  // Kilogram and the Ounce.
+  it('is true for a chain of household conversions', () => {
+    expect(
+      isHouseholdResolved(KILOGRAM, OUNCE, [kilogramToGram, ounceToGram]),
+    ).toBe(true);
+  });
+
+  it('is false when no household conversion joins the two units', () => {
+    expect(isHouseholdResolved(BAG, GRAM, [kilogramToGram, ounceToGram])).toBe(
+      false,
     );
   });
 
-  // 1 kg = 1000 g, and 1 g = 1 / 28.349523125 oz. Thus 1 kg is about
-  // 35.274 oz.
-  it('follows a chain of household conversions', () => {
-    expect(
-      householdFactorOf(KILOGRAM, OUNCE, [kilogramToGram, ounceToGram]),
-    ).toBeCloseTo(35.274, 3);
-  });
-
-  it('is nothing when no household conversion joins the two units', () => {
-    expect(
-      householdFactorOf(BAG, GRAM, [kilogramToGram, ounceToGram]),
-    ).toBeNull();
-  });
-
-  it('is nothing for one unit, and while the household conversions have not loaded', () => {
-    expect(householdFactorOf(GRAM, GRAM, [kilogramToGram])).toBeNull();
-    expect(householdFactorOf(KILOGRAM, GRAM, undefined)).toBeNull();
+  it('is false for one unit, and while the household conversions have not loaded', () => {
+    expect(isHouseholdResolved(GRAM, GRAM, [kilogramToGram])).toBe(false);
+    expect(isHouseholdResolved(KILOGRAM, GRAM, undefined)).toBe(false);
   });
 });

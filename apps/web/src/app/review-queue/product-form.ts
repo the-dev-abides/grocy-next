@@ -5,7 +5,7 @@ import type {
 } from '../api/next-api';
 import type { Named } from './named-unit';
 
-import { householdFactorOf } from './household-conversion';
+import { isHouseholdResolved } from './household-conversion';
 import { proposeFactor, proposeProduct } from './product-proposal';
 
 // The fields of the short product form. The numbers are the typed text, so
@@ -41,8 +41,7 @@ export function requiresFactor(
     form.purchaseUnitId !== null &&
     form.stockUnitId !== null &&
     form.purchaseUnitId !== form.stockUnitId &&
-    householdFactorOf(form.purchaseUnitId, form.stockUnitId, conversions) ===
-      null
+    !isHouseholdResolved(form.purchaseUnitId, form.stockUnitId, conversions)
   );
 }
 
@@ -96,7 +95,7 @@ export function formOf(
   };
 }
 
-// The form after a change of the user. A change of the stock unit or the
+// The form after the user changes a field. A change of the stock unit or the
 // purchase unit computes the factor again for the new pair, so a factor of
 // the old pair never stays. A change of any other field keeps the factor.
 export function withPatch(

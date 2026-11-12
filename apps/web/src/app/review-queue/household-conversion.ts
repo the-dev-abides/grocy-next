@@ -25,36 +25,33 @@ export function sidesOf(conversion: QuantityUnitConversion): ConversionSide[] {
   ];
 }
 
-// The factor from one unit to a different unit through the household
-// conversions, or null when they do not resolve the pair. Grocy resolves a
-// conversion in both directions and through a chain of conversions. Thus the
-// search does the same. When the household conversions resolve the pair, the
-// Grocy trigger creates no conversion row for a new product. The search starts
-// at the from unit and follows each conversion to a unit that it did not reach
-// before.
-export function householdFactorOf(
+// Whether the household conversions resolve a pair of two different units.
+// Grocy resolves a conversion in both directions and through a chain of
+// conversions. Thus the search does the same. When the household conversions
+// resolve the pair, the Grocy trigger creates no conversion row for a new
+// product. The search starts at the from unit and follows each conversion to a
+// unit that it did not reach before, until no unit is left to visit.
+export function isHouseholdResolved(
   fromId: number,
   toId: number,
   conversions: readonly QuantityUnitConversion[] | undefined,
-): null | number {
+): boolean {
   if (fromId === toId || conversions === undefined) {
-    return null;
+    return false;
   }
   const sides = conversions.flatMap((conversion) => sidesOf(conversion));
-  const reached = new Map<number, number>([[fromId, 1]]);
-  const queue = [fromId];
-  let next = 0;
-  while (next < queue.length) {
-    const unitId = queue[next] ?? fromId;
-    const factor = reached.get(unitId) ?? 1;
-    next += 1;
+  const reached = new Set([fromId]);
+  const toVisit = [fromId];
+  let unitId = toVisit.pop();
+  while (unitId !== undefined) {
     for (const side of sides) {
       if (side.unitId !== unitId || reached.has(side.otherId)) {
         continue;
       }
-      reached.set(side.otherId, factor * side.otherPerUnit);
-      queue.push(side.otherId);
+      reached.add(side.otherId);
+      toVisit.push(side.otherId);
     }
+    unitId = toVisit.pop();
   }
-  return reached.get(toId) ?? null;
+  return reached.has(toId);
 }

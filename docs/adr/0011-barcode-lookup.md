@@ -75,6 +75,17 @@ data, and the app shows the attribution that Open Facts asks for.
   proposes no units and shows the label text beside the unit fields. The user
   can change every proposal. The product group, the location, the due days,
   and the minimum stock do not come from the lookup.
+- Amended by issue #131: the stock unit proposal tries the name match first
+  and the household conversion second. The lookup requests `packagings`, and
+  the lookup result keeps the package shapes, such as `en:bag`. When the
+  label quantity text names no package, the purchase unit proposal uses the
+  package shape. A change of a unit computes the factor again. The form asks
+  for the factor only when the household conversions do not resolve the unit
+  pair. The factor proposal is the net quantity in the stock unit divided by
+  the net quantity in the purchase unit. A purchase unit that does not
+  measure the net quantity is a package that holds the whole net quantity.
+  When the household conversions resolve the pair, the product create writes
+  no product conversion and ignores a factor in the body.
 - The server downloads the front image at 400 px height and uploads it to
   Grocy as the product picture of the new product.
 - The user agent is `GrocyNext/<version> (https://github.com/the-dev-abides/grocy-next)`.
