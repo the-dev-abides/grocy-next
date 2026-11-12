@@ -72,12 +72,29 @@ the same file, so the API and the bundled PostgreSQL agree.
 | `PORT`           | `3000`                            | The port that the API listens on.                                                                                           |
 | `BARCODE_LOOKUP` | `on`                              | The online barcode lookup: `on` or `off`. Off means the server looks up no unknown code and the screens show the bare code. |
 | `OPEN_FACTS_URL` | `https://world.openfoodfacts.org` | The base URL of the Open Facts service. The end-to-end tests and the API tests point it at the Open Food Facts mock.        |
+| `MCP_TOKEN`      | empty                             | The bearer token of the MCP endpoint, 32 characters or more. Empty means that the MCP server is off.                        |
 
 A change to a `DB_*` value after the first start of the bundled PostgreSQL
 does not change the database. Remove the volumes and start again.
 
 The web dev server reads one variable of its own from the shell: `API_URL`,
 the address that it forwards `/api` to. Unset means `http://localhost:3000`.
+
+## The MCP inspector
+
+The MCP inspector, `@modelcontextprotocol/inspector`, is the test client of
+the MCP server. It lists the tools and calls a tool by hand. Set `MCP_TOKEN`
+in `.env`, and start the API. Then run this command to open the web UI of the
+inspector on the local endpoint:
+
+```sh
+npx @modelcontextprotocol/inspector --transport http \
+  --server-url http://localhost:3000/api/v2/mcp \
+  --header "Authorization: Bearer $MCP_TOKEN"
+```
+
+The shell must hold the token in `MCP_TOKEN`. To use the command line
+instead of the web UI, add `--cli --method tools/list`.
 
 ## The end-to-end tests
 
