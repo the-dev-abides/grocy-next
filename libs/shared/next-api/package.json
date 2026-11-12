@@ -21,8 +21,10 @@
     ]
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
     "@nestjs/common": "^12.3.2",
     "@nestjs/core": "^12.3.2",
+    "@nestjs/mcp": "^0.0.4",
     "@nestjs/swagger": "^12.1.0",
     "nestjs-zod": "^5.6.0",
     "zod": "^4.6.7"
