@@ -26,7 +26,7 @@ export class MasterDataTools {
 
   @Tool({
     description:
-      'List every active location. The result is an object with an `items` list of the id and the name of each location.',
+      'List every active location. The result is an `items` list of the id and the name of each location.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_locations',
     outputSchema: LocationList.schema,
@@ -38,7 +38,7 @@ export class MasterDataTools {
 
   @Tool({
     description:
-      'List every active product group. The result is an object with an `items` list of the id and the name of each product group.',
+      'List every active product group. The result is an `items` list of the id and the name of each product group.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_product_groups',
     outputSchema: ProductGroupList.schema,
@@ -50,7 +50,7 @@ export class MasterDataTools {
 
   @Tool({
     description:
-      'List every household quantity unit conversion, which is a conversion with no product. The result is an object with an `items` list of the from unit id, the to unit id, and the factor of each conversion.',
+      'List every household quantity unit conversion, which is a conversion with no product. The result is an `items` list of the from unit id, the to unit id, and the factor of each conversion.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_quantity_unit_conversions',
     outputSchema: QuantityUnitConversionList.schema,
@@ -62,7 +62,7 @@ export class MasterDataTools {
 
   @Tool({
     description:
-      'List every active quantity unit. The result is an object with an `items` list of the id and the name of each quantity unit.',
+      'List every active quantity unit. The result is an `items` list of the id and the name of each quantity unit.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_quantity_units',
     outputSchema: QuantityUnitList.schema,
@@ -74,7 +74,7 @@ export class MasterDataTools {
 
   @Tool({
     description:
-      'List every active store. The result is an object with an `items` list of the id and the name of each store.',
+      'List every active store. The result is an `items` list of the id and the name of each store.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_stores',
     outputSchema: StoreList.schema,

@@ -24,7 +24,7 @@ export class ProductsTools {
 
   @Tool({
     description:
-      'Read one product by its id. The result is the product of the Next API with its units, its stock amount, its stock entries, and its conversions.',
+      'Read one product by its id. The result is the product with its units, its stock amount, its stock entries, and its conversions.',
     inputSchema: toolInputOf(ProductId),
     name: 'get_product',
     outputSchema: Product.schema,
@@ -35,7 +35,7 @@ export class ProductsTools {
 
   @Tool({
     description:
-      'Create a product with the short product form. The result is the new product as Grocy stores it, with its id.',
+      'Create a product with the short product form. The result is the new product as Grocy stores it.',
     inputSchema: toolInputOf(CreateProduct),
     name: 'create_product',
     outputSchema: Product.schema,
@@ -46,7 +46,7 @@ export class ProductsTools {
 
   @Tool({
     description:
-      'List every product. The result is the product list of the Next API: an object with an `items` list of the id, the name, and the description of each product.',
+      'List every product. The result is an `items` list of the id, the name, and the description of each product.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_products',
     outputSchema: ProductList.schema,

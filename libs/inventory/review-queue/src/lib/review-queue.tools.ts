@@ -31,7 +31,7 @@ export class ReviewQueueTools {
 
   @Tool({
     description:
-      'Accept one pending scan as a booking. The accept writes a purchase or an inventory in Grocy and removes the pending scan. The result is the booking with the stock log rows that Grocy stored.',
+      'Accept one pending scan and return the booking with the stock log rows that Grocy stored. The accept writes a purchase or an inventory in Grocy and removes the pending scan.',
     inputSchema: toolInputOf(CreateBooking),
     name: 'create_booking',
     outputSchema: Booking.schema,
@@ -44,7 +44,7 @@ export class ReviewQueueTools {
   // 0010 decided. The result is the new row.
   @Tool({
     description:
-      'Create a pending scan. The row goes into the review queue for the user to accept. A row with a product and no code is the way to enter a receipt line. The result is the stored pending scan.',
+      'Create a pending scan in the review queue for the user to accept, and return the stored pending scan. A pending scan with a product and no code is the way to enter a receipt line.',
     inputSchema: toolInputOf(CreatePendingScan),
     name: 'create_pending_scan',
     outputSchema: PendingScan.schema,
@@ -69,7 +69,7 @@ export class ReviewQueueTools {
   // them to the service as two arguments, as the controller does.
   @Tool({
     description:
-      'Update one pending scan by its id with a JSON merge patch: an absent field stays as it is, and a field set to null clears it. An update that sets a product also adds the code of the row to that product in Grocy. The result is the pending scan after the update.',
+      'Update one pending scan by its id with a JSON merge patch, and return the pending scan after the update. An update that sets a product also adds the code of the pending scan to that product in Grocy.',
     inputSchema: toolInputOf(UpdatePendingScanToolInput),
     name: 'update_pending_scan',
     outputSchema: PendingScan.schema,
@@ -83,7 +83,7 @@ export class ReviewQueueTools {
 
   @Tool({
     description:
-      'Delete one pending scan by its id. A delete is a reject: the row is gone from the review queue with no history. The result is the pending scan as it was before the delete.',
+      'Delete one pending scan by its id, and return the pending scan as it was before the delete. A delete is a reject: the pending scan is gone, with no history.',
     inputSchema: toolInputOf(PendingScanId),
     name: 'delete_pending_scan',
     outputSchema: PendingScan.schema,
@@ -94,7 +94,7 @@ export class ReviewQueueTools {
 
   @Tool({
     description:
-      'List every pending scan in the review queue, most recent first. The result is an object with an `items` list of the pending scans.',
+      'List every pending scan in the review queue, the most recent first. The result is an `items` list of the pending scans.',
     inputSchema: toolInputOf(NoToolInput),
     name: 'list_pending_scans',
     outputSchema: PendingScanList.schema,
