@@ -22,6 +22,16 @@ interface PendingScanBody {
   [field: string]: unknown;
 }
 
+// The tools of the review queue operations.
+const REVIEW_QUEUE_TOOLS = [
+  'list_pending_scans',
+  'get_pending_scan',
+  'create_pending_scan',
+  'update_pending_scan',
+  'delete_pending_scan',
+  'create_booking',
+];
+
 // An error result carries the Problem Details body as the JSON text of its
 // one content item.
 function problemOf(result: { content?: unknown }): unknown {
@@ -84,6 +94,22 @@ describe('the review queue tools of the MCP server', () => {
     await client.close();
     await app.close();
     delete process.env['MCP_TOKEN'];
+  });
+
+  it('lists the review queue tools with a description and an input schema each', async () => {
+    const { tools } = await client.listTools();
+
+    const listed = tools.filter((tool) =>
+      REVIEW_QUEUE_TOOLS.includes(tool.name),
+    );
+    expect(listed.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining(REVIEW_QUEUE_TOOLS),
+    );
+    expect(listed).toHaveLength(REVIEW_QUEUE_TOOLS.length);
+    for (const tool of listed) {
+      expect(tool.description).toEqual(expect.any(String));
+      expect(tool.inputSchema).toMatchObject({ type: 'object' });
+    }
   });
 
   it('lists the pending scans as structured content with an items list', async () => {
