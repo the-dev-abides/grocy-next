@@ -8,14 +8,15 @@ import type { HttpRequest } from './request.ts';
 import { queryOf } from './request.ts';
 import { validationProblemOf } from './validation.ts';
 
-// The query schema of an operation that takes no query field.
-const NO_QUERY = z.strictObject({});
+// The query schema of an operation that takes no query field. The MCP tool of
+// such an operation takes this schema as its input schema.
+export const noQuerySchema = z.strictObject({});
 
 @Injectable()
 class NoQueryGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<HttpRequest>();
-    const result = NO_QUERY.safeParse(queryOf(request));
+    const result = noQuerySchema.safeParse(queryOf(request));
     if (!result.success) {
       throw validationProblemOf(result.error);
     }
