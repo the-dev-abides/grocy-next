@@ -58,3 +58,5 @@ All four are in Grocy's `services/StockService.php`.
 4. **Feature request: auto-open on a partial consume.** A consume of part of a
    sealed stock entry leaves the entry marked sealed. An optional per-product
    setting, "mark as opened on first consume", covers bags, jars, and bottles.
+5. **Feature request: receipt scanner.** A tool to scan in a receipt from a
+   shopping trip, that allows an AI agent to help review purchases.

@@ -1,7 +1,7 @@
 export { ApiProblemResponses } from './lib/api-problem-responses.ts';
 export { LOCATION_HEADER, locationOf } from './lib/location.ts';
 export { NextApiModule } from './lib/next-api.module.ts';
-export { NoQuery, noQuerySchema } from './lib/no-query.ts';
+export { NoQuery } from './lib/no-query.ts';
 export {
   type FieldError,
   type GrocyRefusal,
@@ -10,3 +10,4 @@ export {
   ProblemException,
   type ProblemType,
 } from './lib/problems.ts';
+export { NoToolInput, ToolInput, toolInputOf } from './lib/tool-input.ts';
