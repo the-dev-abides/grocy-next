@@ -82,7 +82,9 @@ export class OpenFactsProvider implements LookupProvider {
       throw new Error(`${service} answered ${String(response.status)}.`);
     }
     const answer = openFactsAnswerSchema.parse(await response.json());
-    if (answer.status !== 'success' || answer.product === undefined) {
+    // A 12-digit UPC-A code gets `success_with_warnings`: Open Food Facts
+    // stores the product under the 13-digit form with a leading zero.
+    if (!answer.status.startsWith('success') || answer.product === undefined) {
       return null;
     }
     return toLookupHit(answer.product, {
