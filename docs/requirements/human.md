@@ -11,6 +11,13 @@ tool. It does not say how the tool is built.
 - Bulk edit: the user selects rows with checkboxes, then edits them in one
   dialog.
 - Inline edit in tables.
+- Feature request: create new from a field. Today the user goes to a
+  different screen to add a location, a product group, a quantity unit, or
+  other categorization data. This costs clicks and breaks the task. Each such
+  field in the new product dialog and in other forms has a "create new"
+  action. The action opens a second dialog. When the user saves, the second
+  dialog closes. The field in the first dialog then shows the new entry. The
+  first dialog keeps all the values that the user typed.
 - A full MCP (Model Context Protocol) server.
 
 ## Technology
@@ -27,6 +34,15 @@ tool. It does not say how the tool is built.
   - Each scan becomes a pending scan in the review queue.
   - An AI can read the review queue through the MCP.
   - The tool finds the product from the barcode.
+  - Feature request: a fallback lookup source. When the Open Facts databases
+    do not hold a barcode, the tool asks a second source, such as UPCitemdb.
+    The second source gives only a name suggestion in the short product form.
+    The tool does not store its data as open data.
+  - Feature request: submit a missing product to Open Facts. When no Open
+    Facts database holds a barcode, the user can send the product to the
+    correct database. A deodorant goes to Open Beauty Facts, for example.
+    The user confirms each submit. The data comes from the package, not from
+    the fallback source, because Open Facts does not accept copied data.
   - When the barcode is not found, the tool alerts the user at once with a
     sound, a vibration, and an onscreen alert. The scan continues.
   - Smart scale support over Bluetooth and Wi-Fi.
