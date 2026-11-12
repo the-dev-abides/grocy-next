@@ -1,4 +1,6 @@
+import type { CallToolResult } from '@modelcontextprotocol/server';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+import type { McpContextType } from '@nestjs/mcp';
 import type { ServerResponse } from 'node:http';
 
 import {
@@ -9,12 +11,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { McpExecutionContext } from '@nestjs/mcp';
 
 import type { Problem, ProblemBody } from './problems.ts';
 import type { HttpRequest } from './request.ts';
 
 import { PROBLEM_TYPES, ProblemException } from './problems.ts';
 import { hasBody, pathOf } from './request.ts';
+import { internalProblemAt, toolErrorOf } from './tool-error.ts';
 
 const PROBLEM_CONTENT_TYPE = 'application/problem+json';
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
@@ -64,12 +68,31 @@ function problemOf(
 // Problem Details with the content type `application/problem+json` and the
 // request path as `instance`. Every other `HttpException` keeps its own
 // body, so the health checks answer as Terminus writes them. Every other
-// error is logged and answered with a 500.
+// error is logged and answered with a 500. In an MCP tool call, the filter
+// returns the error result of the tool instead. Its text is the same problem
+// body, with the path of the MCP endpoint as `instance`. Every error that is
+// not a Next API error is logged and becomes the internal problem.
 @Catch()
 export class ProblemFilter implements ExceptionFilter {
   private readonly logger = new Logger(ProblemFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost): void {
+  // The adapter makes the return value of the filter the result of the tool.
+  private toolErrorOf(exception: unknown, host: ArgumentsHost): CallToolResult {
+    const request = McpExecutionContext.create(host).getRequest<HttpRequest>();
+    const instance = request === undefined ? '' : pathOf(request);
+    const problem =
+      request === undefined ? undefined : problemOf(exception, request);
+    if (problem !== undefined) {
+      return toolErrorOf({ ...problem, instance });
+    }
+    this.logger.error(exception);
+    return toolErrorOf(internalProblemAt(instance));
+  }
+
+  catch(exception: unknown, host: ArgumentsHost): CallToolResult | undefined {
+    if (host.getType<'http' | McpContextType>() === 'mcp') {
+      return this.toolErrorOf(exception, host);
+    }
     const http = host.switchToHttp();
     const request = http.getRequest<HttpRequest>();
     const response = http.getResponse<ServerResponse>();
@@ -78,7 +101,7 @@ export class ProblemFilter implements ExceptionFilter {
     if (problem !== undefined) {
       const body: Problem = { ...problem, instance: pathOf(request) };
       send(response, body.status, PROBLEM_CONTENT_TYPE, body);
-      return;
+      return undefined;
     }
     if (exception instanceof HttpException) {
       send(
@@ -87,12 +110,13 @@ export class ProblemFilter implements ExceptionFilter {
         JSON_CONTENT_TYPE,
         exception.getResponse(),
       );
-      return;
+      return undefined;
     }
     this.logger.error(exception);
     send(response, HttpStatus.INTERNAL_SERVER_ERROR, JSON_CONTENT_TYPE, {
       message: 'Internal server error',
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
     });
+    return undefined;
   }
 }
