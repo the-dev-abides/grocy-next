@@ -11,6 +11,13 @@ tool. It does not say how the tool is built.
 - Bulk edit: the user selects rows with checkboxes, then edits them in one
   dialog.
 - Inline edit in tables.
+- Feature request: create new from a field. Today the user goes to a
+  different screen to add a location, a product group, a quantity unit, or
+  other categorization data. This costs clicks and breaks the task. Each such
+  field in the new product dialog and in other forms has a "create new"
+  action. The action opens a second dialog. When the user saves, the second
+  dialog closes. The field in the first dialog then shows the new entry. The
+  first dialog keeps all the values that the user typed.
 - A full MCP (Model Context Protocol) server.
 
 ## Technology
