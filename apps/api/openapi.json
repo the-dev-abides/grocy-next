@@ -1481,7 +1481,7 @@
           },
           "purchaseToStockFactor": {
             "default": 1,
-            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.",
+            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. When a household conversion resolves the two units, the server ignores this field and writes no product conversion. The product then uses the household conversion.",
             "type": "number",
             "exclusiveMinimum": true,
             "minimum": 0

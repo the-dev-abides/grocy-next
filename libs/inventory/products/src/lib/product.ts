@@ -139,7 +139,8 @@ const productIdSchema = z.strictObject({
 // unset, as ADR 0014 decided. Unset means no description, no product group, the
 // factor 1, no due date rule, and no minimum stock. The product has no
 // conversion row when the purchase unit is the stock unit, so the factor is
-// then 1.
+// then 1. A household conversion that resolves the two units also gives no
+// conversion row, and the server then ignores the factor.
 const productFormSchema = z
   .strictObject({
     defaultDueDays: z.int().min(-1).default(0).meta({
@@ -167,7 +168,7 @@ const productFormSchema = z
       .meta({ description: 'The id of the product group.' }),
     purchaseToStockFactor: z.number().positive().default(1).meta({
       description:
-        'The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.',
+        'The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. When a household conversion resolves the two units, the server ignores this field and writes no product conversion. The product then uses the household conversion.',
     }),
     purchaseUnitId: z
       .int()
