@@ -5,5 +5,6 @@ export type { Inventory } from './lib/inventory.ts';
 export type { QuantityUnitConversion } from './lib/product.ts';
 export type { ProductBarcode, ProductDetails } from './lib/product-details.ts';
 export { ProductsModule } from './lib/products.module.ts';
+export { ProductsTools } from './lib/products.tools.ts';
 export type { Purchase } from './lib/purchase.ts';
 export type { BookingResult, StockLogRow } from './lib/stock-log-row.ts';
