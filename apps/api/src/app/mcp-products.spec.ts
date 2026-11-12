@@ -140,4 +140,39 @@ describe('the product tools and the master data tools of the MCP server', () => 
       type: '/problems/not-found',
     });
   });
+
+  // The Fridge is location 1, and the Pack, unit 2, is both units. The Grocy
+  // mock answers the id 4 for a new product. The body is the body of the
+  // product create of the Next API.
+  it('creates a product and returns the product as Grocy stores it', async () => {
+    const result = await client.callTool({
+      arguments: {
+        locationId: 1,
+        name: 'Milk 1 l',
+        purchaseUnitId: 2,
+        stockUnitId: 2,
+      },
+      name: 'create_product',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toEqual({
+      conversions: [{ factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 }],
+      defaultDueDays: 0,
+      description: null,
+      hasPicture: false,
+      id: 4,
+      isParent: false,
+      locationId: 1,
+      minStockAmount: 0,
+      name: 'Milk 1 l',
+      productGroupId: null,
+      purchaseToStockFactor: 1,
+      purchaseUnitId: 2,
+      stockAmount: 0,
+      stockEntries: [],
+      stockUnitId: 2,
+      tareWeight: null,
+    });
+  });
 });

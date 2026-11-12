@@ -3,7 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
 import { GrocyClient } from './grocy/grocy-client.ts';
-import { Product, ProductId, ProductList } from './product.ts';
+import {
+  CreateProduct,
+  Product,
+  ProductId,
+  ProductList,
+} from './product.ts';
 import { ProductsService } from './products.service.ts';
 
 // The MCP tools of the product operations, as ADR 0012 decided. A tool is a
@@ -27,6 +32,17 @@ export class ProductsTools {
   })
   async getProduct(input: ProductId): Promise<Product> {
     return this.products.read(input.id);
+  }
+
+  @Tool({
+    description:
+      'Create a product with the short product form. The result is the new product as Grocy stores it, with its id.',
+    inputSchema: CreateProduct.schema,
+    name: 'create_product',
+    outputSchema: Product.schema,
+  })
+  async createProduct(input: CreateProduct): Promise<Product> {
+    return this.products.create(input);
   }
 
   @Tool({
