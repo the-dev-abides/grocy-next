@@ -1,0 +1,79 @@
+[
+  {
+    "product_id": 9,
+    "from_qu_id": 4,
+    "from_qu_name": "Gram",
+    "from_qu_name_plural": "Grams",
+    "to_qu_id": 4,
+    "to_qu_name": "Gram",
+    "to_qu_name_plural": "Grams",
+    "factor": 1,
+    "path": "/4/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 5,
+    "from_qu_name": "Kilogram",
+    "from_qu_name_plural": "Kilograms",
+    "to_qu_id": 4,
+    "to_qu_name": "Gram",
+    "to_qu_name_plural": "Grams",
+    "factor": 1000,
+    "path": "/5/4/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 4,
+    "from_qu_name": "Gram",
+    "from_qu_name_plural": "Grams",
+    "to_qu_id": 5,
+    "to_qu_name": "Kilogram",
+    "to_qu_name_plural": "Kilograms",
+    "factor": 0.001,
+    "path": "/4/5/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 6,
+    "from_qu_name": "Ounce",
+    "from_qu_name_plural": "Ounces",
+    "to_qu_id": 4,
+    "to_qu_name": "Gram",
+    "to_qu_name_plural": "Grams",
+    "factor": 28.349523125,
+    "path": "/6/4/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 4,
+    "from_qu_name": "Gram",
+    "from_qu_name_plural": "Grams",
+    "to_qu_id": 6,
+    "to_qu_name": "Ounce",
+    "to_qu_name_plural": "Ounces",
+    "factor": 0.035273961949580414,
+    "path": "/4/6/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 5,
+    "from_qu_name": "Kilogram",
+    "from_qu_name_plural": "Kilograms",
+    "to_qu_id": 6,
+    "to_qu_name": "Ounce",
+    "to_qu_name_plural": "Ounces",
+    "factor": 35.27396194958041,
+    "path": "/5/4/6/"
+  },
+  {
+    "product_id": 9,
+    "from_qu_id": 6,
+    "from_qu_name": "Ounce",
+    "from_qu_name_plural": "Ounces",
+    "to_qu_id": 5,
+    "to_qu_name": "Kilogram",
+    "to_qu_name_plural": "Kilograms",
+    "factor": 0.028349523125,
+    "path": "/6/4/5/"
+  }
+]

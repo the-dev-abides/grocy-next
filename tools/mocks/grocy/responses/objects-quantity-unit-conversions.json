@@ -14,5 +14,21 @@
     "factor": 6,
     "product_id": 3,
     "row_created_timestamp": "2026-01-05 10:00:00"
+  },
+  {
+    "id": 3,
+    "from_qu_id": 5,
+    "to_qu_id": 4,
+    "factor": 1000,
+    "product_id": null,
+    "row_created_timestamp": "2026-01-05 10:00:00"
+  },
+  {
+    "id": 4,
+    "from_qu_id": 6,
+    "to_qu_id": 4,
+    "factor": 28.349523125,
+    "product_id": null,
+    "row_created_timestamp": "2026-01-05 10:00:00"
   }
 ]

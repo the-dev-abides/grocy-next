@@ -21,7 +21,6 @@ import type {
   MasterDataRow,
 } from './grocy-master-data.ts';
 import type { GrocyProductBody } from './grocy-product-body.ts';
-import type { GrocyProductConversionBody } from './grocy-product-conversions.ts';
 import type { GrocyProduct } from './grocy-product.ts';
 
 import { toBase64 } from './base64.ts';
@@ -181,14 +180,6 @@ export class GrocyClient {
       barcode,
       product_id: productId,
     });
-  }
-
-  // This method adds one conversion row of one product. Grocy refuses it,
-  // for example, when the product has a row for the pair of units already.
-  createProductConversion(
-    body: GrocyProductConversionBody,
-  ): Promise<CreatedObjectResult> {
-    return this.createObject('quantity_unit_conversions', body);
   }
 
   listLocations(): Promise<MasterDataRow[]> {

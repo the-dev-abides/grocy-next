@@ -109,7 +109,7 @@ not an error. A response that shows Grocy demo data, such as the product
 | Locations      | 1 Fridge, 2 Pantry, 3 Freezer, 4 Garage (inactive)                                                                                      |
 | Store          | 1 Supermarket                                                                                                                           |
 | Product groups | 1 Dairy, 2 Snacks                                                                                                                       |
-| Quantity units | 1 Can, 2 Pack, 3 Box, 4 Gram                                                                                                            |
+| Quantity units | 1 Can, 2 Pack, 3 Box, 4 Gram, 5 Kilogram, 6 Ounce, 7 Bag                                                                                |
 | Products       | 1 Coca-Cola Original 330 ml, 2 Philadelphia Original 150 g, 3 Nutella Biscuits 304 g, 5 Yoghurt, 6 Yoghurt Strawberry 150 g, 7 Rice jar |
 
 | Product | Product barcode | Stock unit | Stock | Location | Product group | Note                                                  |
@@ -171,12 +171,27 @@ factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
 it in Boxes converts to the stock unit. Product 1 has no conversion from the
 Pack to the Can, so a Purchase of it in Packs has no path to the stock unit.
 
-The table of the conversions holds one household conversion, 1 Box = 24
-Cans, with no product. No row converts to the Gram, so the stock unit
-proposal of the short product form for a lookup result in g stays the
-Gram. It also holds the conversion 1 Box = 6 Packs of
-product 3. The household conversion list of the Next API reads the table
-with no filter and leaves out the row of product 3.
+The table of the conversions holds three household conversions with no
+product: 1 Box = 24 Cans, 1 Kilogram = 1000 Gram, and 1 Ounce = 28.349523125
+Gram. The stock unit proposal of the short product form takes the unit whose
+name matches g before a unit with a conversion to g, so a lookup result in g
+gets the Gram and not the Ounce. The table also holds the conversion 1 Box =
+6 Packs of product 3. The household conversion list of the Next API reads
+the table with no filter and leaves out the row of product 3.
+
+A product create with the Kilogram as the purchase unit and the Gram as the
+stock unit answers the id 9, not 4. The household conversion resolves this
+pair, so product 9 has no product conversion, as the Grocy trigger creates
+none. The create captures its fields into the store `product9`. The details
+of product 9 read that store and have the factor 1000. Its resolved
+conversions are the household conversions between the Kilogram, the Gram,
+and the Ounce.
+
+A conversion create captures the product, the two units, and the factor of
+the request into the store `created-conversion`. The mock holds no state, so
+a test reads that store through the Imposter system API at
+`/system/store/created-conversion` to see whether the Next API wrote a
+product conversion. A `DELETE` of that path empties the store.
 
 The Garage is the one inactive row of the master data. The master data
 lists of the Next API filter with `query[]=active=1`, so the location list

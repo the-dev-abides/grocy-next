@@ -10,8 +10,8 @@ export interface ProductConversion extends QuantityUnitConversion {
 
 // This function returns the conversion row from the purchase unit to the
 // stock unit, or null when the product has none. The Grocy trigger creates
-// no row when a conversion of the household already resolves the pair, so
-// the product create then adds the row itself.
+// no row when a conversion of the household already resolves the pair. The
+// product create then writes no row, so the household conversion applies.
 export function purchaseToStockRowOf(
   rows: readonly ProductConversion[],
   units: { purchaseUnitId: number; stockUnitId: number },
