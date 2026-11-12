@@ -46,8 +46,8 @@ const recordSchema = z.record(z.string(), z.unknown());
 const tagsSchema = z.array(z.string());
 const levelsSchema = z.record(z.string(), z.string());
 
-// The v3 envelope: `status` is `success` or `failure`, and `product` holds the
-// fields of the read on a success.
+// The v3 envelope: `status` is `success`, `success_with_warnings`, or
+// `failure`, and `product` holds the fields of the read on a success.
 export const openFactsAnswerSchema = z.looseObject({
   product: recordSchema.optional(),
   status: z.string(),

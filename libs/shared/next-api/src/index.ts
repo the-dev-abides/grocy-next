@@ -10,3 +10,4 @@ export {
   ProblemException,
   type ProblemType,
 } from './lib/problems.ts';
+export { NoInputTool, toolInputOf } from './lib/tool-input.ts';

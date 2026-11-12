@@ -6,7 +6,6 @@ import {
   locationOf,
   NoQuery,
   PROBLEM_TYPES,
-  ProblemException,
 } from '@grocy-next/shared-next-api';
 import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import {
@@ -79,8 +78,7 @@ export class ProductsController {
     return { items: await this.grocy.listProducts() };
   }
 
-  // The read of one product. Grocy answers an unknown id and an inactive
-  // product with one refusal, so both are the not-found problem.
+  // The read of one product. An unknown id is the not-found problem.
   @Get(':id')
   @ApiOperation({ operationId: 'getProduct', summary: 'Read one product.' })
   @ApiOkResponse({ description: 'The product.', type: Product })
@@ -92,13 +90,6 @@ export class ProductsController {
   @NoQuery()
   @ZodSerializerDto(Product)
   async read(@Param() parameters: ProductId): Promise<Product> {
-    const product = await this.products.read(parameters.id);
-    if (product === null) {
-      throw new ProblemException(
-        PROBLEM_TYPES.notFound,
-        `No product has the id ${String(parameters.id)}.`,
-      );
-    }
-    return product;
+    return this.products.read(parameters.id);
   }
 }

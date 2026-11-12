@@ -27,14 +27,16 @@ export interface ReviewQueueOptions {
 // The review queue subdomain of the Inventory domain. It holds the pending
 // scans and their operations, the accept, the lookup worker, and the
 // nutrition facts. The Products module gives it the Grocy API client for the
-// code resolution and the booking. The
-// lookup options factory reads the two lookup variables at start, so a wrong
-// value stops the process before it listens.
+// code resolution and the booking. The module exports the two services for
+// the MCP tools of the review queue. The lookup options factory reads the two
+// lookup variables at start, so a wrong value stops the process before it
+// listens.
 @Module({})
 export class ReviewQueueModule {
   static forRoot(options: ReviewQueueOptions): DynamicModule {
     return {
       controllers: [PendingScansController, BookingsController],
+      exports: [PendingScansService, BookingsService],
       imports: [
         ProductsModule,
         TypeOrmModule.forFeature([

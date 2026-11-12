@@ -21,6 +21,11 @@ export const PROBLEM_TYPES = {
     title: 'Grocy is unavailable',
     type: '/problems/grocy-unavailable',
   },
+  internal: {
+    status: 500,
+    title: 'Internal server error',
+    type: '/problems/internal',
+  },
   noAmount: {
     status: 409,
     title: 'The pending scan has no amount',
@@ -45,6 +50,11 @@ export const PROBLEM_TYPES = {
     status: 415,
     title: 'The body is not JSON',
     type: '/problems/not-json',
+  },
+  unauthorized: {
+    status: 401,
+    title: 'The bearer token is missing or wrong',
+    type: '/problems/unauthorized',
   },
   unknownId: {
     status: 422,

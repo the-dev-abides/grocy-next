@@ -11,7 +11,8 @@
 # off. `OPEN_FACTS_URL` is the base URL of the Open Facts service.
 #
 # The Grocy URL and the Grocy API key come from one Secret that the user
-# creates. See `deploy/kubernetes/README.md`.
+# creates. The MCP token comes from the optional Secret `grocy-next-mcp`,
+# which the user also creates. See `deploy/kubernetes/README.md`.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
