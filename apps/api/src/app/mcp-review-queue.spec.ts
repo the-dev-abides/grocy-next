@@ -209,4 +209,66 @@ describe('the review queue tools of the MCP server', () => {
     });
     expect(await readWithApi(created.id)).toEqual(result.structuredContent);
   });
+
+  // The code is in no product barcode of the fixture household, so the row
+  // has no product.
+  it('refuses the accept of a pending scan with no product with the no-product problem', async () => {
+    const created = await createWithApi({
+      bookingType: 'purchase',
+      code: '4006381333931',
+      writeInName: 'Pasta',
+    });
+
+    const result = await client.callTool({
+      arguments: { pendingScanId: created.id },
+      name: 'create_booking',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(problemOf(result)).toEqual({
+      detail: 'The pending scan has no product. Set a product first.',
+      instance: '/api/v2/mcp',
+      status: 409,
+      title: 'The pending scan has no product',
+      type: '/problems/no-product',
+    });
+  });
+
+  // The scan of the can carries the product barcode defaults: one can and
+  // the last price 0.85 as a unit price. The Grocy mock returns one stock log
+  // row with the product of the path and the amount and the price of the
+  // request. The other fields have fixed values.
+  it('accepts a Purchase pending scan with a product and returns the booking with the stock log row', async () => {
+    const created = await createWithApi({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    const result = await client.callTool({
+      arguments: { pendingScanId: created.id },
+      name: 'create_booking',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toEqual({
+      bookingType: 'purchase',
+      bookings: [
+        {
+          amount: 1,
+          dueDate: '2027-01-01',
+          id: 101,
+          locationId: 1,
+          note: null,
+          price: 0.85,
+          purchasedDate: '2026-11-10',
+          stockEntryId: null,
+          storeId: null,
+          transactionType: 'purchase',
+        },
+      ],
+      pendingScanId: created.id,
+      productId: 1,
+      transactionId: '69131a2b3c4e6',
+    });
+  });
 });

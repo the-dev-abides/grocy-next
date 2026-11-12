@@ -2,6 +2,8 @@ import { noQuerySchema } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
+import { Booking, CreateBooking } from './booking.ts';
+import { BookingsService } from './bookings.service.ts';
 import {
   CreatePendingScan,
   PendingScan,
@@ -18,7 +20,21 @@ import { PendingScansService } from './pending-scans.service.ts';
 // exports this provider, and the API app registers it with the MCP module.
 @Injectable()
 export class ReviewQueueTools {
-  constructor(private readonly pendingScans: PendingScansService) {}
+  constructor(
+    private readonly bookings: BookingsService,
+    private readonly pendingScans: PendingScansService,
+  ) {}
+
+  @Tool({
+    description:
+      'Accept one pending scan as a booking. The accept writes a purchase or an inventory in Grocy and removes the pending scan. The result is the booking with the stock log rows that Grocy stored.',
+    inputSchema: CreateBooking.schema,
+    name: 'create_booking',
+    outputSchema: Booking.schema,
+  })
+  async createBooking(input: CreateBooking): Promise<Booking> {
+    return this.bookings.create(input);
+  }
 
   // A pending scan from the MCP server never merges into an open row, as ADR
   // 0010 decided. The result is the new row.
