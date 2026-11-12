@@ -3,12 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
 import { GrocyClient } from './grocy/grocy-client.ts';
-import {
-  CreateProduct,
-  Product,
-  ProductId,
-  ProductList,
-} from './product.ts';
+import { CreateProduct, Product, ProductId, ProductList } from './product.ts';
 import { ProductsService } from './products.service.ts';
 
 // The MCP tools of the product operations, as ADR 0012 decided. A tool is a
