@@ -107,10 +107,18 @@ export class ProductsService {
     return this.toProduct(details);
   }
 
-  // The product read: the product that an id names, or null when no active
-  // product has the id.
-  async read(productId: number): Promise<null | Product> {
+  // The product read: the product that an id names. Grocy answers an unknown
+  // id and an inactive product with one refusal, so both are the not-found
+  // problem. The service throws the problem, so the controller and the MCP
+  // tool hold no rule.
+  async read(productId: number): Promise<Product> {
     const details = await this.grocy.readProductDetails(productId);
-    return details === null ? null : this.toProduct(details);
+    if (details === null) {
+      throw new ProblemException(
+        PROBLEM_TYPES.notFound,
+        `No product has the id ${String(productId)}.`,
+      );
+    }
+    return this.toProduct(details);
   }
 }

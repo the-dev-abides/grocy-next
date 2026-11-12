@@ -3,7 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
 import { GrocyClient } from './grocy/grocy-client.ts';
-import { ProductList } from './product.ts';
+import { CreateProduct, Product, ProductId, ProductList } from './product.ts';
+import { ProductsService } from './products.service.ts';
 
 // The MCP tools of the product operations, as ADR 0012 decided. A tool is a
 // surface and holds no rules. It takes the schema of the controller as its
@@ -12,7 +13,32 @@ import { ProductList } from './product.ts';
 // this provider, and the API app registers it with the MCP module.
 @Injectable()
 export class ProductsTools {
-  constructor(private readonly grocy: GrocyClient) {}
+  constructor(
+    private readonly grocy: GrocyClient,
+    private readonly products: ProductsService,
+  ) {}
+
+  @Tool({
+    description:
+      'Read one product by its id. The result is the product of the Next API with its units, its stock amount, its stock entries, and its conversions.',
+    inputSchema: ProductId.schema,
+    name: 'get_product',
+    outputSchema: Product.schema,
+  })
+  async getProduct(input: ProductId): Promise<Product> {
+    return this.products.read(input.id);
+  }
+
+  @Tool({
+    description:
+      'Create a product with the short product form. The result is the new product as Grocy stores it, with its id.',
+    inputSchema: CreateProduct.schema,
+    name: 'create_product',
+    outputSchema: Product.schema,
+  })
+  async createProduct(input: CreateProduct): Promise<Product> {
+    return this.products.create(input);
+  }
 
   @Tool({
     description:

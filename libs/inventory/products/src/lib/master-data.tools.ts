@@ -1,0 +1,77 @@
+import { noQuerySchema } from '@grocy-next/shared-next-api';
+import { Injectable } from '@nestjs/common';
+import { Tool } from '@nestjs/mcp';
+
+import { GrocyClient } from './grocy/grocy-client.ts';
+import {
+  LocationList,
+  ProductGroupList,
+  QuantityUnitConversionList,
+  QuantityUnitList,
+  StoreList,
+} from './master-data.ts';
+
+// The MCP tools of the master data list operations, as ADR 0012 decided. A
+// tool is a surface and holds no rules. It takes no input and returns the
+// list schema of the controller as its output schema. It calls the same
+// method as the controller. The library exports this provider, and the API
+// app registers it with the MCP module.
+@Injectable()
+export class MasterDataTools {
+  constructor(private readonly grocy: GrocyClient) {}
+
+  @Tool({
+    description:
+      'List every active location. The result is an object with an `items` list of the id and the name of each location.',
+    inputSchema: noQuerySchema,
+    name: 'list_locations',
+    outputSchema: LocationList.schema,
+  })
+  async listLocations(): Promise<LocationList> {
+    return { items: await this.grocy.listLocations() };
+  }
+
+  @Tool({
+    description:
+      'List every active product group. The result is an object with an `items` list of the id and the name of each product group.',
+    inputSchema: noQuerySchema,
+    name: 'list_product_groups',
+    outputSchema: ProductGroupList.schema,
+  })
+  async listProductGroups(): Promise<ProductGroupList> {
+    return { items: await this.grocy.listProductGroups() };
+  }
+
+  @Tool({
+    description:
+      'List every household quantity unit conversion, which is a conversion with no product. The result is an object with an `items` list of the from unit id, the to unit id, and the factor of each conversion.',
+    inputSchema: noQuerySchema,
+    name: 'list_quantity_unit_conversions',
+    outputSchema: QuantityUnitConversionList.schema,
+  })
+  async listQuantityUnitConversions(): Promise<QuantityUnitConversionList> {
+    return { items: await this.grocy.listHouseholdConversions() };
+  }
+
+  @Tool({
+    description:
+      'List every active quantity unit. The result is an object with an `items` list of the id and the name of each quantity unit.',
+    inputSchema: noQuerySchema,
+    name: 'list_quantity_units',
+    outputSchema: QuantityUnitList.schema,
+  })
+  async listQuantityUnits(): Promise<QuantityUnitList> {
+    return { items: await this.grocy.listQuantityUnits() };
+  }
+
+  @Tool({
+    description:
+      'List every active store. The result is an object with an `items` list of the id and the name of each store.',
+    inputSchema: noQuerySchema,
+    name: 'list_stores',
+    outputSchema: StoreList.schema,
+  })
+  async listStores(): Promise<StoreList> {
+    return { items: await this.grocy.listStores() };
+  }
+}
