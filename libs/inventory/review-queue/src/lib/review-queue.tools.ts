@@ -7,6 +7,7 @@ import {
   PendingScan,
   PendingScanId,
   PendingScanList,
+  UpdatePendingScanToolInput,
 } from './pending-scan.ts';
 import { PendingScansService } from './pending-scans.service.ts';
 
@@ -42,6 +43,22 @@ export class ReviewQueueTools {
   })
   async getPendingScan(input: PendingScanId): Promise<PendingScan> {
     return this.pendingScans.read(input.id);
+  }
+
+  // The tool takes the id and the merge patch fields in one input. It gives
+  // them to the service as two arguments, as the controller does.
+  @Tool({
+    description:
+      'Update one pending scan by its id with a JSON merge patch: an absent field stays as it is, and a field set to null clears it. An update that sets a product also adds the code of the row to that product in Grocy. The result is the pending scan after the update.',
+    inputSchema: UpdatePendingScanToolInput.schema,
+    name: 'update_pending_scan',
+    outputSchema: PendingScan.schema,
+  })
+  async updatePendingScan(
+    input: UpdatePendingScanToolInput,
+  ): Promise<PendingScan> {
+    const { id, ...body } = input;
+    return this.pendingScans.update(id, body);
   }
 
   @Tool({

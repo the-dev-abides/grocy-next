@@ -184,4 +184,29 @@ describe('the review queue tools of the MCP server', () => {
       type: '/problems/not-found',
     });
   });
+
+  // The code is in no product barcode of the fixture household, and the
+  // write-in name keeps the lookup worker off the row. Product 2 has no
+  // product barcode with the code, so the update adds one in Grocy. The
+  // Grocy mock answers the id 5 for a new product barcode.
+  it('updates a pending scan that sets a product and returns the row with the product barcode id', async () => {
+    const created = await createWithApi({
+      bookingType: 'purchase',
+      code: '4006381333931',
+      writeInName: 'Pasta',
+    });
+
+    const result = await client.callTool({
+      arguments: { id: created.id, productId: 2 },
+      name: 'update_pending_scan',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      id: created.id,
+      productBarcodeId: 5,
+      productId: 2,
+    });
+    expect(await readWithApi(created.id)).toEqual(result.structuredContent);
+  });
 });
