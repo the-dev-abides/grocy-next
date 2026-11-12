@@ -39,6 +39,13 @@ describe('the review queue tools of the MCP server', () => {
     return (await response.json()) as PendingScanBody;
   }
 
+  async function readWithApi(id: number): Promise<PendingScanBody> {
+    const response = await fetch(
+      `${baseUrl}/api/v2/pending-scans/${String(id)}`,
+    );
+    return (await response.json()) as PendingScanBody;
+  }
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
@@ -88,5 +95,42 @@ describe('the review queue tools of the MCP server', () => {
     expect(result.content).toEqual([
       { text: JSON.stringify({ items: [created] }), type: 'text' },
     ]);
+  });
+
+  // A receipt line: a row with a product and no code. The Next API read of
+  // the id gives the stored row.
+  it('creates a pending scan with a product and no code and returns the stored row', async () => {
+    const result = await client.callTool({
+      arguments: { amount: 2, bookingType: 'purchase', productId: 1 },
+      name: 'create_pending_scan',
+    });
+
+    expect(result.isError).not.toBe(true);
+    const created = result.structuredContent as PendingScanBody;
+    expect(created).toMatchObject({ code: null, productId: 1 });
+    expect(await readWithApi(created.id)).toEqual(created);
+    expect(result.content).toEqual([
+      { text: JSON.stringify(created), type: 'text' },
+    ]);
+  });
+
+  // ADR 0010: a pending scan from the MCP server never merges. A row with no
+  // code is never a merge target, so the call has a code. The code is the can
+  // of product 1, which the scan screen merges into the open row.
+  it('creates a second row with a new id for a second identical call', async () => {
+    const call = {
+      arguments: { bookingType: 'purchase', code: '5449000000996' },
+      name: 'create_pending_scan',
+    };
+
+    const first = await client.callTool(call);
+    const second = await client.callTool(call);
+
+    const firstRow = first.structuredContent as PendingScanBody;
+    const secondRow = second.structuredContent as PendingScanBody;
+    expect(second.isError).not.toBe(true);
+    expect(secondRow.id).not.toBe(firstRow.id);
+    expect(secondRow).toMatchObject({ amount: 1 });
+    expect(await readWithApi(firstRow.id)).toMatchObject({ amount: 1 });
   });
 });

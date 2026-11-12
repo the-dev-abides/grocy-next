@@ -2,7 +2,11 @@ import { noQuerySchema } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
-import { PendingScanList } from './pending-scan.ts';
+import {
+  CreatePendingScan,
+  PendingScan,
+  PendingScanList,
+} from './pending-scan.ts';
 import { PendingScansService } from './pending-scans.service.ts';
 
 // The MCP tools of the review queue operations, as ADR 0012 decided. A tool
@@ -13,6 +17,20 @@ import { PendingScansService } from './pending-scans.service.ts';
 @Injectable()
 export class ReviewQueueTools {
   constructor(private readonly pendingScans: PendingScansService) {}
+
+  // A pending scan from the MCP server never merges into an open row, as ADR
+  // 0010 decided. The result is the new row.
+  @Tool({
+    description:
+      'Create a pending scan. The row goes into the review queue for the user to accept. A row with a product and no code is the way to enter a receipt line. The result is the stored pending scan.',
+    inputSchema: CreatePendingScan.schema,
+    name: 'create_pending_scan',
+    outputSchema: PendingScan.schema,
+  })
+  async createPendingScan(input: CreatePendingScan): Promise<PendingScan> {
+    const { pendingScan } = await this.pendingScans.create(input, 'no merge');
+    return pendingScan;
+  }
 
   @Tool({
     description:
