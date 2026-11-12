@@ -9,13 +9,13 @@ import { queryOf } from './request.ts';
 import { validationProblemOf } from './validation.ts';
 
 // The query schema of an operation that takes no query field.
-const noQuerySchema = z.strictObject({});
+const NO_QUERY = z.strictObject({});
 
 @Injectable()
 class NoQueryGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<HttpRequest>();
-    const result = noQuerySchema.safeParse(queryOf(request));
+    const result = NO_QUERY.safeParse(queryOf(request));
     if (!result.success) {
       throw validationProblemOf(result.error);
     }
