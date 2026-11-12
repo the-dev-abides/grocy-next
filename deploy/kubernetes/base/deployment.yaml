@@ -14,6 +14,9 @@
 #   database connection answers. The Service routes traffic to the pod only
 #   while this probe passes.
 #
+# The MCP token comes from the Secret `grocy-next-mcp`. The Secret is
+# optional. When it does not exist, the pod starts and the MCP server is off.
+#
 # The process runs as the `node` user of the image, user 1000. The pod
 # security context sets that user and group, so a mounted volume is writable
 # by the process.
@@ -55,6 +58,9 @@ spec:
                 name: grocy-next
             - secretRef:
                 name: grocy-next-grocy-access
+            - secretRef:
+                name: grocy-next-mcp
+                optional: true
           startupProbe:
             httpGet:
               path: /api/v2/health/startup

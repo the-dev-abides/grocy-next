@@ -29,6 +29,28 @@ kubectl create secret generic grocy-next-grocy-access \
 `GROCY_API_KEY` is a key from the Grocy "Manage API keys" page. The pod exits
 at start when one of the two is missing.
 
+## The MCP Secret
+
+The MCP server is off until you set a token. The pod reads the token from an
+optional Secret with the name `grocy-next-mcp`. The key is `MCP_TOKEN`. When
+the Secret does not exist, the pod starts and the MCP server is off.
+
+```sh
+kubectl create secret generic grocy-next-mcp \
+  --from-literal=MCP_TOKEN="$(openssl rand -hex 32)"
+```
+
+The token must have 32 characters or more. The pod exits at start when the
+token is shorter. The pod reads the Secret only at start. After you create
+or change the Secret, restart the pod:
+
+```sh
+kubectl rollout restart deployment/grocy-next
+```
+
+The page `docs/user/connect-an-assistant.md` tells you how to connect an
+assistant.
+
 ## The database Secret
 
 The two PostgreSQL overlays give the pod a second Secret with the name
