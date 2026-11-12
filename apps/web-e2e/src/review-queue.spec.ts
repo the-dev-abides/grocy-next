@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
   createRow,
+  GROCY_MOCK_URL,
   listRows,
   LOOKUP_TIMEOUT_MS,
   MOCK_DUE_DATE,
@@ -28,6 +29,13 @@ import {
 const NEW_PRODUCT_CODE = '5000157024671';
 const NEW_PRODUCT_ID = 4;
 const NEW_PRODUCT_BARCODE_ID = 5;
+
+// The fifth unknown code of the Open Food Facts mock, UPC 196633911698,
+// Kirkland Signature whole grain rolled oats. The record names the end-to-end
+// mock as its image host. The Grocy mock answers the product create for the
+// Kilogram and the Gram with the id 9.
+const OATS_CODE = '196633911698';
+const OATS_PRODUCT_ID = 9;
 
 for (const path of ['/scan/purchase', '/scan/inventory']) {
   test(`Done on the scan screen ${path} opens the review queue`, async ({
@@ -355,6 +363,74 @@ test('New product opens the short product form with the proposals of the lookup 
   );
   const stored = await listRows(request);
   expect(stored.filter((item) => item.note === note)).toEqual([]);
+});
+
+// The fixture household has the Gram, the Kilogram, the Ounce, and the Bag,
+// with the household conversions 1 Kilogram = 1000 Gram and 1 Ounce =
+// 28.349523125 Gram. The lookup result of this code says 4.45kg, 4450 g, and
+// the package shape en:bag. The Grocy mock answers a product create with the
+// Kilogram and the Gram with the id 9, and captures every conversion create
+// into the Imposter store `created-conversion`.
+test('New product in a household with household conversions proposes the Gram and the Bag, hides the factor for a pair that the household resolves, and writes no product conversion', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-household-conversions';
+  await removeRows(
+    request,
+    (row) => row.note === note || row.code === OATS_CODE,
+  );
+  const created = await createRow(request, {
+    bookingType: 'purchase',
+    code: OATS_CODE,
+    note,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row.getByRole('link', { name: 'Open Food Facts' })).toBeVisible({
+    timeout: LOOKUP_TIMEOUT_MS,
+  });
+
+  await row.getByRole('button', { name: 'New product' }).click();
+
+  // The stock unit is the Gram from its name, not the Ounce from its
+  // household conversion. The purchase unit is the Bag from the package
+  // shape, because the label names no package. The household does not
+  // resolve the Bag and the Gram, so the form asks for the factor, and the
+  // proposal is the net quantity.
+  const dialog = page.getByRole('dialog', { name: 'New product' });
+  await expect(dialog.getByLabel('Stock unit', { exact: true })).toContainText(
+    'Gram',
+  );
+  await expect(
+    dialog.getByLabel('Purchase unit', { exact: true }),
+  ).toContainText('Bag');
+  await expect(
+    dialog.getByRole('spinbutton', { name: 'One Bag is how many Gram' }),
+  ).toHaveValue('4450');
+
+  // The household conversion resolves the Kilogram and the Gram, so the form
+  // hides the factor.
+  await pickOption(dialog, 'Purchase unit', 'Kilogram');
+  await expect(
+    dialog.getByRole('spinbutton', { name: /is how many/u }),
+  ).toHaveCount(0);
+  await pickOption(dialog, 'Default location', 'Pantry');
+  const store = `${GROCY_MOCK_URL}/system/store/created-conversion`;
+  await request.delete(store);
+
+  await dialog.getByRole('button', { name: 'Create and use' }).click();
+
+  await expect(dialog).toBeHidden();
+  await expect(row).toContainText('Whole grain rolled oats');
+  const rows = await listRows(request);
+  expect(rows.find((item) => item.id === created.id)).toMatchObject({
+    productId: OATS_PRODUCT_ID,
+  });
+  const createdConversion = await request.get(store);
+  expect(await createdConversion.json()).toEqual({});
+
+  await removeRows(request, (item) => item.id === created.id);
 });
 
 test('New product on a row with a write-in name opens the form with that name and no unit proposal', async ({

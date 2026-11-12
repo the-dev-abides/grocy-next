@@ -1,11 +1,11 @@
 # The Open Food Facts mock. ADR 0015 and ADR 0011 record the decision. The
-# mock answers the v3 product read for the seven fixture codes with the live
+# mock answers the v3 product read for the eight fixture codes with the live
 # records of Open Food Facts, stored one time. Every other code gets the
 # failure answer of Open Food Facts. The mock holds no state.
 #
 # The API sends `GET /api/v3/product/{code}?product_type=all&fields=...`.
 # The match is on the path only, so the field list does not matter. The live
-# service redirects a code that another Open Facts service holds. The seven
+# service redirects a code that another Open Facts service holds. The eight
 # fixture codes are Open Food Facts codes, so the mock sends no redirect.
 plugin: rest
 resources:
@@ -51,6 +51,20 @@ resources:
       code: '057627224456'
     response:
       file: responses/product-057627224456.json
+
+  # The fifth unknown test code, Kirkland Signature whole grain rolled oats, a
+  # 12-digit UPC-A code. The label quantity text is 4.45kg, the net quantity
+  # is 4450 g, and the packaging has the shape en:bag. The end-to-end test of
+  # the short product form in a household with household conversions creates
+  # a row of this code. The image URL in this record names the end-to-end
+  # mock, as for the third unknown code. The live answer has the status
+  # `success_with_warnings`.
+  - path: /api/v3/product/{code}
+    method: GET
+    pathParams:
+      code: '196633911698'
+    response:
+      file: responses/product-196633911698.json
 
   # The three fixture product codes. A product barcode resolves each of them
   # in Grocy, so the lookup does not run for them. The records are here for
@@ -102,6 +116,15 @@ resources:
   # The front image of the third unknown test code, at the path that its
   # record names. The file is the same small JPEG.
   - path: /images/products/500/015/702/4671/front_en.459.400.jpg
+    method: GET
+    response:
+      file: responses/front-3017620422003.jpg
+      headers:
+        Content-Type: image/jpeg
+
+  # The front image of the fifth unknown test code, at the path that its
+  # record names. The file is the same small JPEG.
+  - path: /images/products/019/663/391/1698/front_en.45.400.jpg
     method: GET
     response:
       file: responses/front-3017620422003.jpg
