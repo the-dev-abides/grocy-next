@@ -15,11 +15,7 @@ import {
   StoreList,
 } from './master-data.ts';
 
-// The MCP tools of the master data list operations, as ADR 0012 decided. A
-// tool is a surface and holds no rules. It takes no input and returns the
-// list schema of the controller as its output schema. It calls the same
-// method as the controller. The library exports this provider, and the API
-// app registers it with the MCP module.
+// The MCP tools of the master data list operations, as ADR 0012 decided.
 @Injectable()
 export class MasterDataTools {
   constructor(private readonly grocy: GrocyClient) {}

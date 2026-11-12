@@ -10,11 +10,7 @@ import { GrocyClient } from './grocy/grocy-client.ts';
 import { CreateProduct, Product, ProductId, ProductList } from './product.ts';
 import { ProductsService } from './products.service.ts';
 
-// The MCP tools of the product operations, as ADR 0012 decided. A tool is a
-// surface and holds no rules. It takes the schema of the controller as its
-// input schema and the response schema as its output schema. It calls the
-// same method as the controller with the same arguments. The library exports
-// this provider, and the API app registers it with the MCP module.
+// The MCP tools of the product operations, as ADR 0012 decided.
 @Injectable()
 export class ProductsTools {
   constructor(
