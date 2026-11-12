@@ -1,4 +1,8 @@
-import { noQuerySchema } from '@grocy-next/shared-next-api';
+import {
+  NoToolInput,
+  ToolInput,
+  toolInputOf,
+} from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
@@ -28,7 +32,7 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'Accept one pending scan as a booking. The accept writes a purchase or an inventory in Grocy and removes the pending scan. The result is the booking with the stock log rows that Grocy stored.',
-    inputSchema: CreateBooking.schema,
+    inputSchema: toolInputOf(CreateBooking),
     name: 'create_booking',
     outputSchema: Booking.schema,
   })
@@ -41,7 +45,7 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'Create a pending scan. The row goes into the review queue for the user to accept. A row with a product and no code is the way to enter a receipt line. The result is the stored pending scan.',
-    inputSchema: CreatePendingScan.schema,
+    inputSchema: toolInputOf(CreatePendingScan),
     name: 'create_pending_scan',
     outputSchema: PendingScan.schema,
   })
@@ -53,7 +57,7 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'Read one pending scan by its id. The result is the pending scan.',
-    inputSchema: PendingScanId.schema,
+    inputSchema: toolInputOf(PendingScanId),
     name: 'get_pending_scan',
     outputSchema: PendingScan.schema,
   })
@@ -66,7 +70,7 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'Update one pending scan by its id with a JSON merge patch: an absent field stays as it is, and a field set to null clears it. An update that sets a product also adds the code of the row to that product in Grocy. The result is the pending scan after the update.',
-    inputSchema: UpdatePendingScanToolInput.schema,
+    inputSchema: toolInputOf(UpdatePendingScanToolInput),
     name: 'update_pending_scan',
     outputSchema: PendingScan.schema,
   })
@@ -80,7 +84,7 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'Delete one pending scan by its id. A delete is a reject: the row is gone from the review queue with no history. The result is the pending scan as it was before the delete.',
-    inputSchema: PendingScanId.schema,
+    inputSchema: toolInputOf(PendingScanId),
     name: 'delete_pending_scan',
     outputSchema: PendingScan.schema,
   })
@@ -91,10 +95,11 @@ export class ReviewQueueTools {
   @Tool({
     description:
       'List every pending scan in the review queue, most recent first. The result is an object with an `items` list of the pending scans.',
-    inputSchema: noQuerySchema,
+    inputSchema: toolInputOf(NoToolInput),
     name: 'list_pending_scans',
     outputSchema: PendingScanList.schema,
   })
+  @ToolInput(NoToolInput)
   async listPendingScans(): Promise<PendingScanList> {
     return this.pendingScans.list();
   }

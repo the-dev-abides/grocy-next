@@ -223,4 +223,46 @@ describe('the product tools and the master data tools of the MCP server', () => 
       ]);
     },
   );
+
+  // The create schema is strict. The input schema in the tool list keeps
+  // that rule, so the assistant sees that an unknown field is refused.
+  it('lists the create_product input schema with no additional properties', async () => {
+    const { tools } = await client.listTools();
+
+    const tool = tools.find(({ name }) => name === 'create_product');
+    expect(tool?.inputSchema).toMatchObject({ additionalProperties: false });
+  });
+
+  // An unknown field gets the validation problem of the Next API, with one
+  // entry that names the field.
+  it.each([
+    {
+      arguments: {
+        colour: 'white',
+        locationId: 1,
+        name: 'Milk 1 l',
+        purchaseUnitId: 2,
+        stockUnitId: 2,
+      },
+      field: 'colour',
+      tool: 'create_product',
+    },
+    { arguments: { active: 0 }, field: 'active', tool: 'list_locations' },
+  ])(
+    'refuses an unknown field of $tool with the validation problem',
+    async ({ arguments: input, field, tool }) => {
+      const result = await client.callTool({ arguments: input, name: tool });
+
+      expect(result.isError).toBe(true);
+      const [content] = result.content as { text: string }[];
+      expect(JSON.parse(content?.text ?? '')).toEqual({
+        detail: 'The body, the query, or the path fails the schema.',
+        errors: [{ message: 'unknown field', path: field }],
+        instance: '/api/v2/mcp',
+        status: 400,
+        title: 'The request fails the schema',
+        type: '/problems/validation',
+      });
+    },
+  );
 });

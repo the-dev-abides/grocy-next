@@ -1,4 +1,8 @@
-import { noQuerySchema } from '@grocy-next/shared-next-api';
+import {
+  NoToolInput,
+  ToolInput,
+  toolInputOf,
+} from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
@@ -21,7 +25,7 @@ export class ProductsTools {
   @Tool({
     description:
       'Read one product by its id. The result is the product of the Next API with its units, its stock amount, its stock entries, and its conversions.',
-    inputSchema: ProductId.schema,
+    inputSchema: toolInputOf(ProductId),
     name: 'get_product',
     outputSchema: Product.schema,
   })
@@ -32,7 +36,7 @@ export class ProductsTools {
   @Tool({
     description:
       'Create a product with the short product form. The result is the new product as Grocy stores it, with its id.',
-    inputSchema: CreateProduct.schema,
+    inputSchema: toolInputOf(CreateProduct),
     name: 'create_product',
     outputSchema: Product.schema,
   })
@@ -43,10 +47,11 @@ export class ProductsTools {
   @Tool({
     description:
       'List every product. The result is the product list of the Next API: an object with an `items` list of the id, the name, and the description of each product.',
-    inputSchema: noQuerySchema,
+    inputSchema: toolInputOf(NoToolInput),
     name: 'list_products',
     outputSchema: ProductList.schema,
   })
+  @ToolInput(NoToolInput)
   async listProducts(): Promise<ProductList> {
     return { items: await this.grocy.listProducts() };
   }

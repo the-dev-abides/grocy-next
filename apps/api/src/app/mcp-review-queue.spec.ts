@@ -297,4 +297,24 @@ describe('the review queue tools of the MCP server', () => {
       transactionId: '69131a2b3c4e6',
     });
   });
+
+  // An unknown field gets the validation problem of the Next API, with one
+  // entry that names the field.
+  it('refuses an unknown field of create_pending_scan with the validation problem', async () => {
+    const result = await client.callTool({
+      arguments: { bookingType: 'purchase', productId: 1, shop: 'Aldi' },
+      name: 'create_pending_scan',
+    });
+
+    expect(result.isError).toBe(true);
+    const [content] = result.content as { text: string }[];
+    expect(JSON.parse(content?.text ?? '')).toEqual({
+      detail: 'The body, the query, or the path fails the schema.',
+      errors: [{ message: 'unknown field', path: 'shop' }],
+      instance: '/api/v2/mcp',
+      status: 400,
+      title: 'The request fails the schema',
+      type: '/problems/validation',
+    });
+  });
 });
