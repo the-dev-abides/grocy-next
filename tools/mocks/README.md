@@ -169,7 +169,7 @@ lookup uses it. No product barcode has it. The fifth unknown code is
 code. The label says 4.45kg, the net quantity is 4450 g, and the packaging
 has the shape en:bag. The end-to-end test of the short product form in a
 household with household conversions creates a row of it through the API.
-No product barcode has it.
+The API test of the lookup also uses it. No product barcode has it.
 
 Each product has the resolved conversion from its stock unit to itself with
 factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
