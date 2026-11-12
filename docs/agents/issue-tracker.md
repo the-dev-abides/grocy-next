@@ -33,6 +33,17 @@ Create a GitHub issue.
 
 Read the issue with the command in **Read an issue**.
 
+## Icebox
+
+The icebox holds ideas that the maintainer wants to keep but does not work on
+now. The label `icebox` means "not right now". It has no other meaning. An
+icebox issue is closed, so it does not show in the open issue list or on the
+board.
+
+- Put an idea in the icebox: `gh issue create --title "..." --body "..." --label icebox`, then `gh issue close <number> --reason "not planned"`.
+- Move an open issue to the icebox: `gh issue edit <number> --add-label icebox`, then `gh issue close <number> --reason "not planned"`.
+- List the icebox: `gh issue list --state closed --label icebox`.
+
 ## Wayfinding operations
 
 The `/wayfinder` skill uses these operations. The map is one issue. Its child
