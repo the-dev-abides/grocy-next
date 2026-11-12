@@ -177,9 +177,11 @@ The MCP server follows the Next API rules: confirmation of the stored values,
 an error on an unknown field, no hidden side effect, full lists with no
 cut-off.
 
-The MCP transport and the authorization are not decided. ADR 8 allows a later
-decision to move the MCP server out of the process if the transport needs
-that.
+ADR 12 decides the MCP transport and the authorization. The MCP server uses
+Streamable HTTP at `/api/v2/mcp` in the NestJS process. One bearer token from
+`MCP_TOKEN` protects the endpoint. With no token, the endpoint is off.
+Milestone 2 built this base and one tool for each Next API operation. The
+tool providers live in the domain libraries, and the API app registers them.
 
 ## The Mealie link
 
