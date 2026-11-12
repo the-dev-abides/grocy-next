@@ -5,6 +5,7 @@ import { Tool } from '@nestjs/mcp';
 import {
   CreatePendingScan,
   PendingScan,
+  PendingScanId,
   PendingScanList,
 } from './pending-scan.ts';
 import { PendingScansService } from './pending-scans.service.ts';
@@ -30,6 +31,28 @@ export class ReviewQueueTools {
   async createPendingScan(input: CreatePendingScan): Promise<PendingScan> {
     const { pendingScan } = await this.pendingScans.create(input, 'no merge');
     return pendingScan;
+  }
+
+  @Tool({
+    description:
+      'Read one pending scan by its id. The result is the pending scan.',
+    inputSchema: PendingScanId.schema,
+    name: 'get_pending_scan',
+    outputSchema: PendingScan.schema,
+  })
+  async getPendingScan(input: PendingScanId): Promise<PendingScan> {
+    return this.pendingScans.read(input.id);
+  }
+
+  @Tool({
+    description:
+      'Delete one pending scan by its id. A delete is a reject: the row is gone from the review queue with no history. The result is the pending scan as it was before the delete.',
+    inputSchema: PendingScanId.schema,
+    name: 'delete_pending_scan',
+    outputSchema: PendingScan.schema,
+  })
+  async deletePendingScan(input: PendingScanId): Promise<PendingScan> {
+    return this.pendingScans.delete(input.id);
   }
 
   @Tool({

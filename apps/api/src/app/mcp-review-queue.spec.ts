@@ -22,6 +22,13 @@ interface PendingScanBody {
   [field: string]: unknown;
 }
 
+// An error result carries the Problem Details body as the JSON text of its
+// one content item.
+function problemOf(result: { content?: unknown }): unknown {
+  const [content] = result.content as { text: string }[];
+  return JSON.parse(content?.text ?? '');
+}
+
 // The review queue tools at the MCP endpoint. Each tool returns the body of
 // the Next API operation that it mirrors.
 describe('the review queue tools of the MCP server', () => {
@@ -132,5 +139,49 @@ describe('the review queue tools of the MCP server', () => {
     expect(secondRow.id).not.toBe(firstRow.id);
     expect(secondRow).toMatchObject({ amount: 1 });
     expect(await readWithApi(firstRow.id)).toMatchObject({ amount: 1 });
+  });
+
+  it('reads one pending scan by its id', async () => {
+    const created = await createWithApi({
+      bookingType: 'purchase',
+      productId: 1,
+    });
+
+    const result = await client.callTool({
+      arguments: { id: created.id },
+      name: 'get_pending_scan',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toEqual(created);
+  });
+
+  // The delete is the reject. The result is the row as it was, and a read
+  // of the id after the delete is the not-found problem.
+  it('deletes a pending scan, returns the row as it was, and then reads no row', async () => {
+    const created = await createWithApi({
+      bookingType: 'purchase',
+      productId: 1,
+    });
+
+    const deleted = await client.callTool({
+      arguments: { id: created.id },
+      name: 'delete_pending_scan',
+    });
+    const read = await client.callTool({
+      arguments: { id: created.id },
+      name: 'get_pending_scan',
+    });
+
+    expect(deleted.isError).not.toBe(true);
+    expect(deleted.structuredContent).toEqual(created);
+    expect(read.isError).toBe(true);
+    expect(problemOf(read)).toEqual({
+      detail: `No pending scan has the id ${String(created.id)}.`,
+      instance: '/api/v2/mcp',
+      status: 404,
+      title: 'Not found',
+      type: '/problems/not-found',
+    });
   });
 });
