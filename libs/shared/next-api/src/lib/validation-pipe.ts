@@ -26,15 +26,14 @@ const validationPipeClass: ValidationPipeClass = createZodValidationPipe({
 // path parameter against its Zod DTO. A failure is a validation problem. A
 // parameter without a Zod DTO is a programming error, so the pipe refuses
 // it with a 500 instead of letting the value through unchecked. The pipe
-// lets two kinds of parameter through. A custom parameter carries no request
-// data. A parameter that the method does not declare has no type, and the
-// method does not read it. An MCP tool method gets its input as a body
-// parameter and its context as a custom parameter. A tool method that reads
-// its input types it with a Zod DTO.
+// lets one kind of parameter through: a parameter with no type. Only an MCP
+// tool call has one. The adapter gives every tool method an input and a
+// context, and a method that does not declare a parameter gets no type for
+// it. On HTTP, every parameter is declared, so it always has a type.
 export class NextApiValidationPipe extends validationPipeClass {
   override transform(value: unknown, metadata: ArgumentMetadata): unknown {
-    const isUnchecked =
-      metadata.type === 'custom' || metadata.metatype === undefined;
-    return isUnchecked ? value : super.transform(value, metadata);
+    return metadata.metatype === undefined
+      ? value
+      : super.transform(value, metadata);
   }
 }
