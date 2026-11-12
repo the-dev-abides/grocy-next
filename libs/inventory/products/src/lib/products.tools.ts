@@ -1,8 +1,4 @@
-import {
-  NoToolInput,
-  ToolInput,
-  toolInputOf,
-} from '@grocy-next/shared-next-api';
+import { NoInputTool, toolInputOf } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { Tool } from '@nestjs/mcp';
 
@@ -10,11 +6,7 @@ import { GrocyClient } from './grocy/grocy-client.ts';
 import { CreateProduct, Product, ProductId, ProductList } from './product.ts';
 import { ProductsService } from './products.service.ts';
 
-// The MCP tools of the product operations, as ADR 0012 decided. A tool is a
-// surface and holds no rules. It takes the schema of the controller as its
-// input schema and the response schema as its output schema. It calls the
-// same method as the controller with the same arguments. The library exports
-// this provider, and the API app registers it with the MCP module.
+// The MCP tools of the product operations, as ADR 0012 decided.
 @Injectable()
 export class ProductsTools {
   constructor(
@@ -24,7 +16,7 @@ export class ProductsTools {
 
   @Tool({
     description:
-      'Read one product by its id. The result is the product of the Next API with its units, its stock amount, its stock entries, and its conversions.',
+      'Read one product by its id. The result is the product with its units, its stock amount, its stock entries, and its conversions.',
     inputSchema: toolInputOf(ProductId),
     name: 'get_product',
     outputSchema: Product.schema,
@@ -35,7 +27,7 @@ export class ProductsTools {
 
   @Tool({
     description:
-      'Create a product with the short product form. The result is the new product as Grocy stores it, with its id.',
+      'Create a product with the short product form. The result is the new product as Grocy stores it.',
     inputSchema: toolInputOf(CreateProduct),
     name: 'create_product',
     outputSchema: Product.schema,
@@ -44,14 +36,12 @@ export class ProductsTools {
     return this.products.create(input);
   }
 
-  @Tool({
+  @NoInputTool({
     description:
-      'List every product. The result is the product list of the Next API: an object with an `items` list of the id, the name, and the description of each product.',
-    inputSchema: toolInputOf(NoToolInput),
+      'List every product. The result is an `items` list of the id, the name, and the description of each product.',
     name: 'list_products',
     outputSchema: ProductList.schema,
   })
-  @ToolInput(NoToolInput)
   async listProducts(): Promise<ProductList> {
     return { items: await this.grocy.listProducts() };
   }

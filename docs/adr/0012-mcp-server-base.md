@@ -52,7 +52,12 @@ the Next API bodies.
   `list_pending_scans`, `get_pending_scan`, `create_pending_scan`,
   `update_pending_scan`, `delete_pending_scan`, `create_booking`, and
   `create_product`. The description of `delete_pending_scan` says that a
-  delete is a reject.
+  delete is a reject. Note of 2026-11-11: milestone 2 shipped 14 tools.
+  They are the 8 tools above and `get_product`, `list_locations`,
+  `list_stores`, `list_product_groups`, `list_quantity_units`, and
+  `list_quantity_unit_conversions`. The first spec of milestone 2 added these
+  Next API operations for the screens. The completeness test demands a tool
+  for each operation, as spec #89 says.
 - Tool results mirror the Next API: the confirmation is the Next API
   response body as `structuredContent`, with the response schema as
   `outputSchema`. An error is `isError: true` with the Next API error body

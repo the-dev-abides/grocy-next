@@ -35,17 +35,20 @@ class McpOffNotice {
   }
 }
 
-const MCP_OPTIONS_ERROR = 'MCP_OPTIONS_ERROR';
+const THROW_STARTUP_ERROR_AT_APP_BUILD = 'THROW_STARTUP_ERROR_AT_APP_BUILD';
 
 // NestJS awaits the promise of `forRoot` only when it builds the app. A
 // rejection before then is an unhandled rejection. Thus `forRoot` returns
 // this module, and its provider throws the error while NestJS builds the app.
-function failedModuleOf(module: Type, error: unknown): DynamicModule {
+function moduleThatThrowsAtAppBuild(
+  module: Type,
+  error: unknown,
+): DynamicModule {
   return {
     module,
     providers: [
       {
-        provide: MCP_OPTIONS_ERROR,
+        provide: THROW_STARTUP_ERROR_AT_APP_BUILD,
         useFactory: () => {
           throw error;
         },
@@ -72,7 +75,7 @@ export class McpServerModule {
     try {
       options = readMcpOptions();
     } catch (error) {
-      return failedModuleOf(this, error);
+      return moduleThatThrowsAtAppBuild(this, error);
     }
     if (options === null) {
       return { module: this, providers: [McpOffNotice] };

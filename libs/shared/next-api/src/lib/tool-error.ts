@@ -5,15 +5,15 @@ import type { Problem } from './problems.ts';
 import { PROBLEM_TYPES } from './problems.ts';
 
 // The error result of an MCP tool, as ADR 0012 decided: `isError` and the
-// Next API problem body as JSON text, the `grocy` field included. The MCP
-// server adds nothing and hides nothing. The success result needs no helper:
-// the MCP adapter puts the return value of the tool method in
-// `structuredContent` and the same value as JSON text in `content`.
-export function toolErrorOf(
-  problem: Omit<Problem, 'detail'> | Problem,
-): CallToolResult {
+// error body as JSON text. For a Next API error, the body is the problem
+// body, the `grocy` field included. For another `HttpException`, the body is
+// the body that the HTTP surface sends. The MCP server adds nothing and hides
+// nothing. The success result needs no helper: the MCP adapter puts the
+// return value of the tool method in `structuredContent` and the same value
+// as JSON text in `content`.
+export function toolErrorOf(body: object | string): CallToolResult {
   return {
-    content: [{ text: JSON.stringify(problem), type: 'text' }],
+    content: [{ text: JSON.stringify(body), type: 'text' }],
     isError: true,
   };
 }

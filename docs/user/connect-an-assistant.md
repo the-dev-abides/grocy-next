@@ -163,15 +163,13 @@ body as the result of the Next API operation that the tool mirrors.
 - `create_pending_scan`: creates a pending scan in the review queue, for you
   to accept. A pending scan with a product and no code is the way to enter a
   receipt line.
-- `update_pending_scan`: changes one pending scan by its id. A field that
-  the assistant does not send stays as it is. A field set to `null` is
-  cleared. When the update sets a product, Grocy Next also adds the code of
-  the pending scan to that product in Grocy.
+- `update_pending_scan`: updates one pending scan by its id with a JSON
+  merge patch. An update that sets a product also adds the code of the
+  pending scan to that product in Grocy.
 - `delete_pending_scan`: deletes one pending scan by its id. A delete is a
-  reject. The pending scan is gone, and the review queue keeps no history.
+  reject: the pending scan is gone, with no history.
 - `create_booking`: accepts one pending scan. The accept writes a purchase
-  or an inventory in Grocy and removes the pending scan. The result is the
-  booking with the stock log rows that Grocy stored.
+  or an inventory in Grocy and removes the pending scan.
 
 ### The products
 
@@ -179,8 +177,7 @@ body as the result of the Next API operation that the tool mirrors.
   description.
 - `get_product`: reads one product by its id, with its units, its stock
   amount, its stock entries, and its conversions.
-- `create_product`: creates a product with the short product form. The
-  result is the new product as Grocy stores it.
+- `create_product`: creates a product with the short product form.
 
 ### The master data
 
@@ -191,8 +188,8 @@ body as the result of the Next API operation that the tool mirrors.
 - `list_quantity_units`: lists each active quantity unit with its id and its
   name.
 - `list_quantity_unit_conversions`: lists each household quantity unit
-  conversion. A household conversion is a conversion with no product. Each
-  item has the from unit id, the to unit id, and the factor.
+  conversion with the from unit id, the to unit id, and the factor. A
+  household conversion has no product.
 
 ## The token and the Grocy API key
 
