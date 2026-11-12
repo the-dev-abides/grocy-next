@@ -1,16 +1,12 @@
-import {
-  proposeProduct,
-  proposePurchaseUnit,
-  proposeStockUnit,
-} from './product-proposal';
+import { proposeProduct, proposeStockUnit } from './product-proposal';
 
 const CAN = { id: 1, name: 'Can' };
 const PACK = { id: 2, name: 'Pack' };
 const GRAM = { id: 4, name: 'Gram' };
 const KILOGRAM = { id: 5, name: 'kg' };
 const LITRE = { id: 6, name: 'Litre' };
-const BOTTLE = { id: 7, name: 'Bottle' };
 const BAG = { id: 9, name: 'Bag' };
+const OUNCE = { id: 10, name: 'Ounce' };
 
 describe('the stock unit proposal of the short product form', () => {
   it('proposes the household unit whose name matches g, with the net quantity', () => {
@@ -39,46 +35,19 @@ describe('the stock unit proposal of the short product form', () => {
     });
   });
 
-  // 1 Bag = 500 g, and the lookup gives the net quantity 1000 g. Thus the
-  // proposal is the Bag with the net quantity 2.
-  it('proposes a household unit with a household conversion to a unit that matches the net quantity unit', () => {
-    const bagToGram = {
-      factor: 500,
-      fromQuantityUnitId: 9,
+  // The household of the bug report: Gram, Kilogram, and Ounce, with the
+  // household conversion 1 Ounce = 28.349523125 Gram. The name match comes
+  // first, so the proposal is the Gram and not the Ounce.
+  it('takes the household unit whose name matches g before a household unit with a household conversion to g', () => {
+    const ounceToGram = {
+      factor: 28.349523125,
+      fromQuantityUnitId: 10,
       toQuantityUnitId: 4,
     };
 
-    expect(proposeStockUnit(1000, 'g', [CAN, BAG, GRAM], [bagToGram])).toEqual({
-      amount: 2,
-      unitId: 9,
-    });
-  });
-
-  // 1 g = 0.004 Bag, so 1 Bag = 250 g. The net quantity 500 g is 2 Bags.
-  it('proposes the household unit of a household conversion in the other direction', () => {
-    const gramToBag = {
-      factor: 0.004,
-      fromQuantityUnitId: 4,
-      toQuantityUnitId: 9,
-    };
-
-    expect(proposeStockUnit(500, 'g', [GRAM, BAG], [gramToBag])).toEqual({
-      amount: 2,
-      unitId: 9,
-    });
-  });
-
-  // 1 Bag = 0.5 kg. The net quantity 1000 g is 1 kg, so 2 Bags.
-  it('converts the net quantity through a unit of the name list for kg', () => {
-    const bagToKilogram = {
-      factor: 0.5,
-      fromQuantityUnitId: 9,
-      toQuantityUnitId: 5,
-    };
-
     expect(
-      proposeStockUnit(1000, 'g', [KILOGRAM, BAG], [bagToKilogram]),
-    ).toEqual({ amount: 2, unitId: 9 });
+      proposeStockUnit(4450, 'g', [OUNCE, GRAM, KILOGRAM], [ounceToGram]),
+    ).toEqual({ amount: 4450, unitId: 4 });
   });
 
   // A household conversion between two units of the name list, such as
@@ -123,23 +92,6 @@ describe('the stock unit proposal of the short product form', () => {
   });
 });
 
-describe('the purchase unit proposal of the short product form', () => {
-  it('proposes the household unit of the package word on the label', () => {
-    expect(proposePurchaseUnit('750 ml bottle', [PACK, BOTTLE])).toBe(7);
-    expect(proposePurchaseUnit('6 x 330 ml cans', [PACK, CAN])).toBe(1);
-  });
-
-  it('proposes the pack when the label names no package', () => {
-    expect(proposePurchaseUnit('415g', [CAN, PACK])).toBe(2);
-    expect(proposePurchaseUnit(null, [CAN, PACK])).toBe(2);
-  });
-
-  it('proposes nothing when the household has no unit of the package list', () => {
-    expect(proposePurchaseUnit('415g', [CAN, GRAM])).toBeNull();
-    expect(proposePurchaseUnit('415g', undefined)).toBeNull();
-  });
-});
-
 describe('the proposal of the short product form', () => {
   const lookupResult = {
     brand: 'H J Heinz Foods UK Ltd',
@@ -162,31 +114,6 @@ describe('the proposal of the short product form', () => {
       purchaseToStockFactor: 415,
       purchaseUnitId: 2,
       stockUnitId: 4,
-    });
-  });
-
-  it('proposes the unit of a household conversion as the stock unit, with the factor from the converted net quantity', () => {
-    const bagLookup = {
-      ...lookupResult,
-      netQuantity: 1000,
-      quantityText: '1 kg bag',
-    };
-    const bagToGram = {
-      factor: 500,
-      fromQuantityUnitId: 9,
-      toQuantityUnitId: 4,
-    };
-
-    expect(
-      proposeProduct(
-        { lookupResult: bagLookup, writeInName: null },
-        [CAN, PACK, GRAM, BAG],
-        [bagToGram],
-      ),
-    ).toMatchObject({
-      purchaseToStockFactor: 2,
-      purchaseUnitId: 9,
-      stockUnitId: 9,
     });
   });
 
