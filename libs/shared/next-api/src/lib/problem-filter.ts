@@ -69,12 +69,37 @@ function problemOf(
 // request path as `instance`. Every other `HttpException` keeps its own
 // body, so the health checks answer as Terminus writes them. Every other
 // error is logged and answered with a 500. In an MCP tool call, the filter
-// returns the error result of the tool instead. Its text is the same problem
-// body, with the path of the MCP endpoint as `instance`. Every error that is
-// not a Next API error is logged and becomes the internal problem.
+// returns the error result of the tool instead, with the same body. The
+// `instance` of a problem is the path of the MCP endpoint. An error that is
+// not an `HttpException` is logged and becomes the internal problem.
 @Catch()
 export class ProblemFilter implements ExceptionFilter {
   private readonly logger = new Logger(ProblemFilter.name);
+
+  private sendHttpError(exception: unknown, host: ArgumentsHost): void {
+    const http = host.switchToHttp();
+    const request = http.getRequest<HttpRequest>();
+    const response = http.getResponse<ServerResponse>();
+
+    const problem = problemOf(exception, request);
+    if (problem !== undefined) {
+      const body: Problem = { ...problem, instance: pathOf(request) };
+      send(response, body.status, PROBLEM_CONTENT_TYPE, body);
+    } else if (exception instanceof HttpException) {
+      send(
+        response,
+        exception.getStatus(),
+        JSON_CONTENT_TYPE,
+        exception.getResponse(),
+      );
+    } else {
+      this.logger.error(exception);
+      send(response, HttpStatus.INTERNAL_SERVER_ERROR, JSON_CONTENT_TYPE, {
+        message: 'Internal server error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
 
   // The adapter makes the return value of the filter the result of the tool.
   private toolErrorOf(exception: unknown, host: ArgumentsHost): CallToolResult {
@@ -85,6 +110,9 @@ export class ProblemFilter implements ExceptionFilter {
     if (problem !== undefined) {
       return toolErrorOf({ ...problem, instance });
     }
+    if (exception instanceof HttpException) {
+      return toolErrorOf(exception.getResponse());
+    }
     this.logger.error(exception);
     return toolErrorOf(internalProblemAt(instance));
   }
@@ -93,30 +121,7 @@ export class ProblemFilter implements ExceptionFilter {
     if (host.getType<'http' | McpContextType>() === 'mcp') {
       return this.toolErrorOf(exception, host);
     }
-    const http = host.switchToHttp();
-    const request = http.getRequest<HttpRequest>();
-    const response = http.getResponse<ServerResponse>();
-
-    const problem = problemOf(exception, request);
-    if (problem !== undefined) {
-      const body: Problem = { ...problem, instance: pathOf(request) };
-      send(response, body.status, PROBLEM_CONTENT_TYPE, body);
-      return undefined;
-    }
-    if (exception instanceof HttpException) {
-      send(
-        response,
-        exception.getStatus(),
-        JSON_CONTENT_TYPE,
-        exception.getResponse(),
-      );
-      return undefined;
-    }
-    this.logger.error(exception);
-    send(response, HttpStatus.INTERNAL_SERVER_ERROR, JSON_CONTENT_TYPE, {
-      message: 'Internal server error',
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-    });
+    this.sendHttpError(exception, host);
     return undefined;
   }
 }
