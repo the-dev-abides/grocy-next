@@ -318,6 +318,8 @@ export type LookupResult = {
   netQuantity: number | null;
   /** The unit of the net quantity, g or ml. */
   netQuantityUnit: string | null;
+  /** The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag. */
+  packageShapes?: string[];
   /** The quantity text as printed on the label. */
   quantityText: string | null;
   /** The name of the service that held the product. */

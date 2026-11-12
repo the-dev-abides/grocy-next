@@ -1966,6 +1966,14 @@
             "type": "string",
             "nullable": true
           },
+          "packageShapes": {
+            "default": [],
+            "description": "The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "quantityText": {
             "description": "The quantity text as printed on the label.",
             "type": "string",

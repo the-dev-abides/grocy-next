@@ -30,6 +30,12 @@ const lookupResultSchema = z
       .string()
       .nullable()
       .meta({ description: 'The unit of the net quantity, g or ml.' }),
+    // A row that the lookup filled before this field existed has no package
+    // shapes, so the field defaults to an empty list.
+    packageShapes: z.array(z.string()).default([]).meta({
+      description:
+        'The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag.',
+    }),
     quantityText: z
       .string()
       .nullable()
