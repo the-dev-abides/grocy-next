@@ -28,6 +28,10 @@ const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 // The unknown fixture code, Nutella 400 g. The Open Food Facts mock holds its
 // live record. The expected values below come from that record file.
 const UNKNOWN_CODE = '3017620422003';
+// A 12-digit UPC-A code, Italian calabrese bread. Open Food Facts stores the
+// product under the 13-digit form with a leading zero. The mock holds its live
+// answer, with the status `success_with_warnings`.
+const UPC_A_CODE = '057627224456';
 // A code that no mock record holds. The lookup is a miss.
 const MISS_CODE = '4006381333931';
 
@@ -140,6 +144,32 @@ describe('the barcode lookup of a pending scan', () => {
         quantityText: '400 g e',
         service: 'Open Food Facts',
         sourceUrl: `${openFactsUrl}/product/${UNKNOWN_CODE}`,
+      },
+      updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+  });
+
+  it('stores the lookup result on the row of a 12-digit UPC-A code', async () => {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: UPC_A_CODE,
+    });
+
+    const row = await pollUntilLookedUp(created.id);
+
+    expect(row).toEqual({
+      ...created,
+      lastLookupAt: expect.stringMatching(TIMESTAMP),
+      lookupResult: {
+        brand: null,
+        imageUrl:
+          'https://images.openfoodfacts.org/images/products/005/762/722/4456/front_fr.3.400.jpg',
+        name: 'Italian calabrese bread',
+        netQuantity: null,
+        netQuantityUnit: null,
+        quantityText: null,
+        service: 'Open Food Facts',
+        sourceUrl: `${openFactsUrl}/product/${UPC_A_CODE}`,
       },
       updatedAt: expect.stringMatching(TIMESTAMP),
     });
