@@ -160,7 +160,11 @@ The camera tests of the end-to-end project own this code. The second unknown
 code is 8076809513722, Barilla Basilico 400 g. The end-to-end test of the
 lookup result types it. No product barcode has it. The third unknown code is
 5000157024671, Heinz Beanz 415 g. The end-to-end test of the short product
-form creates a row of it through the API. No product barcode has it.
+form creates a row of it through the API. No product barcode has it. The
+fourth unknown code is 057627224456, Italian calabrese bread, a 12-digit UPC-A
+code. Open Food Facts stores it under the 13-digit form with a leading zero,
+so its answer has the status `success_with_warnings`. The API test of the
+lookup uses it. No product barcode has it.
 
 Each product has the resolved conversion from its stock unit to itself with
 factor 1. Product 3 also has the conversion 1 Box = 6 Packs, so a Purchase of
@@ -192,10 +196,10 @@ with the filter holds three rows and the list without it holds four.
 
 ## The Open Food Facts mock
 
-The mock answers `GET /api/v3/product/{code}` for the six fixture codes with
-the live records of Open Food Facts, stored one time under
+The mock answers `GET /api/v3/product/{code}` for the seven fixture codes
+with the live records of Open Food Facts, stored one time under
 `open-food-facts/responses`: the three product barcodes of the fixture
-household and the three unknown codes. Every other code gets the failure
+household and the four unknown codes. Every other code gets the failure
 answer of Open Food Facts with status 404. The match is on the path only.
 
 The mock also serves one small JPEG at the image path of the unknown code,
