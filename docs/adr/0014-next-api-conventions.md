@@ -39,7 +39,7 @@ and a poll for the changes that the lookup worker makes.
   | 409    | A fact of the resource itself blocks the change: an accept of a pending scan with no product, or an Inventory accept with no amount.             |
   | 415    | The body is not JSON.                                                                                                                            |
   | 422    | A fact outside the resource blocks the change: Grocy refused it with a `400`, the product has no conversion, or an id in the body names nothing. |
-  | 500    | An error that is not an `HttpException`. The type is `/problems/internal`, with no `detail`.                                                     |
+  | 500    | In an MCP tool call, an error that is not an `HttpException`. The type is `/problems/internal`, with no `detail`.                                |
   | 502    | Grocy answered `500`, or Grocy did not answer.                                                                                                   |
 
   A `422` from Grocy carries the Grocy message as `detail` and the `grocy`
