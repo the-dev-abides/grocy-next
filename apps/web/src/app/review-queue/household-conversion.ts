@@ -24,3 +24,37 @@ export function sidesOf(conversion: QuantityUnitConversion): ConversionSide[] {
     },
   ];
 }
+
+// The factor from one unit to a different unit through the household
+// conversions, or null when they do not resolve the pair. Grocy resolves a
+// conversion in both directions and through a chain of conversions. Thus the
+// search does the same. When the household conversions resolve the pair, the
+// Grocy trigger creates no conversion row for a new product. The search starts
+// at the from unit and follows each conversion to a unit that it did not reach
+// before.
+export function householdFactorOf(
+  fromId: number,
+  toId: number,
+  conversions: readonly QuantityUnitConversion[] | undefined,
+): null | number {
+  if (fromId === toId || conversions === undefined) {
+    return null;
+  }
+  const sides = conversions.flatMap((conversion) => sidesOf(conversion));
+  const reached = new Map<number, number>([[fromId, 1]]);
+  const queue = [fromId];
+  let next = 0;
+  while (next < queue.length) {
+    const unitId = queue[next] ?? fromId;
+    const factor = reached.get(unitId) ?? 1;
+    next += 1;
+    for (const side of sides) {
+      if (side.unitId !== unitId || reached.has(side.otherId)) {
+        continue;
+      }
+      reached.set(side.otherId, factor * side.otherPerUnit);
+      queue.push(side.otherId);
+    }
+  }
+  return reached.get(toId) ?? null;
+}

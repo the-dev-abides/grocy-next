@@ -1,4 +1,8 @@
-import { proposeProduct, proposeStockUnit } from './product-proposal';
+import {
+  proposeFactor,
+  proposeProduct,
+  proposeStockUnit,
+} from './product-proposal';
 
 const CAN = { id: 1, name: 'Can' };
 const PACK = { id: 2, name: 'Pack' };
@@ -105,13 +109,12 @@ describe('the proposal of the short product form', () => {
   };
   const units = [CAN, PACK, GRAM];
 
-  it('proposes the name, the description, the units, and the factor from the lookup result', () => {
+  it('proposes the name, the description, and the units from the lookup result', () => {
     expect(
       proposeProduct({ lookupResult, writeInName: null }, units, []),
     ).toEqual({
       description: 'H J Heinz Foods UK Ltd, 415g',
       name: 'Beanz in a rich tomato sauce',
-      purchaseToStockFactor: 415,
       purchaseUnitId: 2,
       stockUnitId: 4,
     });
@@ -123,13 +126,12 @@ describe('the proposal of the short product form', () => {
     ).toMatchObject({ name: 'Baked beans' });
   });
 
-  it('proposes no unit and the factor one when the stock unit has no match', () => {
+  it('proposes no unit when the stock unit has no match', () => {
     expect(
       proposeProduct({ lookupResult, writeInName: null }, [CAN, PACK], []),
     ).toEqual({
       description: 'H J Heinz Foods UK Ltd, 415g',
       name: 'Beanz in a rich tomato sauce',
-      purchaseToStockFactor: 1,
       purchaseUnitId: null,
       stockUnitId: null,
     });
@@ -145,9 +147,55 @@ describe('the proposal of the short product form', () => {
     ).toEqual({
       description: '',
       name: 'Oat milk',
-      purchaseToStockFactor: 1,
       purchaseUnitId: null,
       stockUnitId: null,
     });
+  });
+});
+
+describe('the factor proposal of the short product form', () => {
+  const oats = {
+    brand: null,
+    imageUrl: null,
+    name: 'Whole grain rolled oats',
+    netQuantity: 4450,
+    netQuantityUnit: 'g',
+    quantityText: '4.45kg',
+    service: 'Open Food Facts',
+    sourceUrl: 'https://world.openfoodfacts.org/product/196633911698',
+  };
+  const units = [PACK, GRAM, KILOGRAM, BAG];
+
+  it('is the net quantity in the stock unit for a package as the purchase unit', () => {
+    expect(
+      proposeFactor(oats, { purchaseUnitId: 9, stockUnitId: 4 }, units, []),
+    ).toBe(4450);
+    expect(
+      proposeFactor(oats, { purchaseUnitId: 9, stockUnitId: 5 }, units, []),
+    ).toBeCloseTo(4.45, 9);
+  });
+
+  // 4450 g is 4450 Gram and 4.45 Kilogram, so one Kilogram is 1000 Gram.
+  it('divides by the net quantity in the purchase unit when the purchase unit also measures the net quantity', () => {
+    expect(
+      proposeFactor(oats, { purchaseUnitId: 5, stockUnitId: 4 }, units, []),
+    ).toBe(1000);
+  });
+
+  it('is nothing when the stock unit does not measure the net quantity, or the lookup has no net quantity', () => {
+    expect(
+      proposeFactor(oats, { purchaseUnitId: 9, stockUnitId: 2 }, units, []),
+    ).toBeNull();
+    expect(
+      proposeFactor(
+        { ...oats, netQuantity: null },
+        { purchaseUnitId: 9, stockUnitId: 4 },
+        units,
+        [],
+      ),
+    ).toBeNull();
+    expect(
+      proposeFactor(null, { purchaseUnitId: 9, stockUnitId: 4 }, units, []),
+    ).toBeNull();
   });
 });

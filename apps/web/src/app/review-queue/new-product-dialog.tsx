@@ -16,11 +16,11 @@ import type { QueueLists } from './use-review-queue';
 
 import { useCreateProductMutation } from '../api/next-api';
 import { FormNotes, NameFields, ProductFields } from './new-product-fields';
-import { bodyOf, formOf } from './product-form';
+import { bodyOf, formOf, withPatch } from './product-form';
 import { failureText } from './result-text';
 
 // The form: the proposals of ADR 0011 as the start values, every one open to a
-// change. Save sends the product create and then the update that sets the new
+// change. A change of a unit computes the factor again. Save sends the product create and then the update that sets the new
 // product on the row. These are two calls behind one click, as ADR 0010
 // decided. A refused create keeps the form open with the problem. The update
 // reports its problem in the result panel.
@@ -40,9 +40,9 @@ function NewProductForm({
   const [problem, setProblem] = useState<null | string>(null);
   const [createProduct, creating] = useCreateProductMutation();
   const patch: Patch = (fields) => {
-    setForm((current) => ({ ...current, ...fields }));
+    setForm((current) => withPatch(current, fields, scan, lists));
   };
-  const body = bodyOf(form);
+  const body = bodyOf(form, lists.quantityUnitConversions);
   const save = async (): Promise<void> => {
     if (body === null) {
       return;
