@@ -245,6 +245,13 @@ const pendingScanIdSchema = z.strictObject({
     .meta({ description: 'The id of the pending scan.' }),
 });
 
+// The input of the update tool of the MCP server: the id of the path and the
+// fields of the update body in one object, as the spec decided. The schema
+// is the two schemas of the controller, so it is strict too.
+const pendingScanUpdateToolInputSchema = pendingScanIdSchema.extend(
+  pendingScanUpdateSchema.shape,
+);
+
 // The DTO classes carry the schemas into the OpenAPI document and the
 // validation pipe. The class name is the schema name in the document.
 export class PendingScan extends createZodDto(pendingScanSchema) {}
@@ -252,3 +259,6 @@ export class PendingScanList extends createZodDto(pendingScanListSchema) {}
 export class CreatePendingScan extends createZodDto(pendingScanBodySchema) {}
 export class UpdatePendingScan extends createZodDto(pendingScanUpdateSchema) {}
 export class PendingScanId extends createZodDto(pendingScanIdSchema) {}
+export class UpdatePendingScanToolInput extends createZodDto(
+  pendingScanUpdateToolInputSchema,
+) {}

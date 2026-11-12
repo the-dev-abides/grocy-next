@@ -5,6 +5,7 @@ import {
   ProductsModule,
   ProductsTools,
 } from '@grocy-next/inventory-products';
+import { ReviewQueueTools } from '@grocy-next/inventory-review-queue';
 import { Injectable, Logger, Module, UseGuards } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { McpModule } from '@nestjs/mcp';
@@ -22,7 +23,7 @@ const SERVER_NAME = 'grocy-next';
 
 // This list holds the tool providers of the domain libraries. Add a new tool
 // provider here, and add its module to the imports below.
-const TOOL_PROVIDERS = [ProductsTools, MasterDataTools];
+const TOOL_PROVIDERS = [ProductsTools, MasterDataTools, ReviewQueueTools];
 
 // With no token, the module only writes the log line at start.
 @Injectable()
@@ -59,8 +60,13 @@ export class McpServerModule {
   // counts. With no token, the MCP module is not imported, and the endpoint
   // answers like any unknown path. A short token stops the start before the
   // process listens. The endpoint is not part of the OpenAPI document,
-  // because it is not a Next API operation.
-  static async forRoot(): Promise<DynamicModule> {
+  // because it is not a Next API operation. NestJS knows a dynamic module by
+  // its object, so the app gives the same review queue module object that it
+  // imports. A second `forRoot` call makes a second review queue module, with
+  // a second lookup worker.
+  static async forRoot(
+    reviewQueueModule: DynamicModule,
+  ): Promise<DynamicModule> {
     await ConfigModule.envVariablesLoaded;
     let options: McpOptions | null;
     try {
@@ -83,6 +89,7 @@ export class McpServerModule {
           version: readApiVersion(),
         }),
         ProductsModule,
+        reviewQueueModule,
       ],
       module: this,
       providers: TOOL_PROVIDERS,

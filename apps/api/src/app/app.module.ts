@@ -9,14 +9,20 @@ import { HealthModule } from './health/health.module.ts';
 import { McpServerModule } from './mcp/mcp-server.module.ts';
 import { StorageModule } from './storage/storage.module.ts';
 
+// The MCP module imports the same object, so NestJS builds one review queue
+// module.
+const reviewQueueModule = ReviewQueueModule.forRoot({
+  apiVersion: readApiVersion(),
+});
+
 @Module({
   imports: [
     StorageModule,
     NextApiModule,
     HealthModule,
-    McpServerModule.forRoot(),
+    McpServerModule.forRoot(reviewQueueModule),
     ProductsModule,
-    ReviewQueueModule.forRoot({ apiVersion: readApiVersion() }),
+    reviewQueueModule,
     WebAppModule,
   ],
 })
