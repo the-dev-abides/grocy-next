@@ -1,5 +1,16 @@
 # AGENTS.md
 
+## Grocy is the baseline
+
+Grocy Next is a drop-in replacement for Grocy. Start every design from what
+Grocy does. Adopt the Grocy behavior by default.
+
+When deviating from Grocy:
+
+- We must not remove functionality.
+- We must remain compatible.
+- We should improve the UX by reducing friction.
+
 ## Language
 
 Write all documentation, comments, commit messages, and PR text in ASD-STE100

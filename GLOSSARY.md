@@ -115,6 +115,11 @@ defaults that the screen copies into each pending scan. A scan session is not
 stored.
 _Avoid_: session (alone), batch, scan run
 
+**Hardware scanner**:
+A device that reads a code and sends the code to the app as key presses, as a
+keyboard does.
+_Avoid_: scanner (alone), barcode gun, keyboard wedge
+
 **Booking type**:
 The field of a pending scan that says which booking the accept makes: a
 purchase or an inventory. The scan screen sets it.
