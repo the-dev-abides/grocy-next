@@ -74,6 +74,14 @@ function playUnknown(): void {
   vibrate([150, 80, 150]);
 }
 
+// PROTOTYPE. The sound of a Transfer scan: two tones that go down, and two
+// short vibrations.
+export function playTransfer(): void {
+  tone(880, 0.08, 0, 'triangle');
+  tone(587, 0.14, 0.09, 'triangle');
+  vibrate([40, 70, 40]);
+}
+
 // This function plays the sound and the vibration of one scan outcome.
 export function playFeedback(kind: FeedbackKind): void {
   if (kind === 'known') {

@@ -4,12 +4,17 @@ import {
   Inbox,
   type LucideIcon,
   Package,
+  PackageMinus,
   ScanBarcode,
 } from 'lucide-react';
 import { NavLink } from 'react-router';
 
 import { useListPendingScansQuery } from '../api/next-api';
 import { POLL_MS } from '../api/poll-interval';
+import {
+  PROTOTYPE_PATH,
+  useVariant,
+} from '../scan/prototype/prototype-switcher';
 
 interface NavItem {
   icon: LucideIcon;
@@ -27,7 +32,16 @@ interface Group {
 export const scanItems: readonly NavItem[] = [
   { icon: ScanBarcode, label: 'Purchase', to: '/scan/purchase' },
   { icon: ClipboardList, label: 'Inventory', to: '/scan/inventory' },
+  // PROTOTYPE. The label comes from the variant.
+  { icon: PackageMinus, label: 'Consume and Transfer', to: PROTOTYPE_PATH },
 ];
+
+// PROTOTYPE. The label of a scan item. Each variant of the Consume and
+// Transfer scan screen has its own name for the button.
+export function useScanLabel(): (item: NavItem) => string {
+  const variant = useVariant();
+  return (item) => (item.to === PROTOTYPE_PATH ? variant.navLabel : item.label);
+}
 
 // The review queue item carries the count of pending scans as a badge.
 const reviewQueueItem: NavItem = {
@@ -103,6 +117,7 @@ function NavGroup({
   isRail: boolean;
   onNavigate: (() => void) | undefined;
 }>) {
+  const labelOf = useScanLabel();
   return (
     <div className="flex flex-col gap-0.5">
       {group.label === undefined ? null : (
@@ -124,7 +139,7 @@ function NavGroup({
             key={item.to}
             to={item.to}
             onClick={onNavigate}
-            title={isRail ? item.label : undefined}
+            title={isRail ? labelOf(item) : undefined}
             className={({ isActive }) => {
               return cn(
                 `
@@ -144,7 +159,7 @@ function NavGroup({
           >
             <item.icon className="size-5 shrink-0" />
             <span className={cn('flex-1', isRail && RAIL_LABEL)}>
-              {item.label}
+              {labelOf(item)}
             </span>
             {item === reviewQueueItem && <QueueBadge isRail={isRail} />}
           </NavLink>

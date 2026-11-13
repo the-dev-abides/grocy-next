@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sheet';
 
 import { Mark } from './mark';
-import { Nav, scanItems } from './nav';
+import { Nav, scanItems, useScanLabel } from './nav';
 
 function Brand() {
   return (
@@ -61,6 +61,7 @@ function MenuSheet() {
 // sidebar holds them. The button of the open scan screen is the primary one.
 function ScanButtons() {
   const { pathname } = useLocation();
+  const labelOf = useScanLabel();
   return (
     <>
       {scanItems.map((item) => {
@@ -79,7 +80,7 @@ function ScanButtons() {
               `,
             )}
           >
-            <item.icon data-icon="inline-start" /> {item.label}
+            <item.icon data-icon="inline-start" /> {labelOf(item)}
           </Link>
         );
       })}
