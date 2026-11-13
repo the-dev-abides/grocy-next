@@ -44,7 +44,12 @@ booking.
   failed accept. An update of the row clears it. The screens derive the
   words that they show from these three facts.
 - The booking type is `purchase` or `inventory`. The scan screen sets it.
-  The review screen shows it and does not edit it.
+  The review screen shows it and does not edit it. Amended by the Consume
+  and Transfer pending scan ticket: the booking type is `purchase`,
+  `inventory`, `consume`, or `transfer`. An update can change the booking
+  type between `consume` and `transfer`, and no other change. The row keeps
+  all its fields on that change. The accept uses only the fields of its
+  booking type.
 - Repeat rule: a new scan with a code that an open pending scan of the same
   booking type already has adds to that row. The merge adds the barcode
   amount when the barcode has one, else one. The rule has no session limit.
@@ -62,6 +67,43 @@ booking.
   Inventory. The first version put the Inventory amount in the scanned unit
   too, and a product barcode with its own unit made the difference between
   the count and the stock unreadable.
+- Added by the Consume and Transfer pending scan ticket: the Consume and
+  the Transfer pending scans follow the Grocy consume form and the Grocy
+  transfer form.
+  - The amount is in the scanned unit, as on a Purchase. The empty unit
+    means the consume unit of the product on a Consume, and the stock unit
+    on a Transfer. The server converts to the stock unit at accept.
+  - The amount of a Consume scan is the product barcode amount when the
+    product barcode has one, else the Grocy default consume amount. When the
+    Grocy setting says so, the quick consume amount of the product replaces
+    the default consume amount. The amount of a Transfer scan is the product
+    barcode amount when the product barcode has one, else one.
+  - A Consume pending scan has a `spoiled` field, off at the scan.
+  - The `locationId` field is the "from" location. A Transfer pending scan
+    also has a `toLocationId` field. When the scan screen sends no "from"
+    location, the server sets the default of the Grocy form. Consume: the
+    default consume location of the product, else its default location,
+    else the first location with stock. Transfer: the default location of
+    the product when it has stock there, else the first location with
+    stock.
+  - A scan of a stock entry Grocycode sets the stock entry on the row. The
+    accept then takes that stock entry only, as Grocy does.
+  - The repeat rule applies with no change.
+  - An unknown code goes through the same create call, with the lookup, the
+    write-in name, and the short product form.
+  - The price, the price type, the store, and the due date do not apply.
+  - The Consume accept allows sub-product substitution, as the Grocy consume
+    form does. A tare weight product takes the gross weight, as on an
+    Inventory. The server refuses an amount above the stock at the "from"
+    location, as the Grocy form does, because the Grocy API books less with
+    no error. ADR 0017 holds the open on consume.
+  - The Transfer accept needs a "from" location and a "to" location. Grocy
+    refuses a tare weight product.
+  - The body of `POST /api/v2/bookings` does not change. The response of a
+    Consume lists the bookings of the consume and of the open. The
+    `transactionId` is the transaction of the consume.
+  - No new MCP tool. The create, update, and accept tools take the new
+    booking types and fields.
 - The price is stored as entered, with a price type: unit price or total
   price. The default price type is unit price, or the product default price
   type when the product sets one. The server converts to a price per stock
@@ -164,6 +206,9 @@ booking.
 - The Inventory scan screen prototype, ticket
   [#73](https://github.com/the-dev-abides/grocy-next/issues/73), on branch
   `prototype/inventory-scan-screen`.
+- The Grocy API research on branch `research/grocy-consume-open-transfer`.
+- The Consume and Transfer pending scan ticket
+  [#126](https://github.com/the-dev-abides/grocy-next/issues/126).
 - The review queue screen prototype, ticket
   [#74](https://github.com/the-dev-abides/grocy-next/issues/74), on branch
   `prototype/review-queue-screen`.

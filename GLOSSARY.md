@@ -59,8 +59,9 @@ variant, generic product
 
 **Stock workflow**:
 One of the four Grocy stock actions that a user does by scan: Purchase,
-Consume, Transfer, and Inventory. Each workflow has its own scan screen. One
-review queue serves all four.
+Consume, Transfer, and Inventory. Purchase and Inventory each have a scan
+screen. Consume and Transfer share one scan screen. One review queue serves
+all four.
 _Avoid_: inventory workflow (Inventory is one of the four), stock action,
 scan mode
 
@@ -122,7 +123,7 @@ _Avoid_: scanner (alone), barcode gun, keyboard wedge
 
 **Booking type**:
 The field of a pending scan that says which booking the accept makes: a
-purchase or an inventory. The scan screen sets it.
+purchase, an inventory, a consume, or a transfer. The scan screen sets it.
 _Avoid_: workflow (as a field name), transaction type (the Grocy field), mode
 
 **Write-in name**:
