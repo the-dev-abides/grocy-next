@@ -39,6 +39,13 @@ export const VARIANTS = [
     policy: 'timed',
     typeSound: true,
   },
+  {
+    key: 'D',
+    name: 'A with the icons of B and the open row of C',
+    navLabel: 'Consume and Transfer',
+    policy: 'stay',
+    typeSound: false,
+  },
 ] as const;
 
 export type Variant = (typeof VARIANTS)[number];
@@ -46,7 +53,7 @@ export type Variant = (typeof VARIANTS)[number];
 export function useVariant(): Variant {
   const [searchParameters] = useSearchParams();
   const key = searchParameters.get('variant');
-  return VARIANTS.find((variant) => variant.key === key) ?? VARIANTS[0];
+  return VARIANTS.find((variant) => variant.key === key) ?? VARIANTS[3];
 }
 
 function isTextTarget(target: EventTarget | null): boolean {

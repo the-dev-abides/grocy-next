@@ -17,6 +17,7 @@ import {
   isWithoutTo,
   MODE,
   placeText,
+  SOLID,
   stockHintOf,
 } from './prototype-data';
 import { AmountStepper, InlineSelect, RowName } from './prototype-parts';
@@ -40,7 +41,7 @@ function TypeRadio({ row, session }: RowProperties) {
             aria-checked={isOn}
             className={cn(
               'h-8 flex-1 font-medium',
-              isOn ? MODE[type].solid : 'text-muted-foreground',
+              isOn ? SOLID : 'text-muted-foreground',
             )}
             onClick={() => {
               session.update(row.id, { bookingType: type });
@@ -146,7 +147,7 @@ export function VariantCRow({
         <span
           className={cn(
             'w-18 shrink-0 rounded-sm py-0.5 text-center text-xs font-medium',
-            mode.solid,
+            SOLID,
           )}
         >
           {mode.label}

@@ -19,7 +19,7 @@ import type { PrototypeFeedback } from './use-prototype-feedback';
 import type { PrototypeSession } from './use-prototype-session';
 
 import { TypeCodeField } from '../type-code-field';
-import { amountText, LOCATIONS, MODE, productOf } from './prototype-data';
+import { amountText, LOCATIONS, productOf } from './prototype-data';
 
 export interface VariantProperties {
   feedback: PrototypeFeedback;
@@ -91,22 +91,25 @@ export function RowName({ row }: Readonly<{ row: PrototypeRow }>) {
 }
 
 // The amount in its unit between minus and plus. One step is the amount of
-// one scan.
+// one scan, or one when the row has a different unit. Minus stops above
+// zero.
 export function AmountStepper({
   row,
   session,
 }: Readonly<{ row: PrototypeRow; session: PrototypeSession }>) {
   const product = productOf(row.productId);
-  const step =
-    product === null || row.bookingType === 'transfer' ? 1 : product.scanAmount;
+  const hasScanStep =
+    product !== null && row.bookingType === 'consume' && row.unit === null;
+  const step = hasScanStep ? product.scanAmount : 1;
   return (
     <div className="flex items-center gap-1">
       <Button
         variant="outline"
         size="icon"
         aria-label="Less"
+        disabled={row.amount <= step}
         onClick={() => {
-          session.update(row.id, { amount: Math.max(step, row.amount - step) });
+          session.update(row.id, { amount: row.amount - step });
         }}
       >
         <Minus />
@@ -154,11 +157,10 @@ export function PrototypeFooter({
   );
 }
 
-// The colour of a banner: red for an unknown code, else the colour of the
-// booking type of the scan.
-export function bannerColour(
-  kind: FeedbackKind,
-  bookingType: PrototypeRow['bookingType'],
-): string {
-  return kind === 'unknown' ? 'bg-red-600 text-white' : MODE[bookingType].solid;
+// The colour of a banner: red for an unknown code, else green, as on the
+// Purchase scan screen.
+export function bannerColour(kind: FeedbackKind): string {
+  return kind === 'unknown'
+    ? 'bg-red-600 text-white'
+    : 'bg-green-600 text-white';
 }

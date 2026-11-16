@@ -13,7 +13,7 @@ import {
 
 import type { PrototypeSession } from './use-prototype-session';
 
-import { BOOKING_TYPES, locationName, MODE } from './prototype-data';
+import { BOOKING_TYPES, locationName, MODE, SOLID } from './prototype-data';
 import { InlineSelect } from './prototype-parts';
 import { TIMED_MS } from './use-prototype-session';
 
@@ -75,7 +75,7 @@ export function TitleBand({
       ? ': select the "to" location'
       : ` to ${locationName(session.toLocationId, '')}`;
   return (
-    <div className={cn('flex h-12 items-center gap-2 pr-1 pl-3', mode.solid)}>
+    <div className={cn('flex h-12 items-center gap-2 pr-1 pl-3', SOLID)}>
       <mode.icon className="size-5 shrink-0" />
       <h1 className="min-w-0 flex-1 truncate text-xl font-medium">
         {mode.label}
@@ -112,7 +112,7 @@ export function ThumbSwitch({
                 relative flex h-14 items-center justify-center gap-2
                 overflow-hidden text-base font-medium
               `,
-              isOn ? mode.solid : 'bg-background text-muted-foreground',
+              isOn ? SOLID : 'bg-background text-muted-foreground',
             )}
             onClick={() => {
               session.setMode(type);

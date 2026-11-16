@@ -76,7 +76,7 @@ export function VariantBRow({
     <>
       <mode.icon
         aria-label={mode.label}
-        className={cn('size-5 shrink-0', mode.text)}
+        className={cn('size-5 shrink-0', 'text-primary')}
       />
       <div className="min-w-0 flex-1">
         <RowName row={row} />

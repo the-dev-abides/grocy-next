@@ -20,7 +20,7 @@ import type { PrototypeSession } from './use-prototype-session';
 import { CameraView } from '../camera-view';
 import { SwipeRow } from '../swipe-row';
 import { TypeCodeField } from '../type-code-field';
-import { locationName, MODE, otherType } from './prototype-data';
+import { locationName, MODE, otherType, SOLID } from './prototype-data';
 import { bannerColour, InlineSelect, PrototypeFooter } from './prototype-parts';
 import { VariantBRow } from './variant-b-row';
 
@@ -40,7 +40,7 @@ function Plate({
             absolute inset-x-3 top-3 z-10 flex items-start gap-2 rounded-lg px-3
             py-2 shadow-lg
           `,
-          bannerColour(banner.kind, banner.bookingType),
+          bannerColour(banner.kind),
         )}
       >
         <div className="min-w-0 flex-1">
@@ -63,7 +63,7 @@ function Plate({
           absolute top-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center
           gap-2 rounded-lg px-3 py-2 text-lg font-medium shadow-lg
         `,
-        mode.solid,
+        SOLID,
       )}
     >
       <mode.icon className="size-5 shrink-0" />
@@ -87,8 +87,8 @@ function Controls({ session }: Readonly<{ session: PrototypeSession }>) {
         className={cn(
           'h-12 rounded-md border px-2 text-left leading-tight font-medium',
           isTransfer
-            ? cn(MODE.transfer.solid, 'border-transparent')
-            : cn(MODE.transfer.text, MODE.transfer.border),
+            ? cn(SOLID, 'border-transparent')
+            : 'border-primary text-primary',
         )}
         onClick={() => {
           session.setMode(otherType(session.mode));
@@ -135,15 +135,11 @@ function Controls({ session }: Readonly<{ session: PrototypeSession }>) {
 
 // The frame of the camera. It has the colour of the next booking type. For
 // a short time after a scan it is thick and has the colour of that scan.
-function frameOf(
-  flash: PrototypeFeedback['flash'],
-  mode: PrototypeSession['mode'],
-): string {
+function frameOf(flash: PrototypeFeedback['flash']): string {
   if (flash === null) {
-    return cn('ring-[6px]', MODE[mode].ring);
+    return cn('ring-[6px]', 'ring-primary');
   }
-  const ring =
-    flash.kind === 'unknown' ? 'ring-red-500' : MODE[flash.bookingType].ring;
+  const ring = flash.kind === 'unknown' ? 'ring-red-500' : 'ring-green-500';
   return cn('ring-16', ring);
 }
 
@@ -173,7 +169,7 @@ function Camera({
             pointer-events-none absolute inset-0 transition-shadow duration-200
             ring-inset
           `,
-          frameOf(feedback.flash, session.mode),
+          frameOf(feedback.flash),
         )}
       />
       <Plate feedback={feedback} session={session} />
@@ -193,7 +189,7 @@ function SessionList({ session }: Readonly<{ session: PrototypeSession }>) {
                 flex min-h-14 items-center gap-2 border-l-[6px] bg-background
                 py-1 pr-3 pl-2
               `,
-              MODE[row.bookingType].border,
+              'border-primary',
             )}
             onReject={() => {
               session.reject(row.id);

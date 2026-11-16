@@ -22,7 +22,6 @@ import type { PrototypeSession } from './use-prototype-session';
 import { CameraView } from '../camera-view';
 import { SwipeRow } from '../swipe-row';
 import { TypeCodeField } from '../type-code-field';
-import { MODE } from './prototype-data';
 import { bannerColour } from './prototype-parts';
 import { ThumbSwitch, TitleBand } from './variant-c-controls';
 import { VariantCRow } from './variant-c-row';
@@ -53,7 +52,7 @@ function Camera({
           role="status"
           className={cn(
             `absolute inset-x-3 top-3 z-10 rounded-lg px-3 py-2 shadow-lg`,
-            bannerColour(banner.kind, banner.bookingType),
+            bannerColour(banner.kind),
           )}
         >
           <p className="truncate font-medium">{banner.title}</p>
@@ -80,7 +79,7 @@ function SessionList({
             key={row.id}
             className={cn(
               'px-3 transition-colors duration-500',
-              isNew ? MODE[row.bookingType].tint : 'bg-background',
+              isNew ? 'bg-muted' : 'bg-background',
             )}
             onReject={() => {
               session.reject(row.id);

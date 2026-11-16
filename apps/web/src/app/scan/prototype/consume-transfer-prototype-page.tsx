@@ -11,6 +11,7 @@ import { usePrototypeSession } from './use-prototype-session';
 import { VariantA } from './variant-a';
 import { VariantB } from './variant-b';
 import { VariantC } from './variant-c';
+import { VariantD } from './variant-d';
 
 export function ConsumeTransferPrototypePage() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export function ConsumeTransferPrototypePage() {
       {variant.key === 'A' && <VariantA {...properties} />}
       {variant.key === 'B' && <VariantB {...properties} />}
       {variant.key === 'C' && <VariantC {...properties} />}
+      {variant.key === 'D' && <VariantD {...properties} />}
       <PrototypeSwitcher session={session} onCode={addCode} />
     </>
   );

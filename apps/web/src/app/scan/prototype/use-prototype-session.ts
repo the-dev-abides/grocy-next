@@ -63,6 +63,7 @@ function sameRowOf(
   return rows.find((row) => {
     return (
       row.productId === product.id &&
+      row.unit === null &&
       row.bookingType === fields.bookingType &&
       row.toLocationId === fields.toLocationId &&
       row.fromLocationId === fields.fromLocationId &&
@@ -103,6 +104,7 @@ function addedRowOf(
           id: ids.next++,
           productId: product?.id ?? null,
           scannedAt,
+          unit: null,
         }
       : { ...same, amount: same.amount + amount, scannedAt };
   return { kind: kindOf(product, same), row };

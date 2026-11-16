@@ -12,39 +12,15 @@ export function otherType(type: BookingType): BookingType {
   return type === 'consume' ? 'transfer' : 'consume';
 }
 
-// The colour and the icon of each booking type. Green and red stay free for
-// the scan feedback.
-export const MODE: Record<
-  BookingType,
-  {
-    border: string;
-    icon: LucideIcon;
-    label: string;
-    ring: string;
-    solid: string;
-    text: string;
-    tint: string;
-  }
-> = {
-  consume: {
-    border: 'border-orange-700',
-    icon: Utensils,
-    label: 'Consume',
-    ring: 'ring-orange-600',
-    solid: 'bg-orange-700 text-white',
-    text: 'text-orange-700 dark:text-orange-400',
-    tint: 'bg-orange-100 dark:bg-orange-950',
-  },
-  transfer: {
-    border: 'border-violet-700',
-    icon: ArrowRightLeft,
-    label: 'Transfer',
-    ring: 'ring-violet-600',
-    solid: 'bg-violet-700 text-white',
-    text: 'text-violet-700 dark:text-violet-400',
-    tint: 'bg-violet-100 dark:bg-violet-950',
-  },
+// The icon and the label of each booking type. Both booking types use the
+// standard colour of the app.
+export const MODE: Record<BookingType, { icon: LucideIcon; label: string }> = {
+  consume: { icon: Utensils, label: 'Consume' },
+  transfer: { icon: ArrowRightLeft, label: 'Transfer' },
 };
+
+// The standard colour of the app, for the mode and the booking type.
+export const SOLID = 'bg-primary text-primary-foreground';
 
 export interface PrototypeLocation {
   id: number;
@@ -70,6 +46,13 @@ export interface PrototypeProduct {
   scanAmount: number;
   sealed: readonly number[];
   unit: string;
+  // The other units of the product. One of this unit is `factor` of `unit`.
+  units: readonly PrototypeUnit[];
+}
+
+export interface PrototypeUnit {
+  factor: number;
+  name: string;
 }
 
 export const PRODUCTS: readonly PrototypeProduct[] = [
@@ -82,6 +65,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 1,
     sealed: [12, 12],
     unit: 'piece',
+    units: [{ factor: 12, name: 'pack' }],
   },
   {
     canOpen: true,
@@ -92,6 +76,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 1,
     sealed: [1, 1],
     unit: 'carton',
+    units: [{ factor: 0.001, name: 'ml' }],
   },
   {
     canOpen: true,
@@ -102,6 +87,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 1,
     sealed: [1, 1, 1],
     unit: 'can',
+    units: [{ factor: 0.005, name: 'g' }],
   },
   {
     canOpen: true,
@@ -112,6 +98,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 100,
     sealed: [1000],
     unit: 'g',
+    units: [{ factor: 1000, name: 'kg' }],
   },
   {
     canOpen: true,
@@ -122,6 +109,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 1,
     sealed: [1, 1],
     unit: 'bag',
+    units: [{ factor: 0.002, name: 'g' }],
   },
   {
     canOpen: false,
@@ -132,6 +120,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 10,
     sealed: [500],
     unit: 'g',
+    units: [{ factor: 1000, name: 'kg' }],
   },
   {
     canOpen: true,
@@ -142,6 +131,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 1,
     sealed: [1, 1, 1],
     unit: 'pack',
+    units: [{ factor: 0.002, name: 'g' }],
   },
   {
     canOpen: true,
@@ -152,6 +142,7 @@ export const PRODUCTS: readonly PrototypeProduct[] = [
     scanAmount: 50,
     sealed: [250, 250],
     unit: 'g',
+    units: [{ factor: 1000, name: 'kg' }],
   },
 ];
 
@@ -191,6 +182,14 @@ export interface PrototypeRow {
   scannedAt: string;
   spoiled: boolean;
   toLocationId: null | number;
+  // The unit of the amount, or null for the default unit of the product.
+  unit: null | string;
+}
+
+// The factor from the unit of the row to the default unit of the product.
+export function unitFactorOf(row: PrototypeRow): number {
+  const units = productOf(row.productId)?.units ?? [];
+  return units.find((unit) => unit.name === row.unit)?.factor ?? 1;
 }
 
 export type StockHint = 'none' | 'open-stock' | 'opens' | 'short';
@@ -203,7 +202,7 @@ export function stockHintOf(row: PrototypeRow): StockHint {
   if (product === null || row.bookingType !== 'consume') {
     return 'none';
   }
-  let rest = row.amount - product.opened;
+  let rest = row.amount * unitFactorOf(row) - product.opened;
   if (rest <= 0) {
     return 'open-stock';
   }
@@ -224,7 +223,7 @@ export const HINT_TEXT: Record<StockHint, string> = {
 };
 
 export function amountText(row: PrototypeRow): string {
-  const unit = productOf(row.productId)?.unit ?? '';
+  const unit = row.unit ?? productOf(row.productId)?.unit ?? '';
   return `${String(row.amount)} ${unit}`.trim();
 }
 

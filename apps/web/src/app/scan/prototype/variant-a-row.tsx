@@ -14,6 +14,7 @@ import {
   MODE,
   otherType,
   placeText,
+  SOLID,
   stockHintOf,
 } from './prototype-data';
 import { AmountStepper, RowName } from './prototype-parts';
@@ -62,7 +63,7 @@ export function VariantARow({
             aria-label={`${mode.label}. Change to ${MODE[other].label}.`}
             className={cn(
               'flex items-center gap-1 rounded-full px-2 py-0.5 font-medium',
-              mode.solid,
+              SOLID,
             )}
             onClick={() => {
               session.update(row.id, { bookingType: other });

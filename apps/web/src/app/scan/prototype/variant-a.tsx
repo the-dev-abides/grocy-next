@@ -20,11 +20,11 @@ import type { PrototypeSession } from './use-prototype-session';
 import { CameraView } from '../camera-view';
 import { SwipeRow } from '../swipe-row';
 import { TypeCodeField } from '../type-code-field';
-import { BOOKING_TYPES, locationName, MODE } from './prototype-data';
+import { BOOKING_TYPES, locationName, MODE, SOLID } from './prototype-data';
 import { InlineSelect, PrototypeFooter } from './prototype-parts';
 import { VariantARow } from './variant-a-row';
 
-function Defaults({ session }: Readonly<{ session: PrototypeSession }>) {
+export function Defaults({ session }: Readonly<{ session: PrototypeSession }>) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
@@ -100,7 +100,7 @@ function ModeSwitch({ session }: Readonly<{ session: PrototypeSession }>) {
                 font-medium
               `,
               isOn
-                ? cn(mode.solid, 'border-transparent')
+                ? cn(SOLID, 'border-transparent')
                 : 'bg-background text-muted-foreground',
             )}
             onClick={() => {
@@ -145,7 +145,9 @@ function SessionList({ session }: Readonly<{ session: PrototypeSession }>) {
 
 // The strip that names the booking type of the next scan, the switch, and
 // the "to" location of a Transfer.
-function ModeControls({ session }: Readonly<{ session: PrototypeSession }>) {
+export function ModeControls({
+  session,
+}: Readonly<{ session: PrototypeSession }>) {
   const mode = MODE[session.mode];
   const to =
     session.mode === 'transfer'
@@ -153,7 +155,7 @@ function ModeControls({ session }: Readonly<{ session: PrototypeSession }>) {
       : '';
   return (
     <>
-      <p className={cn('px-3 py-1 font-medium', mode.solid)}>
+      <p className={cn('px-3 py-1 font-medium', SOLID)}>
         The next scan is a {mode.label}
         {to}
       </p>
