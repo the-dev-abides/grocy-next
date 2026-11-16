@@ -97,7 +97,10 @@
   --row-below-min: oklch(0.896 0.041 207.8); /* #bee5eb */
 }
 
-/* The Grocy night mode. The app follows the system preference. */
+/*
+  The Grocy night mode, with the Grocy blue as the accent. The app follows
+  the system preference.
+*/
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
@@ -107,8 +110,8 @@
     --card-foreground: oklch(0.811 0 0);
     --popover: oklch(0.315 0.003 17.3);
     --popover-foreground: oklch(0.811 0 0);
-    --primary: oklch(0.73 0.168 15.1); /* #ff7585 night accent */
-    --primary-foreground: oklch(0.2 0 0);
+    --primary: oklch(0.564 0.118 247.7); /* #337ab7 Grocy blue */
+    --primary-foreground: oklch(1 0 0);
     --secondary: oklch(0.341 0 0); /* #383838 */
     --secondary-foreground: oklch(0.811 0 0);
     --muted: oklch(0.36 0 0);
@@ -118,15 +121,15 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(0.341 0 0); /* #383838 */
     --input: oklch(0.45 0 0);
-    --ring: oklch(0.73 0.168 15.1);
+    --ring: oklch(0.564 0.118 247.7);
     --sidebar: oklch(0.315 0.003 17.3);
     --sidebar-foreground: oklch(0.811 0 0);
-    --sidebar-primary: oklch(0.73 0.168 15.1); /* #ff7585 active bar */
-    --sidebar-primary-foreground: oklch(0.2 0 0);
+    --sidebar-primary: oklch(0.564 0.118 247.7); /* #337ab7 active bar */
+    --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent: oklch(0.341 0 0); /* #383838 */
     --sidebar-accent-foreground: oklch(0.95 0 0);
     --sidebar-border: oklch(0.341 0 0);
-    --sidebar-ring: oklch(0.73 0.168 15.1);
+    --sidebar-ring: oklch(0.564 0.118 247.7);
     --row-expired: oklch(0.272 0.082 19.3); /* #471116 */
     --row-overdue: oklch(0.423 0.004 247.9); /* #4c4e50 */
     --row-due-soon: oklch(0.342 0.067 88); /* #473604 */
