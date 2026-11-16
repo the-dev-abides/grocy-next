@@ -19,8 +19,10 @@ picked this direction from three prototype variants.
   borders and the active item `#d6d6d6`, the one accent `#337ab7` on the
   primary button, the checkbox, the focus ring, and the active bar. Dark
   mode is the Grocy night mode: page `#333131`, text `#c1c1c1`, borders and
-  the active item `#383838`, muted text `#8f9ba5`, and the accent `#ff7585`
-  on the primary button, the checkbox, and the active bar. The stock status
+  the active item `#383838`, muted text `#8f9ba5`. The accent stays the
+  Grocy blue `#337ab7` on the primary button, the checkbox, the focus ring,
+  and the active bar. Amended: the first version used the Grocy night
+  accent `#ff7585`. The maintainer changed it to the blue. The stock status
   rows keep the Grocy row colours: expired `#f5c6cb`, overdue `#d6d8db`, due
   soon `#ffeeba`, below minimum stock `#bee5eb`, and at night `#471116`,
   `#4c4e50`, `#473604`, `#07373f`. The oklch values are in the prototype
@@ -71,7 +73,8 @@ picked this direction from three prototype variants.
   Grocy font.
 - The Grocy breakpoint of 992px for the hamburger. Rejected: Tailwind has
   no 992px step, and the icon rail covers 768px to 1023px.
-- The blue kept at night. Rejected: the pink is the Grocy night mode.
+- The Grocy night accent `#ff7585` at night. Rejected by an amendment: the
+  maintainer wants the Grocy blue in both modes.
 - Font Awesome, the Grocy icon set. Rejected: shadcn/ui and `components.json`
   use Lucide, and no screen needs a glyph that Lucide lacks.
 - A service worker for the install prompt. Rejected: Chromium installs a
