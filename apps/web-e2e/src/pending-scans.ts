@@ -13,6 +13,10 @@ export const PENDING_SCANS = '/api/v2/pending-scans';
 // of the API names the source URL after it.
 export const OPEN_FACTS_MOCK_URL = 'http://localhost:18081';
 
+// The Grocy mock of the Playwright configuration. A test reads an Imposter
+// store of the mock through its system API.
+export const GROCY_MOCK_URL = 'http://localhost:18080';
+
 // The lookup worker answers within a few seconds. The row shows the result
 // at the next poll of the pending scan list.
 export const LOOKUP_TIMEOUT_MS = 15_000;

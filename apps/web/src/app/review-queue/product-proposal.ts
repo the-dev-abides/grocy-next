@@ -1,9 +1,10 @@
 import type { PendingScan, QuantityUnitConversion } from '../api/next-api';
+import type { ConversionSide } from './household-conversion';
+import type { Named } from './named-unit';
 
-interface Named {
-  id: number;
-  name: string;
-}
+import { sidesOf } from './household-conversion';
+import { unitNamed } from './named-unit';
+import { proposePurchaseUnit } from './purchase-unit-proposal';
 
 // One entry of the stock unit name list. It holds the names of a household unit
 // that measures the net quantity unit. It also holds how many of the net
@@ -52,36 +53,9 @@ const STOCK_UNIT_NAMES: Readonly<
   ],
 };
 
-// One entry of the package name list. It holds the words of a label quantity
-// text that name the package, and the names of the household units for it. The
-// last entry has no word. It is the package when the label names none.
-interface PackageNames {
-  names: readonly string[];
-  words: readonly string[];
-}
-
-// The built-in package name list for the purchase unit, as ADR 0011 decided.
-const PACKAGE_NAMES: readonly PackageNames[] = [
-  { names: ['jar', 'glass'], words: ['jar', 'glass'] },
-  { names: ['bottle'], words: ['bottle'] },
-  { names: ['can', 'tin'], words: ['can', 'tin'] },
-  { names: ['bag', 'sack', 'pouch'], words: ['bag', 'sack', 'pouch'] },
-  { names: ['box', 'carton'], words: ['box', 'carton'] },
-  { names: ['bar'], words: ['bar'] },
-  { names: ['cup', 'pot', 'tub'], words: ['cup', 'pot', 'tub'] },
-  { names: ['pack', 'package', 'packet', 'piece'], words: [] },
-];
-
 export interface StockUnitProposal {
   amount: number;
   unitId: number;
-}
-
-function unitNamed(
-  units: readonly Named[] | undefined,
-  names: readonly string[],
-): Named | undefined {
-  return units?.find((unit) => names.includes(unit.name.trim().toLowerCase()));
 }
 
 function isNetQuantityUnit(unit: null | string): unit is 'g' | 'ml' {
@@ -95,31 +69,6 @@ function entryOf(
 ): StockUnitNames | undefined {
   const name = unit.name.trim().toLowerCase();
   return entries.find((entry) => entry.names.includes(name));
-}
-
-// One side of a household conversion: the household unit, the unit on the
-// other side, and how many of the other unit one household unit holds.
-interface ConversionSide {
-  otherId: number;
-  otherPerUnit: number;
-  unitId: number;
-}
-
-// The two sides of a household conversion. One from unit is the factor in to
-// units, so one to unit is one divided by the factor in from units.
-function sidesOf(conversion: QuantityUnitConversion): ConversionSide[] {
-  return [
-    {
-      otherId: conversion.toQuantityUnitId,
-      otherPerUnit: conversion.factor,
-      unitId: conversion.fromQuantityUnitId,
-    },
-    {
-      otherId: conversion.fromQuantityUnitId,
-      otherPerUnit: 1 / conversion.factor,
-      unitId: conversion.toQuantityUnitId,
-    },
-  ];
 }
 
 // The proposal of one side of a household conversion. The household unit must
@@ -181,10 +130,9 @@ function nameProposal(
   return null;
 }
 
-// The stock unit proposal. It is a household unit with a household conversion
-// to a unit that matches the net quantity unit, else the household unit whose
-// name matches the net quantity unit. The conversion comes first, because a
-// household that has a conversion to g also has the unit g. The proposal
+// The stock unit proposal, as ADR 0011 decided. It is the household unit whose
+// name matches the net quantity unit, else a household unit with a household
+// conversion to a unit that matches the net quantity unit. The proposal
 // converts the net quantity to that unit. No match, no net quantity, or a unit
 // outside g and ml gives no proposal.
 export function proposeStockUnit(
@@ -197,37 +145,85 @@ export function proposeStockUnit(
     return null;
   }
   const entries = STOCK_UNIT_NAMES[netQuantityUnit];
-  const byConversion =
-    units === undefined
-      ? null
-      : conversionProposal(netQuantity, entries, units, conversions ?? []);
-  return byConversion ?? nameProposal(netQuantity, entries, units);
+  const byName = nameProposal(netQuantity, entries, units);
+  return byName !== null || units === undefined
+    ? byName
+    : conversionProposal(netQuantity, entries, units, conversions ?? []);
 }
 
-// The purchase unit proposal: the household unit of the package that the
-// label quantity text names, or the pack when the label names none. No
-// household unit of the package list gives no proposal.
-export function proposePurchaseUnit(
-  quantityText: null | string,
-  units: readonly Named[] | undefined,
+// The net quantity in one household unit. A unit that matches the name list
+// takes the net quantity with the factor of its entry. A unit with a household
+// conversion to a unit that matches the name list takes the net quantity
+// through that conversion. Any other unit gives nothing.
+function netQuantityIn(
+  netQuantity: number,
+  entries: readonly StockUnitNames[],
+  lists: {
+    conversions: readonly QuantityUnitConversion[];
+    units: readonly Named[];
+  },
+  unitId: number,
 ): null | number {
-  const words = new Set(
-    (quantityText ?? '')
-      .toLowerCase()
-      .split(/[^a-z]+/u)
-      .map((word) => word.replace(/s$/u, '')),
+  const unit = lists.units.find((candidate) => candidate.id === unitId);
+  const entry = unit === undefined ? undefined : entryOf(entries, unit);
+  if (unit === undefined || entry !== undefined) {
+    return entry === undefined ? null : netQuantity / entry.perUnit;
+  }
+  const sides = lists.conversions
+    .flatMap((conversion) => sidesOf(conversion))
+    .filter((side) => side.unitId === unitId);
+  const amounts = sides.map(
+    (side) => sideProposal(netQuantity, entries, lists.units, side)?.amount,
   );
-  const entry =
-    PACKAGE_NAMES.find((candidate) =>
-      candidate.words.some((word) => words.has(word)),
-    ) ?? PACKAGE_NAMES.at(-1);
-  return unitNamed(units, entry?.names ?? [])?.id ?? null;
+  return amounts.find((amount) => amount !== undefined) ?? null;
+}
+
+// The net quantity of the lookup and the name list of its unit, or null when
+// the lookup has no net quantity in g or ml.
+function measureOf(lookup: PendingScan['lookupResult']): null | {
+  entries: readonly StockUnitNames[];
+  netQuantity: number;
+} {
+  const netQuantity = lookup?.netQuantity ?? null;
+  const netQuantityUnit = lookup?.netQuantityUnit ?? null;
+  return netQuantity === null || !isNetQuantityUnit(netQuantityUnit)
+    ? null
+    : { entries: STOCK_UNIT_NAMES[netQuantityUnit], netQuantity };
+}
+
+// The two units of a product: the unit that the household buys and the unit
+// that the household stocks.
+interface UnitPair {
+  purchaseUnitId: number;
+  stockUnitId: number;
+}
+
+// The factor proposal from the net quantity: the net quantity in the stock
+// unit, divided by the net quantity in the purchase unit. A purchase unit that
+// does not measure the net quantity is a package, and one package holds the
+// whole net quantity. The proposal is nothing when the lookup has no net
+// quantity in g or ml, or the stock unit does not measure it.
+export function proposeFactor(
+  lookup: PendingScan['lookupResult'],
+  pair: UnitPair,
+  units: readonly Named[] | undefined,
+  conversions: readonly QuantityUnitConversion[] | undefined,
+): null | number {
+  const measure = measureOf(lookup);
+  if (units === undefined || measure === null) {
+    return null;
+  }
+  const { entries, netQuantity } = measure;
+  const lists = { conversions: conversions ?? [], units };
+  const inStock = netQuantityIn(netQuantity, entries, lists, pair.stockUnitId);
+  const inPurchase =
+    netQuantityIn(netQuantity, entries, lists, pair.purchaseUnitId) ?? 1;
+  return inStock === null ? null : inStock / inPurchase;
 }
 
 export interface ProductProposal {
   description: string;
   name: string;
-  purchaseToStockFactor: number;
   purchaseUnitId: null | number;
   stockUnitId: null | number;
 }
@@ -239,16 +235,12 @@ function descriptionOf(lookup: PendingScan['lookupResult']): string {
   return parts.filter((part) => part !== null && part !== '').join(', ');
 }
 
-// The two unit proposals and the factor. No stock unit match gives no unit
-// proposal and the factor one.
+// The two unit proposals. No stock unit match gives no unit proposal.
 function unitsOf(
   lookup: PendingScan['lookupResult'],
   units: readonly Named[] | undefined,
   conversions: readonly QuantityUnitConversion[] | undefined,
-): Pick<
-  ProductProposal,
-  'purchaseToStockFactor' | 'purchaseUnitId' | 'stockUnitId'
-> {
+): Pick<ProductProposal, 'purchaseUnitId' | 'stockUnitId'> {
   const stockUnit =
     lookup === null
       ? null
@@ -259,15 +251,14 @@ function unitsOf(
           conversions,
         );
   if (lookup === null || stockUnit === null) {
-    return {
-      purchaseToStockFactor: 1,
-      purchaseUnitId: null,
-      stockUnitId: null,
-    };
+    return { purchaseUnitId: null, stockUnitId: null };
   }
   return {
-    purchaseToStockFactor: stockUnit.amount,
-    purchaseUnitId: proposePurchaseUnit(lookup.quantityText, units),
+    purchaseUnitId: proposePurchaseUnit(
+      lookup.quantityText,
+      lookup.packageShapes ?? [],
+      units,
+    ),
     stockUnitId: stockUnit.unitId,
   };
 }
@@ -275,8 +266,9 @@ function unitsOf(
 // The proposal of the short product form from the lookup result and the
 // write-in name, as ADR 0011 decided. The name is the write-in name, else the
 // lookup name. The description has the brand and the label quantity text. The
-// proposal also has the two units, and the factor from the net quantity in the
-// stock unit. The household conversions take part in the stock unit proposal.
+// proposal also has the two units. The household conversions take part in the
+// stock unit proposal. The factor proposal is a function of its own, because
+// the form computes it again when the user changes a unit.
 export function proposeProduct(
   scan: Pick<PendingScan, 'lookupResult' | 'writeInName'>,
   units: readonly Named[] | undefined,

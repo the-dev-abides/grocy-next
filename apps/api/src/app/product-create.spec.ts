@@ -110,6 +110,36 @@ describe('the product create of the Next API', () => {
     });
   });
 
+  // The Kilogram is unit 5 and the Gram is unit 4. The household conversion
+  // 1 Kilogram = 1000 Gram resolves the pair, so the Grocy trigger creates no
+  // conversion row, and the Grocy mock answers the id 9. The short product
+  // form sends no factor for such a pair. The product uses the household
+  // conversion, and the create writes no product conversion. The Grocy mock
+  // captures every conversion create into the Imposter store
+  // `created-conversion`, so an empty store proves that the create wrote none.
+  it('writes no product conversion when a household conversion resolves the pair of units', async () => {
+    const store = `${String(process.env['GROCY_URL'])}/system/store/created-conversion`;
+    await fetch(store, { method: 'DELETE' });
+
+    const response = await create({
+      locationId: 2,
+      name: 'Whole grain rolled oats',
+      purchaseUnitId: 5,
+      stockUnitId: 4,
+    });
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      id: 9,
+      name: 'Whole grain rolled oats',
+      purchaseToStockFactor: 1000,
+      purchaseUnitId: 5,
+      stockUnitId: 4,
+    });
+    const createdConversion = await fetch(store);
+    expect(await createdConversion.json()).toEqual({});
+  });
+
   // The Grocy trigger creates no conversion row when the purchase unit is
   // the stock unit, so the create sets no factor. The mock sets the factor of
   // its store to 1 on every create, so a factor from the test above does not

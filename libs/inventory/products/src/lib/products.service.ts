@@ -7,7 +7,6 @@ import type { CreateProduct, Product } from './product.ts';
 import { grocyRefused } from './grocy/grocy-answers.ts';
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { toGrocyProductBody } from './grocy/grocy-product-body.ts';
-import { toGrocyProductConversionBody } from './grocy/grocy-product-conversions.ts';
 import { GrocyStockClient } from './grocy/grocy-stock-client.ts';
 import { purchaseToStockRowOf } from './product-conversion.ts';
 import { toProduct } from './product-details.ts';
@@ -53,10 +52,11 @@ export class ProductsService {
 
   // The factor from the purchase unit to the stock unit goes on the conversion
   // row that the Grocy trigger created for the new product. When a conversion
-  // of the household already resolves the pair, the trigger creates no row, and
-  // the create adds the row. Thus the product stores the factor of the form in
-  // every case. A product whose purchase unit is the stock unit has no row and
-  // no factor to set.
+  // of the household already resolves the pair, the trigger creates no row. The
+  // product then uses the household conversion, and the create writes no
+  // product conversion, because a product conversion wins over the household
+  // conversion for this product. A product whose purchase unit is the stock
+  // unit has no row and no factor to set.
   private async setFactor(
     productId: number,
     product: CreateProduct,
@@ -66,23 +66,12 @@ export class ProductsService {
     }
     const rows = await this.grocy.readProductConversions(productId);
     const row = purchaseToStockRowOf(rows, product);
-    if (row === null) {
-      const created = await this.grocy.createProductConversion(
-        toGrocyProductConversionBody(
-          {
-            factor: product.purchaseToStockFactor,
-            fromQuantityUnitId: product.purchaseUnitId,
-            toQuantityUnitId: product.stockUnitId,
-          },
-          productId,
-        ),
+    if (row !== null) {
+      await this.grocy.setConversionFactor(
+        row.id,
+        product.purchaseToStockFactor,
       );
-      if (created.isRefused) {
-        throw grocyRefused(created.grocy);
-      }
-      return;
     }
-    await this.grocy.setConversionFactor(row.id, product.purchaseToStockFactor);
   }
 
   // The product create of the short product form. The service checks the ids

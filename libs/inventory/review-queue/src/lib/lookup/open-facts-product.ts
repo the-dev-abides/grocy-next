@@ -12,7 +12,7 @@ import type { LookupHit } from './lookup-provider.ts';
 // attribution.
 const OPEN_FACTS_LICENCE = 'Open Database License (ODbL)';
 
-// The fields of the v3 read. The lookup result takes the first six. The
+// The fields of the v3 read. The lookup result takes the first seven. The
 // nutrition facts record takes the rest.
 export const OPEN_FACTS_FIELDS = [
   'product_name',
@@ -21,6 +21,7 @@ export const OPEN_FACTS_FIELDS = [
   'product_quantity',
   'product_quantity_unit',
   'image_front_url',
+  'packagings',
   'nutriments',
   'nutrition_data_per',
   'serving_size',
@@ -77,6 +78,31 @@ function tagsOf(record: OpenFactsRecord, key: string): string[] {
   return tagsSchema.safeParse(record[key]).data ?? [];
 }
 
+// One packaging component of Open Facts. The v3 read gives the shape as an
+// object with the taxonomy id, such as `{"id": "en:bag"}`. The v2 read gives
+// the id as text.
+const shapeSchema = z.union([z.string(), z.looseObject({ id: z.string() })]);
+const packagingSchema = z.looseObject({
+  shape: shapeSchema.optional().catch(undefined),
+});
+
+// The shape id of one packaging component, or null when it has none.
+function shapeOf(component: unknown): null | string {
+  const shape = packagingSchema.safeParse(component).data?.shape;
+  const id = typeof shape === 'string' ? shape : shape?.id;
+  return id === undefined || id === '' ? null : id;
+}
+
+// The shape ids of the packaging components, in the order of the record. A
+// component with no shape gives no id.
+function packageShapesOf(record: OpenFactsRecord): string[] {
+  const components =
+    z.array(z.unknown()).safeParse(record['packagings']).data ?? [];
+  return components
+    .map((component) => shapeOf(component))
+    .filter((id) => id !== null);
+}
+
 function recordOf(record: OpenFactsRecord, key: string): OpenFactsRecord {
   return recordSchema.safeParse(record[key]).data ?? {};
 }
@@ -118,7 +144,8 @@ export interface LookupSource {
 }
 
 // The lookup result of ADR 0010. The name is `product_name`, the name in the
-// main language of the product. The image is the front image at 400 px.
+// main language of the product. The image is the front image at 400 px. The
+// package shapes go to the purchase unit proposal of the short product form.
 function lookupResultOf(
   product: OpenFactsRecord,
   name: string,
@@ -130,6 +157,7 @@ function lookupResultOf(
     name,
     netQuantity: numberOf(product, 'product_quantity'),
     netQuantityUnit: textOf(product, 'product_quantity_unit'),
+    packageShapes: packageShapesOf(product),
     quantityText: textOf(product, 'quantity'),
     service: source.service,
     sourceUrl: source.sourceUrl,

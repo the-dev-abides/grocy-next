@@ -94,19 +94,27 @@ describe('the master data lists of the Next API', () => {
         { id: 2, name: 'Pack' },
         { id: 3, name: 'Box' },
         { id: 4, name: 'Gram' },
+        { id: 5, name: 'Kilogram' },
+        { id: 6, name: 'Ounce' },
+        { id: 7, name: 'Bag' },
       ],
     });
   });
 
-  // The Grocy table holds the household conversion 1 Box = 24 Cans, with
-  // no product, and the conversion 1 Box = 6 Packs of product 3. The list
-  // holds the household conversion only.
+  // The Grocy table holds three household conversions with no product:
+  // 1 Box = 24 Cans, 1 Kilogram = 1000 Gram, and 1 Ounce = 28.349523125
+  // Gram. It also holds the conversion 1 Box = 6 Packs of product 3. The list
+  // holds the household conversions only.
   it('lists the household quantity unit conversions and leaves out the conversions of a product', async () => {
     const response = await fetch(`${baseUrl}/api/v2/quantity-unit-conversions`);
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      items: [{ factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 }],
+      items: [
+        { factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 },
+        { factor: 1000, fromQuantityUnitId: 5, toQuantityUnitId: 4 },
+        { factor: 28.349523125, fromQuantityUnitId: 6, toQuantityUnitId: 4 },
+      ],
     });
   });
 

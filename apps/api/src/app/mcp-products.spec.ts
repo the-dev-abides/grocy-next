@@ -55,11 +55,18 @@ const MASTER_DATA_LISTS = [
       { id: 2, name: 'Pack' },
       { id: 3, name: 'Box' },
       { id: 4, name: 'Gram' },
+      { id: 5, name: 'Kilogram' },
+      { id: 6, name: 'Ounce' },
+      { id: 7, name: 'Bag' },
     ],
     tool: 'list_quantity_units',
   },
   {
-    items: [{ factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 }],
+    items: [
+      { factor: 24, fromQuantityUnitId: 3, toQuantityUnitId: 1 },
+      { factor: 1000, fromQuantityUnitId: 5, toQuantityUnitId: 4 },
+      { factor: 28.349523125, fromQuantityUnitId: 6, toQuantityUnitId: 4 },
+    ],
     tool: 'list_quantity_unit_conversions',
   },
 ];

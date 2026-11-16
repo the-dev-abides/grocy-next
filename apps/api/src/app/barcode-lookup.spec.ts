@@ -32,6 +32,9 @@ const UNKNOWN_CODE = '3017620422003';
 // product under the 13-digit form with a leading zero. The mock holds its live
 // answer, with the status `success_with_warnings`.
 const UPC_A_CODE = '057627224456';
+// A 12-digit UPC-A code, whole grain rolled oats. The mock holds its live
+// record with the field `packagings`.
+const OATS_CODE = '196633911698';
 // A code that no mock record holds. The lookup is a miss.
 const MISS_CODE = '4006381333931';
 
@@ -141,6 +144,7 @@ describe('the barcode lookup of a pending scan', () => {
         name: 'Nutella',
         netQuantity: 400,
         netQuantityUnit: 'g',
+        packageShapes: [],
         quantityText: '400 g e',
         service: 'Open Food Facts',
         sourceUrl: `${openFactsUrl}/product/${UNKNOWN_CODE}`,
@@ -167,11 +171,32 @@ describe('the barcode lookup of a pending scan', () => {
         name: 'Italian calabrese bread',
         netQuantity: null,
         netQuantityUnit: null,
+        packageShapes: [],
         quantityText: null,
         service: 'Open Food Facts',
         sourceUrl: `${openFactsUrl}/product/${UPC_A_CODE}`,
       },
       updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+  });
+
+  // The record of UPC 196633911698 has one packaging component with the
+  // shape en:bag. The purchase unit proposal of the short product form reads
+  // it.
+  it('stores the package shapes of the record in the lookup result', async () => {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: OATS_CODE,
+    });
+
+    const row = await pollUntilLookedUp(created.id);
+
+    expect(row.lookupResult).toMatchObject({
+      name: 'Whole grain rolled oats',
+      netQuantity: 4450,
+      netQuantityUnit: 'g',
+      packageShapes: ['en:bag'],
+      quantityText: '4.45kg',
     });
   });
 

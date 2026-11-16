@@ -11,6 +11,7 @@ import type { QueueLists } from './use-review-queue';
 import { RowSelect } from '../scan/defaults-section';
 import { nameOf } from '../scan/scan-text';
 import { Attribution } from './attribution';
+import { requiresFactor } from './product-form';
 
 export type Patch = (patch: Partial<ProductForm>) => void;
 
@@ -90,24 +91,22 @@ export function NameFields({
   );
 }
 
-// The factor from the purchase unit to the stock unit, when the two units
-// are set and differ.
+// The factor from the purchase unit to the stock unit, when the form asks for
+// one: the two units are set and differ, and the household conversions do not
+// resolve the pair.
 function FactorField({
   form,
+  lists,
   patch,
-  quantityUnits,
 }: Readonly<{
   form: ProductForm;
+  lists: QueueLists;
   patch: Patch;
-  quantityUnits: QueueLists['quantityUnits'];
 }>) {
-  if (
-    form.purchaseUnitId === null ||
-    form.stockUnitId === null ||
-    form.purchaseUnitId === form.stockUnitId
-  ) {
+  if (!requiresFactor(form, lists.quantityUnitConversions)) {
     return null;
   }
+  const quantityUnits = lists.quantityUnits;
   const purchase = nameOf(quantityUnits, form.purchaseUnitId, '');
   const stock = nameOf(quantityUnits, form.stockUnitId, '');
   return (
@@ -134,19 +133,19 @@ function FactorField({
 // The stock unit, the purchase unit, and the factor between them.
 function UnitFields({
   form,
+  lists,
   patch,
-  quantityUnits,
 }: Readonly<{
   form: ProductForm;
+  lists: QueueLists;
   patch: Patch;
-  quantityUnits: QueueLists['quantityUnits'];
 }>) {
   return (
     <>
       <RowSelect
         label="Stock unit"
         none="Pick one"
-        rows={quantityUnits}
+        rows={lists.quantityUnits}
         value={form.stockUnitId}
         onChange={(stockUnitId) => {
           patch({ stockUnitId });
@@ -155,13 +154,13 @@ function UnitFields({
       <RowSelect
         label="Purchase unit"
         none="Pick one"
-        rows={quantityUnits}
+        rows={lists.quantityUnits}
         value={form.purchaseUnitId}
         onChange={(purchaseUnitId) => {
           patch({ purchaseUnitId });
         }}
       />
-      <FactorField form={form} patch={patch} quantityUnits={quantityUnits} />
+      <FactorField form={form} lists={lists} patch={patch} />
     </>
   );
 }
@@ -198,11 +197,7 @@ export function ProductFields({
           patch({ productGroupId });
         }}
       />
-      <UnitFields
-        form={form}
-        patch={patch}
-        quantityUnits={lists.quantityUnits}
-      />
+      <UnitFields form={form} lists={lists} patch={patch} />
       <Field label="Default due days">
         {(id) => {
           return (

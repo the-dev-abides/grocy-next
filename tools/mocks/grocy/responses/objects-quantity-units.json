@@ -34,5 +34,32 @@
     "name_plural": "Grams",
     "plural_forms": null,
     "active": 1
+  },
+  {
+    "id": 5,
+    "name": "Kilogram",
+    "description": null,
+    "row_created_timestamp": "2026-01-05 10:00:00",
+    "name_plural": "Kilograms",
+    "plural_forms": null,
+    "active": 1
+  },
+  {
+    "id": 6,
+    "name": "Ounce",
+    "description": null,
+    "row_created_timestamp": "2026-01-05 10:00:00",
+    "name_plural": "Ounces",
+    "plural_forms": null,
+    "active": 1
+  },
+  {
+    "id": 7,
+    "name": "Bag",
+    "description": null,
+    "row_created_timestamp": "2026-01-05 10:00:00",
+    "name_plural": "Bags",
+    "plural_forms": null,
+    "active": 1
   }
 ]

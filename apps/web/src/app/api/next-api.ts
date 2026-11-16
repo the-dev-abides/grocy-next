@@ -244,7 +244,7 @@ export type CreateProduct = {
   name: string;
   /** The id of the product group. */
   productGroupId?: number;
-  /** The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. */
+  /** The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. When a household conversion resolves the two units, the server ignores this field and writes no product conversion. The product then uses the household conversion. */
   purchaseToStockFactor?: number;
   /** The id of the purchase quantity unit. */
   purchaseUnitId: number;
@@ -318,6 +318,8 @@ export type LookupResult = {
   netQuantity: number | null;
   /** The unit of the net quantity, g or ml. */
   netQuantityUnit: string | null;
+  /** The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag. */
+  packageShapes?: string[];
   /** The quantity text as printed on the label. */
   quantityText: string | null;
   /** The name of the service that held the product. */

@@ -1481,7 +1481,7 @@
           },
           "purchaseToStockFactor": {
             "default": 1,
-            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units.",
+            "description": "The factor from the purchase unit to the stock unit. One purchase unit is this many stock units. When a household conversion resolves the two units, the server ignores this field and writes no product conversion. The product then uses the household conversion.",
             "type": "number",
             "exclusiveMinimum": true,
             "minimum": 0
@@ -1965,6 +1965,14 @@
             "description": "The unit of the net quantity, g or ml.",
             "type": "string",
             "nullable": true
+          },
+          "packageShapes": {
+            "default": [],
+            "description": "The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "quantityText": {
             "description": "The quantity text as printed on the label.",

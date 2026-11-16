@@ -3,13 +3,10 @@ import type {
   PendingScan,
   QuantityUnitConversion,
 } from '../api/next-api';
+import type { Named } from './named-unit';
 
-import { proposeProduct } from './product-proposal';
-
-interface Named {
-  id: number;
-  name: string;
-}
+import { isHouseholdResolved } from './household-conversion';
+import { proposeFactor, proposeProduct } from './product-proposal';
 
 // The fields of the short product form. The numbers are the typed text, so
 // the user can clear a field and type again.
@@ -30,6 +27,48 @@ interface UnitLists {
   quantityUnits: readonly Named[] | undefined;
 }
 
+type FormUnits = Pick<ProductForm, 'purchaseUnitId' | 'stockUnitId'>;
+
+// Whether the form asks for a factor. It does when the two units are set and
+// differ, and the household conversions do not resolve the pair. When they
+// resolve it, the Grocy trigger creates no conversion row, and the product uses
+// the household conversion.
+export function requiresFactor(
+  form: FormUnits,
+  conversions: readonly QuantityUnitConversion[] | undefined,
+): boolean {
+  return (
+    form.purchaseUnitId !== null &&
+    form.stockUnitId !== null &&
+    form.purchaseUnitId !== form.stockUnitId &&
+    !isHouseholdResolved(form.purchaseUnitId, form.stockUnitId, conversions)
+  );
+}
+
+// The factor text for two units: the factor proposal from the net quantity
+// when the form asks for a factor and the net quantity gives a value. Else the
+// text is empty, and the user types the factor when the form asks for one.
+function factorTextOf(
+  form: FormUnits,
+  lookup: PendingScan['lookupResult'],
+  lists: UnitLists,
+): string {
+  if (
+    form.purchaseUnitId === null ||
+    form.stockUnitId === null ||
+    !requiresFactor(form, lists.quantityUnitConversions)
+  ) {
+    return '';
+  }
+  const factor = proposeFactor(
+    lookup,
+    { purchaseUnitId: form.purchaseUnitId, stockUnitId: form.stockUnitId },
+    lists.quantityUnits,
+    lists.quantityUnitConversions,
+  );
+  return factor === null ? '' : String(factor);
+}
+
 // The form as it opens. It has the proposals of ADR 0011 and the location and
 // the product group of the row. The due days are 0, which means no due date.
 export function formOf(
@@ -47,7 +86,7 @@ export function formOf(
   return {
     defaultDueDays: '0',
     description: proposal.description,
-    factor: String(proposal.purchaseToStockFactor),
+    factor: factorTextOf(proposal, scan.lookupResult, lists),
     locationId: scan.locationId,
     name: proposal.name,
     productGroupId: scan.productGroupId,
@@ -56,8 +95,29 @@ export function formOf(
   };
 }
 
-function factorOf(form: ProductForm): null | number | undefined {
-  if (form.purchaseUnitId === form.stockUnitId) {
+// The form after the user changes a field. A change of the stock unit or the
+// purchase unit computes the factor again for the new pair, so a factor of
+// the old pair never stays. A change of any other field keeps the factor.
+export function withPatch(
+  form: ProductForm,
+  patch: Partial<ProductForm>,
+  scan: Pick<PendingScan, 'lookupResult'>,
+  lists: UnitLists,
+): ProductForm {
+  const changed = { ...form, ...patch };
+  const isUnitChange =
+    changed.purchaseUnitId !== form.purchaseUnitId ||
+    changed.stockUnitId !== form.stockUnitId;
+  return isUnitChange
+    ? { ...changed, factor: factorTextOf(changed, scan.lookupResult, lists) }
+    : changed;
+}
+
+function factorOf(
+  form: ProductForm,
+  conversions: readonly QuantityUnitConversion[] | undefined,
+): null | number | undefined {
+  if (!requiresFactor(form, conversions)) {
     return undefined;
   }
   const factor = Number(form.factor);
@@ -73,13 +133,17 @@ function dueDaysOf(form: ProductForm): null | number {
 }
 
 // The body of the product create from the form, or null while the form is not
-// complete. A name, a location, and the two units are required. When the units
-// differ, the factor must be a number above zero. The due days must be a whole
-// number from -1. The description and the factor go only when they have a
-// value.
-export function bodyOf(form: ProductForm): CreateProduct | null {
+// complete. A name, a location, and the two units are required. When the form
+// asks for a factor, the factor must be a number above zero. The due days must
+// be a whole number from -1. The description and the factor go only when they
+// have a value. A pair that the household conversions resolve sends no factor,
+// so the server writes no product conversion.
+export function bodyOf(
+  form: ProductForm,
+  conversions: readonly QuantityUnitConversion[] | undefined,
+): CreateProduct | null {
   const name = form.name.trim();
-  const factor = factorOf(form);
+  const factor = factorOf(form, conversions);
   const defaultDueDays = dueDaysOf(form);
   if (
     name === '' ||

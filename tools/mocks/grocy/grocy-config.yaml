@@ -1,7 +1,7 @@
 # The Grocy mock. ADR 0015 records the decision. The mock is the one stand-in
 # for Grocy in the end-to-end tests and in the API tests. It serves the
 # fixture household: three active locations and one inactive location, one
-# store, two product groups, four quantity units, and six products: three
+# store, two product groups, seven quantity units, and six products: three
 # plain products with one product barcode and some stock each, a parent
 # product with one child, and a tare weight product. The mock holds no
 # state. A booking returns a fixed stock log row and changes nothing.
@@ -127,6 +127,47 @@ resources:
     response:
       statusCode: 400
       content: '{"error_message": "UNIQUE constraint failed: products.name"}'
+  # The product create with the Kilogram as the purchase unit and the Gram as
+  # the stock unit. The household conversion 1 Kilogram = 1000 Gram resolves
+  # this pair, so the Grocy trigger creates no conversion row. Grocy answers
+  # the id 9. The create captures the fields of the request into the store
+  # `product9`, so a create of product 4 at the same time does not change
+  # them.
+  - path: /api/objects/products
+    method: POST
+    requestBody:
+      allOf:
+        - jsonPath: $.qu_id_purchase
+          value: 5
+        - jsonPath: $.qu_id_stock
+          value: 4
+    capture:
+      name:
+        store: product9
+        requestBody:
+          jsonPath: $.name
+      location_id:
+        store: product9
+        requestBody:
+          jsonPath: $.location_id
+      qu_id_purchase:
+        store: product9
+        requestBody:
+          jsonPath: $.qu_id_purchase
+      qu_id_stock:
+        store: product9
+        requestBody:
+          jsonPath: $.qu_id_stock
+      min_stock_amount:
+        store: product9
+        requestBody:
+          jsonPath: $.min_stock_amount
+      default_best_before_days:
+        store: product9
+        requestBody:
+          jsonPath: $.default_best_before_days
+    response:
+      file: responses/objects-products-created-9.json
   - path: /api/objects/products
     method: POST
     capture:
@@ -174,15 +215,49 @@ resources:
       file: responses/objects-quantity-unit-conversions-product-4.json.template
       headers:
         Content-Type: application/json
-  # The full conversion table with no filter. It holds the household
-  # conversion 1 Box = 24 Cans, with no product, and the conversion
-  # 1 Box = 6 Packs of product 3. No row converts to the Gram, so the stock
-  # unit proposal of a lookup result in g stays the Gram. The household conversion list of the Next
+  # The product conversions of the new product 9: none, because the
+  # household conversion 1 Kilogram = 1000 Gram resolves its pair of units.
+  - path: /api/objects/quantity_unit_conversions
+    method: GET
+    queryParams:
+      query[]: product_id=9
+    response:
+      file: responses/stock-product-entries-none.json
+  # The full conversion table with no filter. It holds three household
+  # conversions with no product: 1 Box = 24 Cans, 1 Kilogram = 1000 Gram,
+  # and 1 Ounce = 28.349523125 Gram. It also holds the conversion
+  # 1 Box = 6 Packs of product 3. The household conversion list of the Next
   # API reads the table with no filter and leaves out the rows of a product.
   - path: /api/objects/quantity_unit_conversions
     method: GET
     response:
       file: responses/objects-quantity-unit-conversions.json
+  # The conversion create. The mock holds no state, so the create captures
+  # the product, the two units, and the factor of the request into the store
+  # `created-conversion`. A test reads that store through the Imposter
+  # system API `/system/store/created-conversion` to see whether the Next API
+  # wrote a product conversion. Grocy answers the id of the new row.
+  - path: /api/objects/quantity_unit_conversions
+    method: POST
+    capture:
+      product_id:
+        store: created-conversion
+        requestBody:
+          jsonPath: $.product_id
+      from_qu_id:
+        store: created-conversion
+        requestBody:
+          jsonPath: $.from_qu_id
+      to_qu_id:
+        store: created-conversion
+        requestBody:
+          jsonPath: $.to_qu_id
+      factor:
+        store: created-conversion
+        requestBody:
+          jsonPath: $.factor
+    response:
+      file: responses/objects-quantity-unit-conversions-created.json
   - path: /api/objects/quantity_unit_conversions/{objectId}
     method: PUT
     capture:
@@ -248,6 +323,15 @@ resources:
       query[]: product_id=7
     response:
       file: responses/objects-quantity-unit-conversions-resolved-product-7.json
+  # The resolved conversions of the new product 9 come from the household
+  # conversions between the Kilogram, the Gram, and the Ounce, as Grocy
+  # resolves them: each direction, and the chain through the Gram.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=9
+    response:
+      file: responses/objects-quantity-unit-conversions-resolved-product-9.json
 
   # The product details by barcode. The three fixture codes and the second
   # product barcode of product 1 resolve. Every other code gets the Grocy
@@ -337,6 +421,19 @@ resources:
       productId: '7'
     response:
       file: responses/stock-product-7.json
+  # Product 9 is the product that the product create answers for the pair
+  # Kilogram and Gram. Its template reads the store `product9`. The factor
+  # from the purchase unit to the stock unit is 1000, from the household
+  # conversion.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '9'
+    response:
+      template: true
+      file: responses/stock-product-9.json.template
+      headers:
+        Content-Type: application/json
   # Product 8 is inactive. Grocy refuses the details read of an inactive
   # product with the same error as an unknown id.
   - path: /api/stock/products/{productId}
