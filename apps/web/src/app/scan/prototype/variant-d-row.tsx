@@ -68,19 +68,12 @@ function SpoiledToggle({ row, session }: RowProperties) {
   }
   return (
     <Button
-      variant="ghost"
+      variant={row.spoiled ? 'destructive' : 'ghost'}
       size="icon"
       aria-label="Spoiled"
       aria-pressed={row.spoiled}
       title="Spoiled"
-      className={cn(
-        'shrink-0 text-muted-foreground',
-        row.spoiled &&
-          `
-            bg-destructive text-white
-            hover:bg-destructive/80 hover:text-white
-          `,
-      )}
+      className={cn('shrink-0', !row.spoiled && 'text-muted-foreground')}
       onClick={() => {
         session.update(row.id, { spoiled: !row.spoiled });
       }}
