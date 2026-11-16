@@ -10,6 +10,8 @@ import { Attribution } from './attribution';
 import { BulkEditDialog } from './bulk-edit-dialog';
 import { BulkToolbar } from './bulk-toolbar';
 import { FilterBar } from './filter-bar';
+import { useVariant } from './prototype/prototype-switcher';
+import { ReviewQueuePrototypePage } from './prototype/review-queue-prototype-page';
 import { QueueCards } from './queue-cards';
 import { filterRows, NO_FILTER } from './queue-filter';
 import { QueueTable } from './queue-table';
@@ -114,6 +116,16 @@ function QueueBody({
 // the booking facts of each accept. A switch changes between the table and the
 // cards.
 export function ReviewQueuePage() {
+  // PROTOTYPE. A `?variant=` shows the prototype of the four booking types.
+  const variant = useVariant();
+  return variant === undefined ? (
+    <RealReviewQueuePage />
+  ) : (
+    <ReviewQueuePrototypePage variant={variant} />
+  );
+}
+
+function RealReviewQueuePage() {
   const queue = useReviewQueue();
   return (
     <Page title="Review queue">
