@@ -13,6 +13,7 @@ import type { RowActions } from './use-row-actions';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { nextAmount } from '../scan/swipe';
 import { SwipeRow } from '../scan/swipe-row';
+import { BookingTypeIcon } from './booking-type-icon';
 import { CountField } from './count-field';
 import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
@@ -196,7 +197,7 @@ function cardClass(state: RowState, isChecked: boolean, isBusy: boolean) {
   );
 }
 
-// One card of the review queue, with the facts and the actions of a table row in big controls. The checkbox feeds the same checked set as the table.
+// One card of the review queue, with the facts and the actions of a table row in big controls. The checkbox feeds the same checked set as the table. The booking type icon comes after the checkbox.
 // A swipe to the left rejects the row.
 export function QueueCard({
   isChecked,
@@ -228,6 +229,7 @@ export function QueueCard({
           className="mt-1"
           onCheckedChange={onToggle}
         />
+        <BookingTypeIcon bookingType={scan.bookingType} size="icon-lg" />
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1.5 text-base">
             <RowName name={name} scan={scan} />

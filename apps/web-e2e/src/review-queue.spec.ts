@@ -79,6 +79,12 @@ test('the table shows the rows of both booking types, most recent at the top, an
   const purchaseRow = rows.filter({ hasText: 'Yoghurt Strawberry 150 g' });
   await expect(rows.first()).toContainText('Rice jar');
   await expect(inventoryRow).toContainText('Inventory');
+  await expect(
+    inventoryRow.getByRole('img', { name: 'Inventory' }),
+  ).toBeVisible();
+  await expect(
+    purchaseRow.getByRole('img', { name: 'Purchase' }),
+  ).toBeVisible();
   await expect(inventoryRow).toContainText('— (500 Gram now)');
   await expect(inventoryRow).toContainText('Needs a count');
   await expect(
@@ -143,6 +149,38 @@ test('an accept of a known Purchase row removes the row and shows the booking fa
   await expect(result).toContainText('1 booked');
   await expect(result).toContainText(
     `Yoghurt: Booked 3 Pack at Fridge, due ${MOCK_DUE_DATE}, price 1.5 per Pack, purchase.`,
+  );
+  const stored = await listRows(request);
+  expect(stored.filter((item) => item.note === note)).toEqual([]);
+});
+
+// The consume takes 1 of the 2 cans of the sealed stock entry 11 at the
+// Fridge, so the accept also opens the rest of it. The Grocy mock answers the
+// consume row and the open row.
+test('a Consume row shows the fork and knife icon, and its accept shows the consume and the open in the result line', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-consume-accept';
+  await removeRows(request, (row) => row.note === note);
+  await createRow(request, {
+    amount: 1,
+    bookingType: 'consume',
+    locationId: 1,
+    note,
+    productId: 1,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row.getByRole('img', { name: 'Consume' })).toBeVisible();
+
+  await row.getByRole('button', { name: 'Accept' }).click();
+
+  await expect(row).toHaveCount(0);
+  const result = page.getByRole('status');
+  await expect(result).toContainText('1 booked');
+  await expect(result).toContainText(
+    'Coca-Cola Original 330 ml: Booked -1 Can at Fridge, due 2026-12-15, price 0.85 per Can, consume. Booked 1 Can at Fridge, due 2026-12-15, price 0.85 per Can, product-opened.',
   );
   const stored = await listRows(request);
   expect(stored.filter((item) => item.note === note)).toEqual([]);

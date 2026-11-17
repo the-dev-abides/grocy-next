@@ -10,6 +10,7 @@ import {
   listRows,
   type PendingScanRow,
   pickOption,
+  removeRows,
   removeRowsWithNote,
   storedRow,
   swipeLeft,
@@ -130,6 +131,36 @@ test('a swipe to the left on a card removes the row, and a short swipe keeps it'
 
   await expect(card).toHaveCount(0, { timeout: 3000 });
   expect(await storedRow(request, created.id)).toBeUndefined();
+});
+
+test('each card starts with the icon of its booking type', async ({
+  page,
+  request,
+}) => {
+  const note = 'cards-booking-type-icon';
+  const hasNote = (row: PendingScanRow) => row.note?.startsWith(note) === true;
+  await removeRows(request, hasNote);
+  await createCardRow(request, {
+    bookingType: 'purchase',
+    note: `${note} purchase`,
+    productId: 2,
+  });
+  await createCardRow(request, {
+    amount: 1,
+    bookingType: 'consume',
+    note: `${note} consume`,
+    productId: 2,
+  });
+  await openCards(page);
+
+  await expect(
+    cardsOf(page, `${note} purchase`).getByRole('img', { name: 'Purchase' }),
+  ).toBeVisible();
+  await expect(
+    cardsOf(page, `${note} consume`).getByRole('img', { name: 'Consume' }),
+  ).toBeVisible();
+
+  await removeRows(request, hasNote);
 });
 
 test('plus and minus on an Inventory card set the count from the Grocy stock, and the accept on the card books it', async ({
