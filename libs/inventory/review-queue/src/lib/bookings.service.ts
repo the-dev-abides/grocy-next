@@ -1,5 +1,6 @@
 import type {
   BookingResult,
+  ProductDetails,
   StockLogRow,
 } from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
@@ -156,13 +157,11 @@ export class BookingsService {
     productId: number,
   ): Promise<Booking> {
     const product = await readActiveProduct(this.grocy, productId);
-    const amount = toStockAmount(
+    const amount = await this.stockAmountOf(
+      row,
+      product,
       positiveAmountOf(row, 'A Consume'),
-      row.quantityUnitId ?? product.consumeUnitId,
-      {
-        conversions: await this.stock.readResolvedConversions(productId),
-        stockUnitId: product.stockUnitId,
-      },
+      product.consumeUnitId,
     );
     const entries = await this.stock.readConsumeStockEntries(productId);
     const products = await readConsumeProducts(
@@ -217,13 +216,11 @@ export class BookingsService {
     const toLocationId = toLocationIdOf(row);
     const entered = positiveAmountOf(row, 'A Transfer');
     const product = await readActiveProduct(this.grocy, productId);
-    const amount = toStockAmount(
+    const amount = await this.stockAmountOf(
+      row,
+      product,
       entered,
-      row.quantityUnitId ?? product.stockUnitId,
-      {
-        conversions: await this.stock.readResolvedConversions(productId),
-        stockUnitId: product.stockUnitId,
-      },
+      product.stockUnitId,
     );
     const result = await this.stock.transfer(productId, {
       amount,
@@ -232,6 +229,21 @@ export class BookingsService {
       toLocationId,
     });
     return this.finish(row, productId, result);
+  }
+
+  // The amount of a Consume or a Transfer in the stock unit. The conversion
+  // uses the resolved conversions of the product. A row with no unit has the
+  // amount in the given unit.
+  private async stockAmountOf(
+    row: StoredPendingScan,
+    product: ProductDetails,
+    amount: number,
+    emptyUnitId: number,
+  ): Promise<number> {
+    return toStockAmount(amount, row.quantityUnitId ?? emptyUnitId, {
+      conversions: await this.stock.readResolvedConversions(product.id),
+      stockUnitId: product.stockUnitId,
+    });
   }
 
   // The end of an accept after the Grocy call. On success the row goes and
