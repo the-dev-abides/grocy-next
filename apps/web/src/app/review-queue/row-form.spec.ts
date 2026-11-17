@@ -1,4 +1,9 @@
-import { rowFormBody, rowFormOf, unitChoices } from './row-form';
+import {
+  rowFormBody,
+  rowFormFieldsOf,
+  rowFormOf,
+  unitChoices,
+} from './row-form';
 
 const scan = {
   amount: 2,
@@ -124,5 +129,33 @@ describe('the unit choices of a Purchase row', () => {
 
   it('offers every unit while the row has no product', () => {
     expect(unitChoices(undefined, units)).toEqual(units);
+  });
+});
+
+describe('the fields of the full form of each booking type', () => {
+  it('shows the store and the price on a Purchase row and an Inventory row, and the price type on a Purchase row only', () => {
+    expect(rowFormFieldsOf('purchase')).toEqual({
+      hasDueDate: true,
+      hasPrice: true,
+      hasPriceType: true,
+      hasStore: true,
+    });
+    expect(rowFormFieldsOf('inventory')).toEqual({
+      hasDueDate: true,
+      hasPrice: true,
+      hasPriceType: false,
+      hasStore: true,
+    });
+  });
+
+  it('shows no due date, store, or price on a Consume row and a Transfer row', () => {
+    const none = {
+      hasDueDate: false,
+      hasPrice: false,
+      hasPriceType: false,
+      hasStore: false,
+    };
+    expect(rowFormFieldsOf('consume')).toEqual(none);
+    expect(rowFormFieldsOf('transfer')).toEqual(none);
   });
 });

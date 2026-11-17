@@ -7,9 +7,10 @@ import type { RowForm } from './row-form';
 import type { QueueLists } from './use-review-queue';
 
 import { nameOf } from '../scan/scan-text';
-import { ChoiceSelect, choicesOf } from './choice-select';
-import { keepIdOf, keepValueOf, NONE } from './keep-choices';
-import { unitChoices } from './row-form';
+import { ChoiceSelect } from './choice-select';
+import { IdSelect } from './id-select';
+import { rowFormFieldsOf, unitChoices } from './row-form';
+import { StorePriceFields } from './row-store-price-fields';
 import { defaultUnitLabel } from './row-text';
 import { StockEntrySelect } from './stock-entry-select';
 import { TextField } from './text-field';
@@ -28,37 +29,6 @@ const BOOKING_TYPE_CHOICES = [
   { label: 'Consume', value: 'consume' },
   { label: 'Transfer', value: 'transfer' },
 ];
-
-const PRICE_TYPE_CHOICES = [
-  { label: 'per unit', value: 'unit' },
-  { label: 'in total', value: 'total' },
-];
-
-// A select of a master data list with a row for none on top.
-export function IdSelect({
-  label,
-  none,
-  onChange,
-  rows,
-  value,
-}: Readonly<{
-  label: string;
-  none: string;
-  onChange: (id: null | number) => void;
-  rows: QueueLists['locations'];
-  value: null | number;
-}>) {
-  return (
-    <ChoiceSelect
-      choices={choicesOf([{ label: none, value: NONE }], rows)}
-      label={label}
-      value={keepValueOf(value)}
-      onChange={(value) => {
-        onChange(keepIdOf(value) ?? null);
-      }}
-    />
-  );
-}
 
 // The booking type of a Consume row and of a Transfer row. The user can
 // change it between Consume and Transfer only.
@@ -152,40 +122,6 @@ function AmountFields({
   );
 }
 
-// The store and the price with its price type of a Purchase row.
-function PurchaseFields({ form, lists, patch }: Readonly<FieldsProperties>) {
-  return (
-    <>
-      <IdSelect
-        label="Store"
-        none="None"
-        rows={lists.stores}
-        value={form.storeId}
-        onChange={(storeId) => {
-          patch({ storeId });
-        }}
-      />
-      <TextField
-        label="Price"
-        inputMode="decimal"
-        placeholder="0.00"
-        value={form.price}
-        onChange={(event) => {
-          patch({ price: event.target.value });
-        }}
-      />
-      <ChoiceSelect
-        choices={PRICE_TYPE_CHOICES}
-        label="Price type"
-        value={form.priceType}
-        onChange={(value) => {
-          patch({ priceType: value === 'total' ? 'total' : 'unit' });
-        }}
-      />
-    </>
-  );
-}
-
 function locationLabel(bookingType: PendingScan['bookingType']): string {
   if (bookingType === 'inventory') {
     return 'Location of added stock';
@@ -224,10 +160,11 @@ function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
 }
 
 // The fields of a Purchase row and of an Inventory row after the locations:
-// the due date, and on a Purchase row the store and the price.
+// the due date, the store, and the price. Only a Purchase row has the price type.
 function StockFields(props: Readonly<FieldsProperties>) {
   const { form, patch, scan } = props;
   const isInventory = scan.bookingType === 'inventory';
+  const fields = rowFormFieldsOf(scan.bookingType);
   return (
     <>
       <TextField
@@ -238,7 +175,9 @@ function StockFields(props: Readonly<FieldsProperties>) {
           patch({ dueDate: event.target.value });
         }}
       />
-      {!isInventory && <PurchaseFields {...props} />}
+      {fields.hasStore && (
+        <StorePriceFields {...props} hasPriceType={fields.hasPriceType} />
+      )}
     </>
   );
 }

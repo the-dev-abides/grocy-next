@@ -1,10 +1,14 @@
 import type { PendingScan } from '../api/next-api';
 
-type AcceptFacts = Pick<PendingScan, 'amount' | 'bookingType' | 'productId'>;
+type AcceptFacts = Pick<
+  PendingScan,
+  'amount' | 'bookingType' | 'productId' | 'toLocationId'
+>;
 
 // The rows that Accept all sends, and the rows that it skips, in the order
 // of the list. As ADR 0010 decided, a row can be booked when it has a
-// product and, for Inventory, a count.
+// product and, for Inventory, a count. As the spec decided, a Transfer also
+// needs a "to" location.
 export interface BulkAcceptPlan<Row extends AcceptFacts> {
   bookable: Row[];
   skipped: Row[];
@@ -13,7 +17,8 @@ export interface BulkAcceptPlan<Row extends AcceptFacts> {
 function isBookable(scan: AcceptFacts): boolean {
   return (
     scan.productId !== null &&
-    (scan.bookingType === 'purchase' || scan.amount !== null)
+    (scan.bookingType === 'purchase' || scan.amount !== null) &&
+    (scan.bookingType !== 'transfer' || scan.toLocationId !== null)
   );
 }
 
@@ -37,8 +42,8 @@ function skippedSentence(count: number): string {
   }
   const verbs =
     count === 1
-      ? 'has no product or no count and is'
-      : 'have no product or no count and are';
+      ? 'has no product, no count, or no "to" location and is'
+      : 'have no product, no count, or no "to" location and are';
   return ` ${rowsText(count)} ${verbs} skipped.`;
 }
 
@@ -58,10 +63,11 @@ export function rejectConfirmText(count: number): string {
 }
 
 // The result line of a row that Accept all skipped.
-export function skippedText(
-  scan: Pick<PendingScan, 'amount' | 'productId'>,
-): string {
-  return scan.productId === null
-    ? 'Skipped. The row has no product.'
-    : 'Skipped. The row has no count.';
+export function skippedText(scan: AcceptFacts): string {
+  if (scan.productId === null) {
+    return 'Skipped. The row has no product.';
+  }
+  return scan.amount === null
+    ? 'Skipped. The row has no count.'
+    : 'Skipped. The Transfer has no "to" location.';
 }

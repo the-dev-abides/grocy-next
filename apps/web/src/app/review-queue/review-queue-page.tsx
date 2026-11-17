@@ -94,9 +94,9 @@ function QueueBody({
       <BulkEditDialog
         lists={queue.lists}
         rows={editRows}
-        onApply={(body) => {
+        onApply={(bodyOf) => {
           if (editRows !== null) {
-            actions.editAll(editRows, body);
+            actions.editAll(editRows, bodyOf);
           }
         }}
         onClose={() => {

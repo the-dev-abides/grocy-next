@@ -102,8 +102,9 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
 }) => {
   const note = 'bulk-accept';
   await removeRowsWithNote(request, note);
-  // A ready Purchase row, a row with no product, and an Inventory row with
-  // no count, all in the Freezer and in the group Snacks.
+  // A ready Purchase row, a row with no product, an Inventory row with no
+  // count, and a Transfer with no "to" location, all in the Freezer and in the
+  // group Snacks.
   const facts = { locationId: FREEZER, note, productGroupId: SNACKS };
   const ready = await createRow(request, {
     ...facts,
@@ -122,24 +123,29 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
     bookingType: 'inventory',
     productId: 6,
   });
+  const noTo = await createRow(request, {
+    ...facts,
+    bookingType: 'transfer',
+    productId: 2,
+  });
   await page.goto('/review-queue');
   await pickOption(page, 'Location', 'Freezer');
   await pickOption(page, 'Product group', 'Snacks');
   const rows = queueRows(page);
-  await expect(rows).toHaveCount(3);
-  await expect(rows.filter({ hasText: note })).toHaveCount(3);
+  await expect(rows).toHaveCount(4);
+  await expect(rows.filter({ hasText: note })).toHaveCount(4);
 
   await page.getByRole('button', { name: 'Accept all' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Accept all' });
   await expect(dialog).toContainText(
-    'One booking per row, 1 row. 2 rows have no product or no count and are skipped.',
+    'One booking per row, 1 row. 3 rows have no product, no count, or no "to" location and are skipped.',
   );
   await dialog.getByRole('button', { name: 'Accept 1' }).click();
 
   const result = page.getByRole('status');
-  await expect(result).toContainText('1 booked, 2 skipped');
-  await expect(result.getByRole('listitem')).toHaveCount(3);
+  await expect(result).toContainText('1 booked, 3 skipped');
+  await expect(result.getByRole('listitem')).toHaveCount(4);
   await expect(result).toContainText(
     `Yoghurt: Booked 2 Pack at Fridge, due ${MOCK_DUE_DATE}, no price, purchase.`,
   );
@@ -147,10 +153,14 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
   await expect(result).toContainText(
     'Yoghurt Strawberry 150 g: Skipped. The row has no count.',
   );
-  await expect(rows).toHaveCount(2);
+  await expect(result).toContainText(
+    'Philadelphia Original 150 g: Skipped. The Transfer has no "to" location.',
+  );
+  await expect(rows).toHaveCount(3);
   expect(await storedRow(request, ready.id)).toBeUndefined();
   expect(await storedRow(request, noProduct.id)).toBeDefined();
   expect(await storedRow(request, noCount.id)).toBeDefined();
+  expect(await storedRow(request, noTo.id)).toBeDefined();
 
   await removeRowsWithNote(request, note);
 });
