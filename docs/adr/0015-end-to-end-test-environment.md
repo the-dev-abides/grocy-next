@@ -36,7 +36,11 @@ QA regression test document for the paths that no test can reach.
 - Imposter is the one stand-in for every external service: Grocy and Open
   Food Facts now, Mealie later. No end-to-end test mocks an external service
   in the browser with a route handler. The Next API itself is never mocked
-  in an end-to-end test.
+  in an end-to-end test. Amended by the fix of the unstable review queue
+  tests: a test can hold a real Next API answer with a route handler and
+  then send it on. The test never changes or replaces the answer. Thus the
+  API still makes the answer, and the test can put a change of a row in the
+  time while a poll is on the way.
 - Imposter runs as the native engine, one Go binary, through the Imposter
   CLI. The CLI version and the engine version are pinned in the Imposter
   project configuration file. CI downloads the pinned CLI release and checks
@@ -71,6 +75,14 @@ QA regression test document for the paths that no test can reach.
   from an issue template, with the build, the device, the tester, and pass
   or fail per case. The repo document holds no run history. The first cases
   are the native decoder on the test phone.
+- Added by the fix of the unstable review queue tests: one spec file never
+  runs in two browsers at the same time. All browser projects use the one
+  API and the one Grocy mock, and a spec file uses the same notes and codes
+  in each browser. Thus two browsers that run one file at the same time
+  remove, filter, or merge into the rows of the other. The file lock in
+  `apps/web-e2e/src/fixtures.ts` makes a test wait while a test of the same
+  file runs in another browser. The tests of one browser still run in
+  parallel. Each spec file imports `test` and `expect` from that file.
 
 ## Considered options
 
