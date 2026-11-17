@@ -167,6 +167,36 @@ describe('the review queue tools of the MCP server', () => {
     expect(await readWithApi(firstRow.id)).toMatchObject({ amount: 1 });
   });
 
+  // The Consume of a product with no code takes the defaults of the Grocy
+  // consume form. Product 1 has the Fridge as its default consume location.
+  // A second identical call makes a second row.
+  it('creates a Consume pending scan with the defaults of the Grocy consume form', async () => {
+    const call = {
+      arguments: { bookingType: 'consume', productId: 1 },
+      name: 'create_pending_scan',
+    };
+
+    const first = await client.callTool(call);
+    const second = await client.callTool(call);
+
+    expect(first.isError).not.toBe(true);
+    const created = first.structuredContent as PendingScanBody;
+    expect(created).toMatchObject({
+      amount: 1,
+      bookingType: 'consume',
+      locationId: 1,
+      productId: 1,
+      quantityUnitId: null,
+      spoiled: false,
+      stockEntryId: null,
+      toLocationId: null,
+    });
+    expect(await readWithApi(created.id)).toEqual(created);
+    expect((second.structuredContent as PendingScanBody).id).not.toBe(
+      created.id,
+    );
+  });
+
   it('reads one pending scan by its id', async () => {
     const created = await createWithApi({
       bookingType: 'purchase',

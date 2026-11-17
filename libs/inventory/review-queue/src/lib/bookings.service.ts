@@ -35,6 +35,26 @@ function productIdOf(row: StoredPendingScan): number {
   return row.productId;
 }
 
+// TEMPORARY: the accept of a Consume comes in ticket #143, which removes this
+// refusal. Until then, a Consume accept is refused with the validation
+// problem, so that no Consume books a Purchase in Grocy.
+function refuseConsume(row: StoredPendingScan): void {
+  if (row.bookingType === 'consume') {
+    throw new ProblemException(
+      PROBLEM_TYPES.validation,
+      'The body, the query, or the path fails the schema.',
+      {
+        errors: [
+          {
+            message: 'The accept of a Consume pending scan is not available.',
+            path: 'pendingScanId',
+          },
+        ],
+      },
+    );
+  }
+}
+
 // A Purchase books an amount of more than zero. Null, zero, or less is the
 // no-amount problem.
 function purchaseAmountOf(row: StoredPendingScan): number {
@@ -188,6 +208,7 @@ export class BookingsService {
   // then books the booking type of the row.
   async create(body: CreateBooking): Promise<Booking> {
     const row = await this.pendingScans.read(body.pendingScanId);
+    refuseConsume(row);
     const productId = productIdOf(row);
     return row.bookingType === 'inventory'
       ? this.acceptInventory(row, productId)

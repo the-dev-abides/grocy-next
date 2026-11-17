@@ -26,7 +26,10 @@ export interface StoredPendingScan {
   productId: null | number;
   quantityUnitId: null | number;
   scannedAt: string;
+  spoiled: boolean;
+  stockEntryId: null | string;
   storeId: null | number;
+  toLocationId: null | number;
   updatedAt: string;
   writeInName: null | string;
 }
@@ -68,7 +71,10 @@ export const storedPendingScanSchema = new EntitySchema<StoredPendingScan>({
     productId: { nullable: true, type: 'integer' },
     quantityUnitId: { nullable: true, type: 'integer' },
     scannedAt: { transformer: timestamp, type: Date },
+    spoiled: { default: false, type: 'boolean' },
+    stockEntryId: { nullable: true, type: 'varchar' },
     storeId: { nullable: true, type: 'integer' },
+    toLocationId: { nullable: true, type: 'integer' },
     updatedAt: { transformer: timestamp, type: Date },
     writeInName: { nullable: true, type: 'varchar' },
   },
