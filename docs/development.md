@@ -121,7 +121,9 @@ the other browser. Thus each spec file imports `test` and `expect` from
 `apps/web-e2e/src/fixtures.ts`, not from `@playwright/test`. Its file lock
 makes a test wait while a test of the same file runs in another browser. The
 tests of one browser still run in parallel. A note must not contain another
-note, because a row filter by text also finds the longer note.
+note, because a row filter by text also finds the longer note. The same file
+fails a test when its page has an uncaught error. The failure message has
+the test title and the error text.
 
 ### The camera files
 
