@@ -22,9 +22,12 @@ import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
 // the short product form. The household conversions take part in the stock
-// unit proposal of the short product form.
+// unit proposal of the short product form. The pending scans are every row of
+// the queue, also the rows that the filter hides, because the stock entry
+// lines of a row see the stock after the older rows of its product.
 export interface QueueLists {
   locations: readonly Location[] | undefined;
+  pendingScans?: readonly PendingScan[] | undefined;
   productGroups: readonly ProductGroup[] | undefined;
   products: readonly ProductListItem[] | undefined;
   quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
@@ -43,7 +46,8 @@ export interface ReviewQueue {
 // The review queue. It holds every pending scan of both booking types, most
 // recent at the top, and the lists that name a row. It polls the list while the
 // screen is open. An accept and a reject refetch the list, so the row changes
-// before the next poll.
+// before the next poll. The cache tags of `cache-tags.ts` load the list again
+// when a poll was on the way during the change.
 export function useReviewQueue(): ReviewQueue {
   const pendingScans = useListPendingScansQuery(undefined, {
     pollingInterval: POLL_MS,
@@ -54,6 +58,7 @@ export function useReviewQueue(): ReviewQueue {
     isLoading: pendingScans.isLoading,
     lists: {
       locations: useListLocationsQuery(undefined).data?.items,
+      pendingScans: items,
       productGroups: useListProductGroupsQuery(undefined).data?.items,
       products: useListProductsQuery(undefined).data?.items,
       quantityUnitConversions:

@@ -11,6 +11,7 @@ const scan = {
   productGroupId: null,
   quantityUnitId: 3,
   spoiled: false,
+  stockEntryId: null,
   storeId: 1,
   toLocationId: null,
 };
@@ -28,6 +29,7 @@ describe('the full form of one row', () => {
       productGroupId: null,
       quantityUnitId: 3,
       spoiled: false,
+      stockEntryId: null,
       storeId: 1,
       toLocationId: null,
     });
@@ -58,6 +60,7 @@ describe('the full form of one row', () => {
         productGroupId: 1,
         quantityUnitId: 2,
         spoiled: true,
+        stockEntryId: '69131a2b3c84c',
         storeId: null,
         toLocationId: 3,
       }),
@@ -72,6 +75,7 @@ describe('the full form of one row', () => {
       productGroupId: 1,
       quantityUnitId: 2,
       spoiled: true,
+      stockEntryId: '69131a2b3c84c',
       storeId: null,
       toLocationId: 3,
     });

@@ -1,10 +1,9 @@
 import {
   type APIRequestContext,
-  expect,
   type Locator,
   type Page,
-  test,
 } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 import {
   createRow,
   listRows,

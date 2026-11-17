@@ -20,16 +20,15 @@ const grocyStockEntrySchema = z.looseObject({
   location_id: grocyNullableNumber,
   open: grocyNumber,
   purchased_date: z.string().nullable(),
+  stock_id: z.string(),
 });
 
 export const grocyStockEntriesSchema = z.array(grocyStockEntrySchema);
 
-// The same rows with the product id and the `stock_id` text, for the accept of
-// a Consume.
+// The same rows with the product id, for the accept of a Consume.
 export const grocyConsumeStockEntriesSchema = z.array(
   grocyStockEntrySchema.extend({
     product_id: grocyNumber,
-    stock_id: z.string(),
   }),
 );
 
@@ -62,6 +61,7 @@ export function toStockEntries(
       locationId: row.location_id,
       open: row.open !== 0,
       purchasedDate: row.purchased_date,
+      stockId: row.stock_id,
     };
   });
 }

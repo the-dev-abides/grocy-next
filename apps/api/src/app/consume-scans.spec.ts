@@ -116,6 +116,57 @@ describe('the Consume pending scans of the Next API', () => {
     expect(await response.json()).toMatchObject({ locationId: 2 });
   });
 
+  // The stock entry Grocycode names stock entry 14 of product 1: 1 can, open,
+  // at the Pantry. The Grocy consume form then sets the "from" location to
+  // the location of the stock entry and the amount to its amount. Grocy
+  // stores that amount in the stock unit, so the row takes the stock unit,
+  // the Can. The location of the stock entry wins over the "from" location of the scan
+  // screen, because the accept can take the stock entry at its location only.
+  it('creates a Consume of a stock entry Grocycode with the product, the stock entry, and its location and amount', async () => {
+    const response = await create({
+      bookingType: 'consume',
+      code: 'grcy:p:1:69131a2b3c84c',
+      locationId: 1,
+    });
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({
+      amount: 1,
+      locationId: 2,
+      productId: 1,
+      quantityUnitId: 1,
+      stockEntryId: '69131a2b3c84c',
+    });
+  });
+
+  // A Transfer of a stock entry Grocycode takes the "from" location of the
+  // stock entry, as the Grocy transfer form does. The amount stays the
+  // Transfer default.
+  it('creates a Transfer of a stock entry Grocycode with the location of the stock entry', async () => {
+    const response = await create({
+      bookingType: 'transfer',
+      code: 'grcy:p:1:69131a2b3c95d',
+    });
+    expect(await response.json()).toMatchObject({
+      amount: 1,
+      locationId: 2,
+      productId: 1,
+      stockEntryId: '69131a2b3c95d',
+    });
+  });
+
+  // A product Grocycode with no fourth part names no stock entry.
+  it('creates a Consume of a product Grocycode with no stock entry', async () => {
+    const response = await create({
+      bookingType: 'consume',
+      code: 'grcy:p:1',
+    });
+    expect(await response.json()).toMatchObject({
+      locationId: 1,
+      productId: 1,
+      stockEntryId: null,
+    });
+  });
+
   // An unknown code has no product, so it has no default location. The
   // amount is the Grocy default consume amount.
   it('creates a Consume of an unknown code with the default consume amount and no location', async () => {
