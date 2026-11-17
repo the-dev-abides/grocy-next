@@ -1,4 +1,4 @@
-import type { StockEntry } from '../api/next-api';
+import type { StockEntry, SubProductStockEntry } from '../api/next-api';
 import type { PlanProduct, PlanRow } from './stock-plan';
 
 import { planOfScan } from './plan-of-scan';
@@ -37,9 +37,18 @@ function productOf(
     stockAmount: entries.reduce((sum, entry) => sum + entry.amount, 0),
     stockEntries: entries,
     stockUnitId: 1,
+    subProductStockEntries: [],
     tareWeight: null,
     ...fields,
   };
+}
+
+// One stock entry of a sub-product, product 6, of a parent product. The
+// amount is in the stock unit of the parent product.
+function subEntryOf(
+  fields: Partial<SubProductStockEntry> & { id: number },
+): SubProductStockEntry {
+  return { ...entryOf(fields), canBeOpened: true, productId: 6, ...fields };
 }
 
 function rowOf(fields: Partial<PlanRow> = {}): PlanRow {
@@ -180,6 +189,45 @@ describe('the stock entry lines of a Consume row', () => {
     expect(plan?.lines).toEqual([
       { amount: 50, entry: jar, kind: 'part', opensRest: false },
     ]);
+  });
+});
+
+// A Consume of a parent product takes the stock of its sub-products, as the
+// Grocy consume form does with the sub-product substitution.
+describe('the stock entry lines of a Consume row of a parent product', () => {
+  it('takes the stock entries of the sub-products and the own stock entries in the Grocy consume order', () => {
+    const own = entryOf({ amount: 0.5, id: 1 });
+    const child = subEntryOf({ dueDate: '2026-11-20', id: 2 });
+    const parent = productOf([own], { subProductStockEntries: [child] });
+    expect(planOfRow(rowOf({ amount: 1.2 }), parent, 'l')?.lines).toEqual([
+      { amount: 1, entry: child, kind: 'whole', opensRest: false },
+      { amount: 0.2, entry: own, kind: 'part', opensRest: true },
+    ]);
+  });
+
+  it('opens the rest by the rule of the sub-product', () => {
+    const child = subEntryOf({ canBeOpened: false, id: 1 });
+    const parent = productOf([], { subProductStockEntries: [child] });
+    expect(planOfRow(rowOf(), parent, 'l')?.lines).toEqual([
+      { amount: 0.1, entry: child, kind: 'part', opensRest: false },
+    ]);
+  });
+
+  it('names the amount above the stock of the sub-products as missing', () => {
+    const child = subEntryOf({ id: 1 });
+    const parent = productOf([], { subProductStockEntries: [child] });
+    expect(planOfRow(rowOf({ amount: 3 }), parent, 'l')?.missing).toBe(2);
+  });
+
+  it('gives a Transfer the own stock entries only, as Grocy transfers them', () => {
+    const child = subEntryOf({ id: 1 });
+    const parent = productOf([], { subProductStockEntries: [child] });
+    const transfer = rowOf({ bookingType: 'transfer', toLocationId: FREEZER });
+    expect(planOfRow(transfer, parent, 'l')).toEqual({
+      lines: [],
+      missing: 0.1,
+      unit: 'l',
+    });
   });
 });
 

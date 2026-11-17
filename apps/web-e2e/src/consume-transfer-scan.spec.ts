@@ -187,3 +187,31 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
   const left = await listRows(request);
   expect(left.filter((item) => item.code === code)).toEqual([]);
 });
+
+// The Grocycode grcy:p:5 is product 5, Yoghurt, a parent product with no own
+// stock. Its child, product 6, has 3 sealed packs at the Fridge. A Consume of
+// 1 of the parent takes a part of the pack of the child, as the accept does,
+// so the accept opens the rest.
+test('a Consume row of a parent product on the scan screen says "Opens a new pack" from the stock of its sub-product', async ({
+  page,
+  request,
+}) => {
+  const code = 'grcy:p:5';
+  await removeRows(
+    request,
+    (row) => row.bookingType === 'consume' && row.code === code,
+  );
+  await page.goto('/scan/consume-transfer');
+  await typeCode(page, code);
+
+  const rows = sessionRows(page);
+  await expect(rows).toHaveCount(1, { timeout: 3000 });
+  const row = rows.first();
+  await expect(row).toContainText('Yoghurt');
+  await expect(row).toContainText('Consume from Fridge');
+  await expect(row).toContainText('Opens a new pack');
+  await removeRows(
+    request,
+    (item) => item.bookingType === 'consume' && item.code === code,
+  );
+});
