@@ -1,21 +1,27 @@
 # The scan screens
 
-Grocy Next has two scan screens: `Purchase` and `Inventory`. Open them from
-the `Scan` group of the sidebar. On a phone, tap the menu button in the top
-bar to open the sidebar.
+Grocy Next has three scan screens: `Purchase`, `Inventory`, and `Consume and
+Transfer`. Open them from the `Scan` group of the sidebar. On a phone, tap
+the menu button in the top bar to open the sidebar.
 
 A scan screen does not change the stock in Grocy. Each scan becomes one
 pending scan in the review queue. A pending scan is one scanned or typed code
 that waits for your decision. You accept or reject it in the review queue.
 The page "The review queue" tells how.
 
-## The two screens
+## The three screens
 
 - The `Purchase` screen is for products that you bought. The accept of a
   Purchase pending scan adds one stock entry in Grocy.
 - The `Inventory` screen is for a count of the products that you have. The
   accept of an Inventory pending scan sets the Grocy stock of the product to
   the count. You type the count in the review queue, not on the scan screen.
+- The `Consume and Transfer` screen is for products that you take out of
+  stock and for products that you move to a different location. The accept
+  of a Consume pending scan takes the amount out of stock in Grocy. The
+  accept of a Transfer pending scan moves the amount from the "from"
+  location to the "to" location. A switch under the camera sets the booking
+  type of the next scan.
 
 The time between the open and the close of one scan screen is the scan
 session. The list on the screen shows the pending scans of this scan session
@@ -71,6 +77,9 @@ paths are untested on a real device:
   camera file in Chromium on a desktop computer. They do not use a real
   camera.
 
+The automatic tests scan with the camera file on the Purchase screen and on
+the Consume and Transfer screen.
+
 ## The hardware scanner
 
 A hardware scanner is a device that reads a code and sends the code to the
@@ -100,8 +109,9 @@ how to change each setting.
 Before a scan, tap outside the fields of the screen, for example on the
 title. A scan while a field has the focus goes into that field. A scan into
 the typed code field becomes a scan at the Enter. A scan into a field of a
-row, such as the product name, changes that field. Correct the field on the
-screen or in the review queue.
+row, such as the amount field of a Consume row, changes that field. The
+Enter of the hardware scanner stores the text of the field.
+Correct the field on the screen or in the review queue.
 
 The app discards the collected key presses after one second with no key.
 
@@ -114,8 +124,8 @@ is `Show virtual keyboard`.
 ### The hardware scanner paths that are untested
 
 Nobody tested the hardware scanner with a real device. The automatic tests
-send the key presses from the test browser on a desktop computer. These
-paths are untested:
+send the key presses from the test browser on a desktop computer, on each of
+the three scan screens. These paths are untested:
 
 - A real hardware scanner, with USB or Bluetooth.
 - A Bluetooth hardware scanner on Android.
@@ -140,12 +150,13 @@ The screen copies the defaults into each new pending scan. A change applies
 to the next scans. It does not change the scans that are already in the
 list. You can change a pending scan in the review queue.
 
-| Field                                   | Choices                                            | Screen              |
-| --------------------------------------- | -------------------------------------------------- | ------------------- |
-| `Location`                              | `Product default`, or a Grocy location             | Purchase, Inventory |
-| `Store`                                 | `No store`, or a Grocy store                       | Purchase            |
-| `Product group`                         | `Product default`, or a Grocy product group        | Purchase, Inventory |
-| `Due date` or `Due date of added stock` | `Product default`, `Days from today`, `Fixed date` | Purchase, Inventory |
+| Field                                   | Choices                                            | Screen               |
+| --------------------------------------- | -------------------------------------------------- | -------------------- |
+| `Location`                              | `Product default`, or a Grocy location             | Purchase, Inventory  |
+| `From`                                  | `Product default`, or a Grocy location             | Consume and Transfer |
+| `Store`                                 | `No store`, or a Grocy store                       | Purchase             |
+| `Product group`                         | `Product default`, or a Grocy product group        | Purchase, Inventory  |
+| `Due date` or `Due date of added stock` | `Product default`, `Days from today`, `Fixed date` | Purchase, Inventory  |
 
 - `Product default` uses the value of the product in Grocy.
 - `Days from today` starts at 7 days. Type a different number of days.
@@ -154,8 +165,13 @@ list. You can change a pending scan in the review queue.
   increase adds.
 - The product group applies to a new product that you make from a pending
   scan. The filter of the review queue also uses it.
+- On the Consume and Transfer screen, `From` is the "from" location of the
+  next scans. The "to" location of a Transfer is under the camera, not in
+  this section.
 
-Tap `Reset` to set every default back to its first value.
+Tap `Reset` to set every default back to its first value. On the Consume and
+Transfer screen, `Reset` also clears the "to" location. It does not move the
+switch.
 
 The defaults are not stored. When you close the screen, the defaults are
 lost. A new scan session starts with no defaults.
@@ -163,7 +179,8 @@ lost. A new scan session starts with no defaults.
 ## The price field
 
 The Purchase screen has the field `Price for the next scan` under the
-camera. The Inventory screen has no price.
+camera. The Inventory screen and the Consume and Transfer screen have no
+price.
 
 1. Type the price before you scan the item. The field changes colour while
    it holds a price.
@@ -182,8 +199,11 @@ picture, and a banner at the top of the camera picture.
 | Outcome       | Frame | Banner                                    | Sound and vibration                       |
 | ------------- | ----- | ----------------------------------------- | ----------------------------------------- |
 | Known product | Green | The product name and the amount           | One short high tone, a short vibration    |
-| Repeat scan   | Green | The product name and `+1` (Purchase only) | Two quick rising tones, a short vibration |
+| Repeat scan   | Green | The product name and `+1` (not Inventory) | Two quick rising tones, a short vibration |
 | Unknown code  | Red   | `Unknown barcode` and the code            | Two low tones, a long vibration           |
+
+On the Consume and Transfer screen, the banner starts with the booking type,
+for example `Consume · 1 Can`.
 
 The browser plays no sound before you touch the page. Tap the page one time
 for sound. The speaker icon at the bottom right of the camera picture shows
@@ -226,12 +246,113 @@ the row has the field `Type the product name`. Type the name, then press
 Enter or leave the field. The review queue uses this name for the new
 product.
 
+## The Consume and Transfer screen
+
+### The switch and the strip
+
+The switch under the camera has two halves: `Consume`, with the fork and
+knife icon, and `Transfer`, with the two arrows icon. Tap a half to set the
+booking type of the next scan. The switch starts on `Consume`. It stays
+where you put it until you close the screen. A change of the switch does not
+change the scans that are already in the list.
+
+The strip above the switch names the booking type of the next scan, so you
+see it before you scan:
+
+- `The next scan is a Consume`.
+- `The next scan is a Transfer to Freezer`.
+- `The next scan is a Transfer with no "to" location`.
+
+### The "To" location
+
+When the switch is on `Transfer`, the `To` select shows under the switch.
+Pick the "to" location of the next scans. The "to" location stays for the
+scan session, as the defaults do. A Consume does not use it.
+
+A Transfer with no "to" location shows its detail line in red. The review
+queue gives it the state `Needs a 'to' location`. Set the "to" location in
+the row form or in the review queue before the accept.
+
+### What the server sets on a new row
+
+- The amount of a Consume is the amount of the product barcode, when the
+  product barcode has one. Else it is the default consume amount of Grocy.
+  When the Grocy setting for the quick consume amount is on, the quick
+  consume amount of the product applies.
+- The amount of a Transfer is the amount of the product barcode, when the
+  product barcode has one. Else it is 1.
+- The empty unit is the consume unit of the product on a Consume, and the
+  stock unit on a Transfer.
+- The "from" location is `From` of the defaults. When `From` is
+  `Product default`, the server uses the location of the Grocy form. On a
+  Consume, that is the default consume location of the product, or the default
+  location when the product has no default consume location. On a Transfer,
+  it is the default location. When that location has no stock, the server
+  uses the first location with stock, in the Grocy consume order.
+- A stock entry Grocycode, for example from a Grocy label, names one stock
+  entry. The row takes the location of that stock entry. A Consume also
+  takes the amount of that stock entry, in the stock unit. The accept takes
+  that stock entry only.
+
+### The rows
+
+Each row starts with the icon of its booking type: the fork and knife for a
+Consume, the two arrows for a Transfer. The icon is a button. Tap it to flip
+the row between Consume and Transfer. Do this when you scanned with the
+switch in the wrong position. The row keeps all its fields.
+
+The detail line shows the time of the scan and the locations:
+
+- A Consume shows `Consume from Fridge`. A spoiled Consume ends with
+  `· Spoiled`.
+- A Transfer shows the "from" location and the "to" location, for example
+  `Transfer Fridge → Freezer`.
+- A Consume also shows what the accept does to the packs. `Opens a new pack`
+  means that the Consume takes a part of a sealed pack, and the accept opens
+  the rest. `From the opened pack` means that the Consume takes only from
+  opened packs. The text uses the Grocy stock and the older rows of the scan
+  session.
+
+A repeat scan of a code with the same booking type adds to the amount of its
+row: the amount of the product barcode, else 1. A Consume row and a Transfer
+row of the same code are two rows.
+
+Tap the minus button or the plus button to change the amount by 1. The
+amount does not go below 1.
+
+A Consume row has the trash can button `Spoiled`. Tap it to mark the Consume
+as spoiled. The trash can is red while the flag is on. Tap it again to turn
+the flag off. Grocy stores a spoiled Consume as spoiled at the accept. A
+Transfer row has no trash can.
+
+When the code matches no product and the online service does not know it,
+the row has the field `Type the product name`, as on the Inventory screen.
+
+### The row form
+
+Tap the product name of a row to open the row form under the row. Tap the
+name again to close it. Each change in the form changes the pending scan at
+once.
+
+- `Amount`: type the amount, for example `0.5` or `0,5`. Press Enter or
+  leave the field to keep it. A text that is not an amount above 0 puts the
+  old amount back.
+- `Unit`: the unit of the amount. The first choice is the default unit of
+  the booking type, for example `Consume unit (Can)`.
+- `From`: the "from" location.
+- `To`: the "to" location. This field shows on a Transfer only.
+- `Reject`: deletes the pending scan.
+
+The row form has no stock entry select. To pick a stock entry, use the full
+form in the review queue.
+
 ## Reject a scan
 
 To reject a pending scan, swipe the row to the left. A short swipe moves the
 row back. A swipe past one third of the row width rejects it.
 
-On a screen that is 640 pixels wide or more, each row also has a reject
-button with a trash icon.
+On a screen that is 640 pixels wide or more, each row of the Purchase and
+the Inventory screens also has a reject button with a trash icon. A row of
+the Consume and Transfer screen has the `Reject` button in its row form.
 
 A reject deletes the pending scan. Grocy does not change.

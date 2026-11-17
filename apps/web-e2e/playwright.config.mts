@@ -26,7 +26,8 @@ const IMPOSTER_FLAGS = '--auto-restart=false --log-level info';
 // the API takes longer than the Playwright default of one minute.
 const START_TIMEOUT_MS = 180_000;
 
-// The test file of the camera path.
+// The test files of the camera path. Each file name ends with
+// `camera.spec.ts`.
 const CAMERA_TESTS = /camera\.spec\.ts$/u;
 
 // The API writes its SQLite file into a new temporary folder on every run.
