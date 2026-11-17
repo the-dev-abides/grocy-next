@@ -139,9 +139,9 @@ function DefaultsFields({
   );
 }
 
-// The fields of the open section. A Consume and a Transfer have one default
-// here: the "from" location. The "To" location select of a Transfer is under
-// the switch.
+// The fields of the open section. The Consume and Transfer screen has two
+// defaults here: the "from" location and the "to" location. The "To" select
+// under the switch shows the same "to" location.
 function SectionFields({
   bookingType,
   defaults,
@@ -164,15 +164,26 @@ function SectionFields({
     );
   }
   return (
-    <RowSelect
-      label="From"
-      none="Product default"
-      rows={lists.locations}
-      value={defaults.locationId}
-      onChange={(locationId) => {
-        onChange({ locationId });
-      }}
-    />
+    <>
+      <RowSelect
+        label="From"
+        none="Product default"
+        rows={lists.locations}
+        value={defaults.locationId}
+        onChange={(locationId) => {
+          onChange({ locationId });
+        }}
+      />
+      <RowSelect
+        label="To, for a Transfer"
+        none="Not set"
+        rows={lists.locations}
+        value={defaults.toLocationId}
+        onChange={(toLocationId) => {
+          onChange({ toLocationId });
+        }}
+      />
+    </>
   );
 }
 

@@ -85,6 +85,30 @@ test('the switch on Transfer with the Freezer makes a typed code one Transfer ro
   await expect(page.getByRole('radio', { name: 'Transfer' })).toBeChecked();
 });
 
+// User story 7: the defaults section holds the "from" location and the "to"
+// location. Its "To" field and the "To" select under the switch show the
+// same session value. The test scans nothing.
+test('the "to" location in the defaults section and the "To" select under the switch show the same location', async ({
+  page,
+}) => {
+  await page.goto('/scan/consume-transfer');
+  await page.getByRole('button', { name: /^Defaults/ }).click();
+  const defaultsTo = page.getByLabel('To, for a Transfer', { exact: true });
+  await expect(page.getByLabel('From', { exact: true })).toBeVisible();
+  await expect(defaultsTo).toContainText('Not set');
+
+  await pickOption(page, 'To, for a Transfer', 'Pantry');
+  await page.getByRole('radio', { name: 'Transfer' }).click();
+
+  const switchTo = page.getByLabel('To', { exact: true });
+  await expect(switchTo).toContainText('Pantry');
+  await expect(page.getByText(/^The next scan is a /)).toHaveText(
+    'The next scan is a Transfer to Pantry',
+  );
+  await pickOption(page, 'To', 'Freezer');
+  await expect(defaultsTo).toContainText('Freezer');
+});
+
 // The code 0049000006346 belongs to no other Consume or Transfer test. The
 // Inventory tests use it too, so the test ignores the Inventory rows. A tap on
 // the icon of the row sends one update that flips the booking type.
