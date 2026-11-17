@@ -7,7 +7,10 @@ import {
 describe('the session defaults of a scan screen', () => {
   const today = Temporal.PlainDate.from('2026-11-11');
   const lists = {
-    locations: [{ id: 2, name: 'Pantry' }],
+    locations: [
+      { id: 2, name: 'Pantry' },
+      { id: 3, name: 'Freezer' },
+    ],
     productGroups: [{ id: 1, name: 'Dairy' }],
     stores: [{ id: 1, name: 'Supermarket' }],
   };
@@ -26,6 +29,7 @@ describe('the session defaults of a scan screen', () => {
           locationId: 2,
           productGroupId: 1,
           storeId: 1,
+          toLocationId: null,
         },
         { price: '2.50', priceType: 'total' },
         today,
@@ -54,6 +58,12 @@ describe('the session defaults of a scan screen', () => {
     ).toEqual({ dueDate: '2026-11-14', locationId: 2 });
   });
 
+  it('copies the "to" location into the create fields when it is set', () => {
+    expect(
+      createFieldsOf({ ...INITIAL_DEFAULTS, toLocationId: 3 }, null, today),
+    ).toEqual({ toLocationId: 3 });
+  });
+
   it('sends no price for a blank price or a text that is not a number', () => {
     const fields = createFieldsOf(
       INITIAL_DEFAULTS,
@@ -74,6 +84,7 @@ describe('the session defaults of a scan screen', () => {
           locationId: 2,
           productGroupId: 1,
           storeId: 1,
+          toLocationId: null,
         },
         lists,
         'purchase',
@@ -88,6 +99,19 @@ describe('the session defaults of a scan screen', () => {
     expect(
       defaultsSummary({ ...INITIAL_DEFAULTS, locationId: 2 }, lists, 'consume'),
     ).toBe('From Pantry');
+  });
+
+  it('shows the "from" location and the "to" location in the summary of a Transfer', () => {
+    expect(
+      defaultsSummary(
+        { ...INITIAL_DEFAULTS, locationId: 2, toLocationId: 3 },
+        lists,
+        'transfer',
+      ),
+    ).toBe('From Pantry · To Freezer');
+    expect(defaultsSummary(INITIAL_DEFAULTS, lists, 'transfer')).toBe(
+      'From product default · To not set',
+    );
   });
 
   it('leaves the store out of the summary line of the Inventory screen', () => {

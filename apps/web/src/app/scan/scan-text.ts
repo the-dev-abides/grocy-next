@@ -51,6 +51,40 @@ export function consumeDetailText(
   return `Consume from ${nameOf(locations, scan.locationId, 'the product default')}`;
 }
 
+// The two locations of a Transfer: "From → To". The words name a missing
+// "to" location, because the accept needs one.
+export function transferLocationsText(
+  scan: Pick<PendingScan, 'locationId' | 'toLocationId'>,
+  locations: readonly Named[] | undefined,
+): string {
+  const from = nameOf(locations, scan.locationId, 'Product default');
+  const to = nameOf(locations, scan.toLocationId, 'No "to" location');
+  return `${from} → ${to}`;
+}
+
+// The detail of a Transfer row: the booking type and both locations.
+export function transferDetailText(
+  scan: Pick<PendingScan, 'locationId' | 'toLocationId'>,
+  locations: readonly Named[] | undefined,
+): string {
+  return `Transfer ${transferLocationsText(scan, locations)}`;
+}
+
+// The strip under the camera of the Consume and Transfer scan screen names
+// the booking type of the next scan, and on a Transfer the "to" location.
+export function nextScanText(
+  bookingType: PendingScan['bookingType'],
+  toLocationId: null | number,
+  locations: readonly Named[] | undefined,
+): string {
+  if (bookingType !== 'transfer') {
+    return 'The next scan is a Consume';
+  }
+  return toLocationId === null
+    ? 'The next scan is a Transfer with no "to" location'
+    : `The next scan is a Transfer to ${nameOf(locations, toLocationId, '')}`;
+}
+
 // The Grocy stock of the product of an Inventory row, in the stock unit of the
 // product. While the product read has not answered, the function returns the
 // words.

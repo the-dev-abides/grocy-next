@@ -8,6 +8,7 @@ describe('the state of a review queue row', () => {
         bookingType: 'purchase',
         error: null,
         productId: 1,
+        toLocationId: null,
       }),
     ).toBe('ready');
   });
@@ -19,6 +20,7 @@ describe('the state of a review queue row', () => {
         bookingType: 'inventory',
         error: null,
         productId: 1,
+        toLocationId: null,
       }),
     ).toBe('ready');
   });
@@ -30,6 +32,7 @@ describe('the state of a review queue row', () => {
         bookingType: 'inventory',
         error: null,
         productId: 1,
+        toLocationId: null,
       }),
     ).toBe('needs-count');
   });
@@ -41,8 +44,33 @@ describe('the state of a review queue row', () => {
         bookingType: 'purchase',
         error: null,
         productId: null,
+        toLocationId: null,
       }),
     ).toBe('needs-product');
+  });
+
+  it('needs a "to" location for a Transfer row with a product and no "to" location', () => {
+    expect(
+      stateOf({
+        amount: 1,
+        bookingType: 'transfer',
+        error: null,
+        productId: 1,
+        toLocationId: null,
+      }),
+    ).toBe('needs-to-location');
+  });
+
+  it('is ready for a Transfer row with a "to" location', () => {
+    expect(
+      stateOf({
+        amount: 1,
+        bookingType: 'transfer',
+        error: null,
+        productId: 1,
+        toLocationId: 3,
+      }),
+    ).toBe('ready');
   });
 
   it('is failed for a row with a Grocy error, whatever else it has', () => {
@@ -52,6 +80,7 @@ describe('the state of a review queue row', () => {
         bookingType: 'purchase',
         error: 'Location does not exist',
         productId: 1,
+        toLocationId: null,
       }),
     ).toBe('failed');
   });
@@ -61,6 +90,7 @@ describe('the state of a review queue row', () => {
     expect(canAccept('failed')).toBe(true);
     expect(canAccept('needs-count')).toBe(false);
     expect(canAccept('needs-product')).toBe(false);
+    expect(canAccept('needs-to-location')).toBe(false);
   });
 
   it('names every state with the words of the spec', () => {
@@ -68,6 +98,7 @@ describe('the state of a review queue row', () => {
       failed: 'Accept failed',
       'needs-count': 'Needs a count',
       'needs-product': 'Needs a product',
+      'needs-to-location': "Needs a 'to' location",
       ready: 'Ready',
     });
   });

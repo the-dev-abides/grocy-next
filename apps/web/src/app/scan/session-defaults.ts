@@ -11,7 +11,8 @@ import { dueDateOf, dueRuleText } from './due-rule';
 import { nameOf } from './scan-text';
 
 // The session defaults of a scan screen, as ADR 0010 decided: the location,
-// the store, the product group, and the due date rule. The screen holds
+// the store, the product group, and the due date rule. The Consume and
+// Transfer screen also has the "to" location of a Transfer. The screen holds
 // them in memory and copies them into each create call. The server knows
 // no session.
 export interface SessionDefaults {
@@ -19,6 +20,7 @@ export interface SessionDefaults {
   locationId: null | number;
   productGroupId: null | number;
   storeId: null | number;
+  toLocationId: null | number;
 }
 
 export const INITIAL_DEFAULTS: SessionDefaults = {
@@ -26,6 +28,7 @@ export const INITIAL_DEFAULTS: SessionDefaults = {
   locationId: null,
   productGroupId: null,
   storeId: null,
+  toLocationId: null,
 };
 
 // The price for the next scan, as typed. The scan takes it, the price
@@ -77,6 +80,9 @@ export function createFieldsOf(
   if (defaults.storeId !== null) {
     fields.storeId = defaults.storeId;
   }
+  if (defaults.toLocationId !== null) {
+    fields.toLocationId = defaults.toLocationId;
+  }
   const price = nextPrice === null ? null : priceOf(nextPrice.price);
   if (price !== null) {
     fields.price = price;
@@ -85,15 +91,20 @@ export function createFieldsOf(
 }
 
 // The one line of the collapsed defaults section: the location, the store
-// on the Purchase screen, the due date rule, and the product group. The
-// Consume screen has the "from" location only.
+// on the Purchase screen, the due date rule, and the product group. A
+// Consume has the "from" location only. A Transfer has the "from" location
+// and the "to" location.
 export function defaultsSummary(
   defaults: SessionDefaults,
   lists: DefaultsLists,
   bookingType: PendingScan['bookingType'],
 ): string {
+  const from = `From ${nameOf(lists.locations, defaults.locationId, 'product default')}`;
   if (bookingType === 'consume') {
-    return `From ${nameOf(lists.locations, defaults.locationId, 'product default')}`;
+    return from;
+  }
+  if (bookingType === 'transfer') {
+    return `${from} · To ${nameOf(lists.locations, defaults.toLocationId, 'not set')}`;
   }
   const store =
     bookingType === 'purchase'

@@ -140,9 +140,50 @@ function PurchaseFields({ form, lists, patch }: Readonly<FieldsProperties>) {
   );
 }
 
+function locationLabel(bookingType: PendingScan['bookingType']): string {
+  if (bookingType === 'inventory') {
+    return 'Location of added stock';
+  }
+  return bookingType === 'transfer' ? 'From' : 'Location';
+}
+
+// The location, and on a Transfer row the "to" location.
+function LocationFields({
+  form,
+  lists,
+  patch,
+  scan,
+}: Readonly<FieldsProperties>) {
+  return (
+    <>
+      <IdSelect
+        label={locationLabel(scan.bookingType)}
+        none="Product default"
+        rows={lists.locations}
+        value={form.locationId}
+        onChange={(locationId) => {
+          patch({ locationId });
+        }}
+      />
+      {scan.bookingType === 'transfer' && (
+        <IdSelect
+          label="To"
+          none="Not set"
+          rows={lists.locations}
+          value={form.toLocationId}
+          onChange={(toLocationId) => {
+            patch({ toLocationId });
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 // Every field of one row, in the two-column grid of ADR 0013, as in the
 // prototype. The fields are the amount and the unit, the location, and the due
-// date. A Purchase row also has the store and the price. A row with no product
+// date. A Transfer row has the "from" location and the "to" location. A
+// Purchase row also has the store and the price. A row with no product
 // has the product group of a new product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
   const { form, lists, patch, scan } = props;
@@ -155,15 +196,7 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
       "
     >
       <AmountFields {...props} />
-      <IdSelect
-        label={isInventory ? 'Location of added stock' : 'Location'}
-        none="Product default"
-        rows={lists.locations}
-        value={form.locationId}
-        onChange={(locationId) => {
-          patch({ locationId });
-        }}
-      />
+      <LocationFields {...props} />
       <TextField
         label={isInventory ? 'Due date of added stock' : 'Due date'}
         type="date"
