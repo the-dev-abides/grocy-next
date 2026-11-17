@@ -31,10 +31,13 @@ export interface StockUnitPurchase {
   price: null | number;
 }
 
-// The factor from the scanned unit to the stock unit. The stock unit
-// converts to itself with factor 1. Any other unit needs a resolved
-// conversion to the stock unit. None is the no-conversion problem.
-function factorOf(unitId: number, product: StockUnit): number {
+// The factor from one unit to the stock unit, or null when the product has
+// no resolved conversion between them. The stock unit converts to itself
+// with factor 1.
+export function stockFactorOf(
+  unitId: number,
+  product: StockUnit,
+): null | number {
   if (unitId === product.stockUnitId) {
     return 1;
   }
@@ -44,13 +47,20 @@ function factorOf(unitId: number, product: StockUnit): number {
       row.toQuantityUnitId === product.stockUnitId
     );
   });
-  if (conversion === undefined) {
+  return conversion?.factor ?? null;
+}
+
+// The factor from the scanned unit to the stock unit. A unit with no
+// resolved conversion to the stock unit is the no-conversion problem.
+function factorOf(unitId: number, product: StockUnit): number {
+  const factor = stockFactorOf(unitId, product);
+  if (factor === null) {
     throw new ProblemException(
       PROBLEM_TYPES.noConversion,
       `The product has no conversion from the quantity unit ${String(unitId)} to the stock unit ${String(product.stockUnitId)}.`,
     );
   }
-  return conversion.factor;
+  return factor;
 }
 
 // This function converts an amount in one unit to the stock unit. A Consume

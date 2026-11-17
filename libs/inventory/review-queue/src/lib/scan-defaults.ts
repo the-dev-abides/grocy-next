@@ -1,6 +1,6 @@
 import type { ProductDetails } from '@grocy-next/inventory-products';
 
-import { GrocyClient } from '@grocy-next/inventory-products';
+import { GrocyClient, GrocyStockClient } from '@grocy-next/inventory-products';
 import { Injectable } from '@nestjs/common';
 
 import type { ConsumeFields } from './pending-scan-to-store.ts';
@@ -23,13 +23,17 @@ export interface CreateReads {
 // form of the booking type. The update reads the product that it sets.
 @Injectable()
 export class ScanDefaults {
-  constructor(private readonly grocy: GrocyClient) {}
+  constructor(
+    private readonly grocy: GrocyClient,
+    private readonly stock: GrocyStockClient,
+  ) {}
 
   // The defaults of a new Consume pending scan that the server reads from
   // Grocy, as the Grocy consume form sets them. The amount rule is in
-  // `consumeAmountOf`. With no "from" location in the body, the server uses
-  // the default consume location of the product, else its default location.
-  // A code with no product has no location.
+  // `consumeAmountOf`. When the quick consume amount setting is on, the read
+  // includes the resolved conversions of the product. With no "from" location
+  // in the body, the server uses the default consume location of the product,
+  // else its default location. A code with no product has no location.
   private async consumeFields(
     body: CreatePendingScan,
     match: null | ProductMatch,
@@ -37,8 +41,15 @@ export class ScanDefaults {
   ): Promise<ConsumeFields> {
     const settings = await this.grocy.readConsumeSettings();
     const barcode = match?.barcode ?? { amount: null, quantityUnitId: null };
+    const units =
+      product === null || !settings.useQuickConsumeAmount
+        ? null
+        : {
+            ...product,
+            conversions: await this.stock.readResolvedConversions(product.id),
+          };
     return {
-      ...consumeAmountOf(body, barcode, product, settings),
+      ...consumeAmountOf(body, barcode, units, settings),
       locationId:
         body.locationId ??
         product?.consumeLocationId ??
