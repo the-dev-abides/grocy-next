@@ -9,6 +9,7 @@ import {
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
+import { isSwitchBookingType } from '../booking-types';
 import { FlipButton } from '../scan/flip-button';
 import { bookingTypeLabel } from './row-text';
 
@@ -38,7 +39,7 @@ export function BookingTypeIcon({
   scan: Pick<PendingScan, 'bookingType'>;
   size?: 'icon' | 'icon-lg';
 }>) {
-  if (bookingType === 'consume' || bookingType === 'transfer') {
+  if (isSwitchBookingType(bookingType)) {
     return <FlipButton scan={{ bookingType }} size={size} onUpdate={onSave} />;
   }
   const meta = bookingTypeIcon[bookingType];

@@ -13,6 +13,7 @@ import {
 import type { PendingScan } from '../api/next-api';
 import type { DefaultsLists, SessionDefaults } from './session-defaults';
 
+import { isSwitchBookingType } from '../booking-types';
 import { DueRuleField } from './due-rule-field';
 import { defaultsSummary } from './session-defaults';
 
@@ -153,7 +154,7 @@ function SectionFields({
   lists: DefaultsLists;
   onChange: (patch: Partial<SessionDefaults>) => void;
 }>) {
-  if (bookingType !== 'consume' && bookingType !== 'transfer') {
+  if (!isSwitchBookingType(bookingType)) {
     return (
       <DefaultsFields
         bookingType={bookingType}

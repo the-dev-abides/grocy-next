@@ -1,4 +1,5 @@
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
+import type { SwitchBookingType } from '../booking-types';
 
 type BookingType = PendingScan['bookingType'];
 
@@ -7,7 +8,7 @@ type BookingType = PendingScan['bookingType'];
 // value sets the field to none on the rows.
 export interface BulkEdit {
   amount: string;
-  bookingType: 'consume' | 'transfer' | undefined;
+  bookingType: SwitchBookingType | undefined;
   dueDate: null | string | undefined;
   locationId: null | number | undefined;
   note: string;

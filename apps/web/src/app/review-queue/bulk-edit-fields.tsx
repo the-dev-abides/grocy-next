@@ -2,6 +2,7 @@ import type { PendingScan } from '../api/next-api';
 import type { BulkEdit, BulkField } from './bulk-edit';
 import type { QueueLists } from './use-review-queue';
 
+import { isSwitchBookingType } from '../booking-types';
 import { bulkFieldCounts, bulkFieldLabel } from './bulk-edit';
 import {
   BOOKING_TYPE_CHOICES,
@@ -201,9 +202,7 @@ function RowSelects({
 // A Consume and a Transfer take the stock from the "from" location. When
 // every checked row is a Consume or a Transfer, the location is "From".
 function locationLabelOf(rows: readonly Pick<PendingScan, 'bookingType'>[]) {
-  return rows.every(
-    (scan) => scan.bookingType === 'consume' || scan.bookingType === 'transfer',
-  )
+  return rows.every((scan) => isSwitchBookingType(scan.bookingType))
     ? 'From'
     : 'Location';
 }

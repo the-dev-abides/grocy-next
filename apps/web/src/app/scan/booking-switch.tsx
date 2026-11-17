@@ -1,8 +1,9 @@
 import { cn } from 'cn';
 import { ArrowRightLeft, type LucideIcon, Utensils } from 'lucide-react';
 
+import type { SwitchBookingType } from '../booking-types';
 import type { DefaultsLists } from './session-defaults';
-import type { ScanDefaults, SwitchBookingType } from './use-scan-defaults';
+import type { ScanDefaults } from './use-scan-defaults';
 
 import { RowSelect } from './defaults-section';
 import { nextScanText } from './scan-text';

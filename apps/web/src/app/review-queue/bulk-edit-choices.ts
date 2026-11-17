@@ -1,5 +1,6 @@
 import type { BulkEdit } from './bulk-edit';
 
+import { isSwitchBookingType } from '../booking-types';
 import { KEEP, NONE } from './keep-choices';
 
 // The choices of the bulk edit selects, and the values of the fields that
@@ -54,7 +55,7 @@ export function priceTypeOf(value: string): BulkEdit['priceType'] {
 }
 
 export function bookingTypeOf(value: string): BulkEdit['bookingType'] {
-  return value === 'consume' || value === 'transfer' ? value : undefined;
+  return isSwitchBookingType(value) ? value : undefined;
 }
 
 export function spoiledValueOf(spoiled: BulkEdit['spoiled']): string {

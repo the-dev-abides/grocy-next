@@ -5,14 +5,13 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import type { PendingScan, Product } from './next-api';
 
+import { isSwitchBookingType } from '../booking-types';
 import { nextApi } from './next-api';
 
 // The product ids of the Consume rows and the Transfer rows, in one order.
 function productIdsOf(rows: readonly PendingScan[]): number[] {
   const ids = rows
-    .filter(
-      (row) => row.bookingType === 'consume' || row.bookingType === 'transfer',
-    )
+    .filter((row) => isSwitchBookingType(row.bookingType))
     .map((row) => row.productId)
     .filter((id) => id !== null);
   return [...new Set(ids)].toSorted((first, second) => first - second);

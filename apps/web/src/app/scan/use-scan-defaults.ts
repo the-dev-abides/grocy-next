@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { PendingScan } from '../api/next-api';
+import type { SwitchBookingType } from '../booking-types';
 import type {
   CreateFields,
   NextPrice,
@@ -12,9 +13,6 @@ import {
   INITIAL_DEFAULTS,
   INITIAL_NEXT_PRICE,
 } from './session-defaults';
-
-// The booking types of the switch of the Consume and Transfer scan screen.
-export type SwitchBookingType = 'consume' | 'transfer';
 
 export interface ScanDefaults {
   bookingType: PendingScan['bookingType'];

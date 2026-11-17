@@ -1,6 +1,7 @@
 import type { PendingScan, Product } from '../api/next-api';
 import type { PlanEntry } from './stock-entries';
 
+import { isSwitchBookingType, type SwitchBookingType } from '../booking-types';
 import { consumeOrder, entriesOf, isOfSubProduct } from './stock-entries';
 
 // One stock entry that the accept takes from or changes.
@@ -152,11 +153,8 @@ function lineOf(
 
 function isPlanned(
   row: PlanRow,
-): row is PlanRow & { amount: number; bookingType: 'consume' | 'transfer' } {
-  return (
-    row.amount !== null &&
-    (row.bookingType === 'consume' || row.bookingType === 'transfer')
-  );
+): row is PlanRow & { amount: number; bookingType: SwitchBookingType } {
+  return row.amount !== null && isSwitchBookingType(row.bookingType);
 }
 
 // The plan of one Consume or Transfer row on the given stock entries. A row

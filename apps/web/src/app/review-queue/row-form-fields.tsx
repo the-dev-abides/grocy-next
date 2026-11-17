@@ -6,6 +6,7 @@ import type { PendingScan, Product } from '../api/next-api';
 import type { RowForm } from './row-form';
 import type { QueueLists } from './use-review-queue';
 
+import { isSwitchBookingType } from '../booking-types';
 import { nameOf } from '../scan/scan-text';
 import { ChoiceSelect } from './choice-select';
 import { IdSelect } from './id-select';
@@ -190,8 +191,7 @@ function StockFields(props: Readonly<FieldsProperties>) {
 // new product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
   const { form, lists, patch, scan } = props;
-  const isConsumeOrTransfer =
-    scan.bookingType === 'consume' || scan.bookingType === 'transfer';
+  const isConsumeOrTransfer = isSwitchBookingType(scan.bookingType);
   return (
     <div
       className="
