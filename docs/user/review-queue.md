@@ -144,6 +144,14 @@ store, the price and the price type, the product group of a new product,
 and the note. On a Transfer, the location is `From`, and the form also has
 `To`, the "to" location. Tap `Save` to keep the changes.
 
+A Consume and a Transfer also have `Stock entry`. The select lists the stock
+entries at the "from" location in the Grocy consume order, as the Grocy
+consume form and transfer form list them, for example "Amount: 2; Due on
+2026-12-15; Bought on 2026-10-20; Not opened". The first choice, `Next in
+the Grocy consume order`, names no stock entry. With a stock entry, the
+accept takes that stock entry only. A new "from" location clears the stock
+entry.
+
 ## The bulk actions
 
 The buttons above the list act on many pending scans at once.
@@ -216,6 +224,39 @@ Two types of product have a note on the stock line:
   A count below the tare weight shows a red warning, and Grocy refuses the
   accept.
 
+## The stock entry lines
+
+Each Consume and Transfer pending scan shows one line under the name for
+each stock entry that the accept takes, for example "0.1 l from a new pack
+in Fridge, due 22 Nov. Opens the rest.". The lines use the Grocy consume
+order: the stock entries at the default consume location first, then the
+opened stock entries, then the earliest due date, then the earliest
+purchase date. The amounts are in the stock unit.
+
+- "from the opened pack": the accept takes a part of an opened stock entry.
+- "all of a sealed pack": the accept takes the whole stock entry, so no open
+  follows.
+- "from a new pack ... Opens the rest.": the accept takes a part of a sealed
+  stock entry and opens the rest.
+- "from a sealed pack ... The rest stays sealed.": the product cannot be
+  opened, or it has a tare weight.
+- On a Transfer, "Grocy splits the pack": the accept moves a part of a stock
+  entry.
+
+The pending scans of one product see the stock after the older pending
+scans of that product. Thus two pending scans do not show the same pack two
+times. A pending scan with an error does not change the stock that the
+newer pending scans see. A pending scan that names a stock entry shows that
+stock entry only.
+
+When a Consume is more than the stock, a red line names the stock that
+Grocy has, for example "Grocy has only 2 Pack for this Consume. The accept
+fails.". The state stays `Ready`. The accept fails with the Grocy message.
+
+The lines use the stock entries of the product only. A Consume of a parent
+product can also take the stock of its child products, but the lines do not
+show that stock. Thus a parent product shows no red line.
+
 ## The Consume accept
 
 The accept of a Consume pending scan takes the amount out of stock at the
@@ -223,6 +264,9 @@ The accept of a Consume pending scan takes the amount out of stock at the
 
 - When the amount is more than the stock at the "from" location, the accept
   fails with the Grocy message. Grocy does not change.
+- When the pending scan names a stock entry, the consume takes that stock
+  entry only. An amount above that stock entry fails with the same Grocy
+  message.
 - When the consume takes a part of a sealed stock entry, the accept also
   opens the rest of that stock entry. You do not open it in a second step.
   Grocy applies the "move on open" setting and the due date after the open.
@@ -244,7 +288,8 @@ product, unless the pending scan has a different unit.
 - A Transfer with no "to" location has no `Accept` button. Tap `Edit`, set
   `To`, and tap `Save`.
 - Grocy picks the stock entries at the "from" location in its consume order.
-  Grocy applies its freezer rules to the due dates.
+  When the pending scan names a stock entry, Grocy moves that stock entry
+  only. Grocy applies its freezer rules to the due dates.
 - Grocy cannot transfer a product with a tare weight. The accept fails with
   the Grocy message.
 

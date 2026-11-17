@@ -9,7 +9,8 @@ import { lineText, missingText } from './stock-plan-text';
 // one line for each stock entry that the accept takes. The rows of the same
 // product chain, so each row sees the stock after the older rows. A Consume
 // above the stock shows a red warning with the stock that Grocy has. The
-// state of the row stays "Ready", and the server refuses the accept.
+// state of the row stays "Ready", and the server refuses the accept. A parent
+// product shows no warning.
 export function StockEntryLines({
   lists,
   product,
@@ -28,7 +29,9 @@ export function StockEntryLines({
     return null;
   }
   const isTransfer = scan.bookingType === 'transfer';
-  const warning = isTransfer ? null : missingText(plan);
+  // The product read has no stock entries of the child products, so the
+  // stock of a parent product is not known here.
+  const warning = isTransfer || product.isParent ? null : missingText(plan);
   return (
     <ul
       aria-label="Stock entries"
