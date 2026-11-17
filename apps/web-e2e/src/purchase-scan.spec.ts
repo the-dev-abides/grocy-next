@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test';
 import {
+  listRows,
   LOOKUP_TIMEOUT_MS,
   OPEN_FACTS_MOCK_URL,
   PENDING_SCANS,
   type PendingScanRow,
   pickOption,
   removeRowsWithCode,
+  scannerLabel,
+  sendScannerCode,
   sessionRows,
   swipeLeft,
   typeCode,
@@ -72,23 +75,101 @@ test('a fixture code typed two times shows one row with the amount two at the to
   await expect(rows).toHaveCount(2);
 });
 
-test('plus and minus on a row change the amount within the poll', async ({
+// The tests of the code 8000500310427 run one after the other in one worker,
+// in the order of the file. Two tests on one code must not run at one time,
+// because each test removes the open rows of the code first. The hardware
+// scanner tests of the Purchase and the Inventory scan screens send this code,
+// as the spec of the hardware scanner says. Thus the Inventory test is in this
+// file too.
+test.describe('the code 8000500310427', () => {
+  test.describe.configure({ mode: 'default' });
+
+  test('plus and minus on a row change the amount within the poll', async ({
+    page,
+    request,
+  }) => {
+    // The product barcode of this code carries the amount two.
+    const code = '8000500310427';
+    await removeRowsWithCode(request, code);
+    await page.goto('/scan/purchase');
+    await typeCode(page, code);
+    const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
+    await expect(row).toContainText('2 Pack');
+
+    await row.getByRole('button', { name: 'More' }).click();
+    await expect(row).toContainText('3 Pack', { timeout: 3000 });
+
+    await row.getByRole('button', { name: 'Less' }).click();
+    await expect(row).toContainText('2 Pack', { timeout: 3000 });
+  });
+
+  test('a hardware scanner code with no field in focus shows one row, and the decoder line says Scanner', async ({
+    page,
+    request,
+  }) => {
+    const code = '8000500310427';
+    await removeRowsWithCode(request, code);
+    await page.goto('/scan/purchase');
+    await expect(
+      page.getByText('0 scans in the review queue', { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(':focus')).toHaveCount(0);
+    await expect(scannerLabel(page)).toHaveCount(0);
+
+    await sendScannerCode(page, code);
+
+    const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
+    await expect(row).toContainText('2 Pack', { timeout: 3000 });
+    await expect(sessionRows(page)).toHaveCount(1);
+    await expect(scannerLabel(page)).toBeVisible();
+  });
+
+  test('a hardware scanner code with no field in focus shows one Inventory row, and the decoder line says Scanner', async ({
+    page,
+    request,
+  }) => {
+    // Product 3 has the stock 1 in the unit Pack.
+    const code = '8000500310427';
+    await removeRowsWithCode(request, code);
+    await page.goto('/scan/inventory');
+    await expect(
+      page.getByText('0 scans in the review queue', { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(':focus')).toHaveCount(0);
+    await expect(scannerLabel(page)).toHaveCount(0);
+
+    await sendScannerCode(page, code);
+
+    const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
+    await expect(row).toContainText('In Grocy: 1 Pack', { timeout: 3000 });
+    await expect(sessionRows(page)).toHaveCount(1);
+    await expect(scannerLabel(page)).toBeVisible();
+  });
+});
+
+test('a hardware scanner code into the focused code field makes one row and no second row', async ({
   page,
   request,
 }) => {
-  // The product barcode of this code carries the amount two.
-  const code = '8000500310427';
+  const code = '4026';
   await removeRowsWithCode(request, code);
   await page.goto('/scan/purchase');
-  await typeCode(page, code);
-  const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
-  await expect(row).toContainText('2 Pack');
+  await page.getByRole('textbox', { name: 'Code' }).focus();
 
-  await row.getByRole('button', { name: 'More' }).click();
-  await expect(row).toContainText('3 Pack', { timeout: 3000 });
+  await sendScannerCode(page, code);
 
-  await row.getByRole('button', { name: 'Less' }).click();
-  await expect(row).toContainText('2 Pack', { timeout: 3000 });
+  const row = sessionRows(page).filter({ hasText: code });
+  await expect(row).toBeVisible({ timeout: 3000 });
+  await expect(
+    page.getByText('1 scan in the review queue', { exact: true }),
+  ).toBeVisible();
+  // A second create call of the code merges into the open row and adds one to
+  // the amount. Thus the amount 1 shows that the listener made no create call.
+  const rows = await listRows(request);
+  const stored = rows.filter((item) => item.code === code);
+  expect(stored).toHaveLength(1);
+  expect(stored[0]?.amount).toBe(1);
+  await expect(scannerLabel(page)).toHaveCount(0);
 });
 
 test('a swipe to the left past a third of the row width removes the row', async ({

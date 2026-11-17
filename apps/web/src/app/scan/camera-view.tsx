@@ -95,11 +95,17 @@ function FlashFrame({ flash }: Readonly<{ flash: FeedbackKind | null }>) {
 }
 
 // The bottom line of the camera view: the decoder label on the left, the
-// speaker icon on the right.
+// speaker icon on the right. After the first code from the hardware scanner,
+// the line also shows the word "Scanner".
 function CameraFooter({
+  hasHardwareScanner,
   isAudioUnlocked,
   status,
-}: Readonly<{ isAudioUnlocked: boolean; status: ScannerStatus }>) {
+}: Readonly<{
+  hasHardwareScanner: boolean;
+  isAudioUnlocked: boolean;
+  status: ScannerStatus;
+}>) {
   const label = decoderLabel(status);
   return (
     <>
@@ -109,6 +115,9 @@ function CameraFooter({
           font-mono text-[11px] text-white/80
         "
       >
+        {hasHardwareScanner && (
+          <span className="rounded-sm bg-black/50 px-1.5 py-0.5">Scanner</span>
+        )}
         {label !== '' && (
           <span className="rounded-sm bg-black/50 px-1.5 py-0.5">{label}</span>
         )}
@@ -135,12 +144,15 @@ function CameraFooter({
 
 // The camera view. It shows the video, the frame colour of the last scan, and
 // the scan frame guide. It shows the message when the camera is not on. It also
-// shows the banner, the decoder label, and the speaker icon.
+// shows the banner, the decoder label, and the speaker icon. After the first
+// code from the hardware scanner, the line of the decoder label also shows the
+// word "Scanner".
 export function CameraView({
   attachVideo,
   banner,
   className,
   flash,
+  hasHardwareScanner = false,
   isAudioUnlocked,
   onRetry,
   status,
@@ -149,6 +161,7 @@ export function CameraView({
   banner: null | ScanBanner;
   className?: string;
   flash: FeedbackKind | null;
+  hasHardwareScanner?: boolean;
   isAudioUnlocked: boolean;
   onRetry: () => void;
   status: ScannerStatus;
@@ -185,7 +198,11 @@ export function CameraView({
         </div>
       )}
       {banner !== null && <Banner banner={banner} />}
-      <CameraFooter isAudioUnlocked={isAudioUnlocked} status={status} />
+      <CameraFooter
+        hasHardwareScanner={hasHardwareScanner}
+        isAudioUnlocked={isAudioUnlocked}
+        status={status}
+      />
     </div>
   );
 }
