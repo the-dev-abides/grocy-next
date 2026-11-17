@@ -244,7 +244,8 @@ describe('the accept of a Consume pending scan', () => {
   });
 
   // The Grocy API books less with no error, so the accept checks the stock at
-  // the "from" location first and makes no Grocy call.
+  // the "from" location first and makes no Grocy call. The refusal is a
+  // server rule, so the problem has no `grocy` field.
   it('refuses a Consume of 4 of product 1 at the Fridge, where the stock is 3, with the Grocy message', async () => {
     const message =
       'Amount to be consumed cannot be > current stock amount (if supplied, at the desired location)';
@@ -259,11 +260,10 @@ describe('the accept of a Consume pending scan', () => {
     expect(response.status).toBe(422);
     expect(await response.json()).toEqual({
       detail: message,
-      grocy: { message, status: 400 },
       instance: '/api/v2/bookings',
       status: 422,
-      title: 'Grocy refused the change',
-      type: '/problems/grocy-refused',
+      title: 'The amount is above the stock',
+      type: '/problems/above-stock',
     });
     const row = await readRow(created.id);
     expect(row.error).toBe(message);

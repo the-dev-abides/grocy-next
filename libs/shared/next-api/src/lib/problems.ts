@@ -6,6 +6,11 @@ import { z } from 'zod';
 // relative URI per cause, with a fixed title and a fixed status. A later
 // ticket adds a type when an operation needs one.
 export const PROBLEM_TYPES = {
+  aboveStock: {
+    status: 422,
+    title: 'The amount is above the stock',
+    type: '/problems/above-stock',
+  },
   bookingTypeFixed: {
     status: 409,
     title: 'The booking type is fixed',

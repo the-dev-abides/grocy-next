@@ -23,7 +23,7 @@ import {
   toLocationIdOf,
 } from './accept-checks.ts';
 import {
-  aboveStockRefusal,
+  aboveStockProblem,
   consumedAmountOf,
   entriesOfRow,
   isAboveStock,
@@ -180,7 +180,12 @@ export class BookingsService {
         ),
       )
     ) {
-      return this.finish(row, productId, aboveStockRefusal());
+      const problem = aboveStockProblem();
+      await this.rows.update(
+        { id: row.id },
+        { error: problem.problem.detail, updatedAt: now() },
+      );
+      throw problem;
     }
     const result = await this.stock.consume(productId, {
       amount,

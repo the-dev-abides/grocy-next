@@ -27,7 +27,10 @@ interface BookingBody {
 
 interface OpenApiOperation {
   operationId?: string;
-  responses: Record<string, { content?: Record<string, { schema: unknown }> }>;
+  responses: Record<
+    string,
+    { content?: Record<string, { schema: unknown }>; description?: string }
+  >;
 }
 interface OpenApiDocument {
   components: {
@@ -380,6 +383,9 @@ describe('the accept of a Purchase pending scan', () => {
       '422',
       '502',
     ]);
+    expect(create?.responses['422']?.description).toContain(
+      'The amount is above the stock',
+    );
     expect(document.components.schemas['Booking']).toMatchObject({
       additionalProperties: false,
       required: [

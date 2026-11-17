@@ -2,7 +2,7 @@ import type { Booking } from '../api/next-api';
 import {
   bookingText,
   failureText,
-  isGrocyRefused,
+  isRowError,
   summaryText,
 } from './result-text';
 
@@ -108,13 +108,22 @@ describe('the failure line of an accept', () => {
 
   it('knows a grocy-refused problem, whose message the row shows', () => {
     expect(
-      isGrocyRefused({
+      isRowError({
         data: { ...problem.data, type: '/problems/grocy-refused' },
         status: 422,
       }),
     ).toBe(true);
-    expect(isGrocyRefused(problem)).toBe(false);
-    expect(isGrocyRefused(undefined)).toBe(false);
+    expect(isRowError(problem)).toBe(false);
+    expect(isRowError(undefined)).toBe(false);
+  });
+
+  it('knows an above-stock problem, whose message the row shows', () => {
+    expect(
+      isRowError({
+        data: { ...problem.data, type: '/problems/above-stock' },
+        status: 422,
+      }),
+    ).toBe(true);
   });
 });
 
