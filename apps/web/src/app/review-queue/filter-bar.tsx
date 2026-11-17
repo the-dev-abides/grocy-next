@@ -10,6 +10,7 @@ const ALL = 'all';
 const STATES: readonly RowState[] = [
   'needs-product',
   'needs-count',
+  'needs-to-location',
   'failed',
   'ready',
 ];

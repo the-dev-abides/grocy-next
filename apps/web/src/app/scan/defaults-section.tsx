@@ -139,8 +139,9 @@ function DefaultsFields({
   );
 }
 
-// The fields of the open section. The Consume screen has one default: the
-// "from" location.
+// The fields of the open section. A Consume and a Transfer have one default
+// here: the "from" location. The "To" location select of a Transfer is under
+// the switch.
 function SectionFields({
   bookingType,
   defaults,
@@ -152,7 +153,7 @@ function SectionFields({
   lists: DefaultsLists;
   onChange: (patch: Partial<SessionDefaults>) => void;
 }>) {
-  if (bookingType !== 'consume') {
+  if (bookingType !== 'consume' && bookingType !== 'transfer') {
     return (
       <DefaultsFields
         bookingType={bookingType}

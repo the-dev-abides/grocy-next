@@ -22,6 +22,7 @@ const badgeVariant: Readonly<
   failed: 'destructive',
   'needs-count': 'secondary',
   'needs-product': 'secondary',
+  'needs-to-location': 'secondary',
   ready: 'outline',
 };
 

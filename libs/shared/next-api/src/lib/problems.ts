@@ -51,6 +51,11 @@ export const PROBLEM_TYPES = {
     title: 'The body is not JSON',
     type: '/problems/not-json',
   },
+  noToLocation: {
+    status: 409,
+    title: 'The Transfer has no "to" location',
+    type: '/problems/no-to-location',
+  },
   unauthorized: {
     status: 401,
     title: 'The bearer token is missing or wrong',

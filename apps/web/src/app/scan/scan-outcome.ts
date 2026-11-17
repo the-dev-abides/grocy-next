@@ -33,10 +33,14 @@ function amountText(scan: PendingScan, lists: PendingScanRowLists): string {
   return `${String(scan.amount ?? 1)} ${unit}`.trim();
 }
 
-// A Consume banner starts its detail line with the booking type. The other
-// scan screens make one booking type only, so their banner does not name it.
+// A Consume banner and a Transfer banner start the detail line with the
+// booking type. The other scan screens make one booking type only, so their
+// banner does not name it.
 function withBookingType(scan: PendingScan, detail: string): string {
-  return scan.bookingType === 'consume' ? `Consume · ${detail}` : detail;
+  if (scan.bookingType === 'consume') {
+    return `Consume · ${detail}`;
+  }
+  return scan.bookingType === 'transfer' ? `Transfer · ${detail}` : detail;
 }
 
 // The banner of one create call: the words for an unknown code, else the name

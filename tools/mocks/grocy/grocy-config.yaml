@@ -4,7 +4,7 @@
 # store, two product groups, seven quantity units, and six products: three
 # plain products with one product barcode and some stock each, a parent
 # product with one child, and a tare weight product. Product 2 has the Grocy
-# setting "cannot be opened". The mock holds no state. A booking returns a fixed stock log row and changes nothing.
+# setting "cannot be opened". Product 7 cannot be transferred. The mock holds no state. A booking returns a fixed stock log row and changes nothing.
 #
 # The specification is the Grocy OpenAPI file from the reference folder, with
 # the five entity enums and the server path `/api` that Grocy writes into the
@@ -743,6 +743,26 @@ resources:
     response:
       statusCode: 400
       content: '{"error_message": "Amount to be opened cannot be > current unopened stock amount"}'
+
+  # The transfer. The transfer of 1 can of product 1 from the Fridge to the
+  # Pantry answers two fixed stock log rows in one transaction: a
+  # `transfer_from` row at the Fridge and a `transfer_to` row at the Pantry,
+  # both for stock entry 11. Grocy does not transfer a tare weight product,
+  # so the transfer of product 7 answers that Grocy error. The mock changes
+  # nothing.
+  - path: /api/stock/products/{productId}/transfer
+    method: POST
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-log-transfer-product-1.json
+  - path: /api/stock/products/{productId}/transfer
+    method: POST
+    pathParams:
+      productId: '7'
+    response:
+      statusCode: 400
+      content: '{"error_message": "Transferring tare weight enabled products is not yet possible"}'
 
   # The product picture. An update of a pending scan that sets a product with
   # no picture uploads the lookup image as a product picture, then sets the

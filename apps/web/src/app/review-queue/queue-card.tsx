@@ -19,7 +19,7 @@ import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ErrorLine, RowMeta, RowName, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
-import { amountText, bookingTypeLabel } from './row-text';
+import { amountText, bookingTypeLabel, locationText } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
 // Every fact of the row on one line, as the card has no columns. The facts are
@@ -38,7 +38,7 @@ function CardFacts({
       {bookingTypeLabel[scan.bookingType]} ·{' '}
       <time dateTime={scan.scannedAt}>{timeOf(scan.scannedAt)}</time>
       {' · '}
-      {nameOf(lists.locations, scan.locationId, 'Product default')}
+      {locationText(scan, lists.locations)}
       {' · '}
       {dueDateText(scan.dueDate)}
       {purchase}

@@ -1,12 +1,8 @@
-import type { ProductDetails } from '@grocy-next/inventory-products';
-
-import { GrocyClient, grocyRefused } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import type { ConsumeFields } from './pending-scan-to-store.ts';
 import type {
   CreatePendingScan,
   PendingScan,
@@ -14,23 +10,15 @@ import type {
   UpdatePendingScan,
 } from './pending-scan.ts';
 import type { RepeatRule } from './repeat-scan.ts';
-import type { ProductMatch } from './resolve-code.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
-import { consumeAmountOf } from './consume-amount.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
-import { ProductPictures } from './product-picture.ts';
-import { readActiveProduct } from './read-product.ts';
+import { ProductLink } from './product-link.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
-import { resolveCode } from './resolve-code.ts';
-import {
-  changedProductIdOf,
-  hasBarcode,
-  linkNutritionFacts,
-  withProduct,
-} from './set-product.ts';
+import { ScanDefaults } from './scan-defaults.ts';
+import { changedProductIdOf, linkNutritionFacts } from './set-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
 
@@ -48,34 +36,10 @@ export class PendingScansService {
   constructor(
     @InjectRepository(storedPendingScanSchema)
     private readonly pendingScans: Repository<StoredPendingScan>,
-    private readonly grocy: GrocyClient,
     private readonly lookups: LookupWorker,
-    private readonly pictures: ProductPictures,
+    private readonly defaults: ScanDefaults,
+    private readonly productLink: ProductLink,
   ) {}
-
-  // The defaults of a new Consume pending scan that the server reads from
-  // Grocy, as the Grocy consume form sets them. The amount rule is in
-  // `consumeAmountOf`. With no "from" location in the body, the server uses
-  // the default consume location of the product, else its default location.
-  // Grocy requires a default location on every product, so the third step of
-  // the Grocy form, the first location with stock, never applies. A code with
-  // no product has no location.
-  private async consumeFields(
-    body: CreatePendingScan,
-    match: null | ProductMatch,
-    product: null | ProductDetails,
-  ): Promise<ConsumeFields> {
-    const settings = await this.grocy.readConsumeSettings();
-    const barcode = match?.barcode ?? { amount: null, quantityUnitId: null };
-    return {
-      ...consumeAmountOf(body, barcode, product, settings),
-      locationId:
-        body.locationId ??
-        product?.consumeLocationId ??
-        product?.locationId ??
-        null,
-    };
-  }
 
   // The update that sets a product, as the spec decided. The Grocy writes come
   // first, in order, and the update stops on the first failure with the Grocy
@@ -86,32 +50,11 @@ export class PendingScansService {
     updated: StoredPendingScan,
     productId: number,
   ): Promise<PendingScan> {
-    const product = await readActiveProduct(this.grocy, productId);
-    const productBarcodeId = await this.addBarcode(product, updated.code);
-    await this.pictures.setFromLookup(product, updated.lookupResult);
-    const row = withProduct(updated, product, productBarcodeId);
+    const row = await this.productLink.link(updated, productId);
     return this.pendingScans.manager.transaction(async (manager) => {
       await linkNutritionFacts(manager, row);
       return manager.save(storedPendingScanSchema, row);
     });
-  }
-
-  // When the row has a code, the code goes to the product as a product
-  // barcode. This happens only when the product has no product barcode with
-  // that code. The result is the id of the new product barcode, or null when
-  // none was added. A Grocy refusal is the grocy-refused problem of ADR 0014.
-  private async addBarcode(
-    product: ProductDetails,
-    code: null | string,
-  ): Promise<null | number> {
-    if (code === null || hasBarcode(product, code)) {
-      return null;
-    }
-    const result = await this.grocy.createProductBarcode(product.id, code);
-    if (result.isRefused) {
-      throw grocyRefused(result.grocy);
-    }
-    return result.id;
   }
 
   // The create call of ADR 0010: the Grocy reads first, then one database
@@ -121,27 +64,14 @@ export class PendingScansService {
   // a row that the worker already took. A repeat Inventory scan writes
   // nothing and returns the open row. A lookup result is never in the
   // create response. A product id in the body must name an active product,
-  // else the create is the unknown-id problem. A Consume also reads the
-  // defaults of the Grocy consume form.
+  // else the create is the unknown-id problem. A Consume and a Transfer also
+  // read the defaults of the Grocy form of the booking type.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
   ): Promise<CreateResult> {
-    const bodyProduct =
-      body.productId === undefined
-        ? null
-        : await readActiveProduct(this.grocy, body.productId);
-    const match =
-      body.code === undefined ? null : await resolveCode(this.grocy, body.code);
-    const consume =
-      body.bookingType === 'consume'
-        ? await this.consumeFields(
-            body,
-            match,
-            bodyProduct ?? match?.product ?? null,
-          )
-        : null;
-    const row = pendingScanToStore(body, match, now(), consume);
+    const { defaults, match } = await this.defaults.readCreate(body);
+    const row = pendingScanToStore(body, match, now(), defaults);
     const result = await this.pendingScans.manager.transaction(
       async (manager) => {
         const target =
@@ -199,7 +129,7 @@ export class PendingScansService {
       return this.setProduct(updated, productId);
     }
     if (typeof body.productId === 'number') {
-      await readActiveProduct(this.grocy, body.productId);
+      await this.defaults.readProduct(body.productId);
     }
     return this.pendingScans.save(updated);
   }

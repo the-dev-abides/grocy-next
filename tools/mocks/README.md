@@ -70,6 +70,12 @@ another product already has. A product picture upload and a product update
 answer 204. The product details never show the new product barcode or the
 picture, because the mock holds no state.
 
+A transfer of product 1 answers two fixed stock log rows, a `transfer_from`
+row at the Fridge and a `transfer_to` row at the Pantry, in one
+transaction. A transfer of the tare weight product 7 gets the Grocy error
+`Transferring tare weight enabled products is not yet possible`, as Grocy
+answers it.
+
 The user settings hold the two settings of the default consume amount, with
 the Grocy defaults: the default consume amount 1, and the quick consume
 amount setting off. The create of a Consume pending scan reads them.
