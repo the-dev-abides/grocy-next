@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 import {
   createRow,
   GROCY_MOCK_URL,
@@ -104,18 +104,21 @@ test('the table shows the rows of both booking types, most recent at the top, an
     ),
   ).toBeVisible();
 
-  // The badge counts every pending scan. Other tests add and remove rows at
-  // the same time, so the check retries until the badge and the API agree.
-  const badge = page
-    .getByRole('complementary', { name: 'Sidebar' })
-    .getByTitle('Pending scans');
-  await expect
-    .poll(async () => {
-      const rows = await listRows(request);
-      const text = await badge.textContent();
-      return text === String(rows.length);
-    })
-    .toBe(true);
+  // The badge counts every pending scan, and the table with no filter shows
+  // every pending scan. Other tests add and remove rows at the same time, so
+  // the count of the API changes between two reads. The badge and the table
+  // show one answer of the pending scan list. Thus the check reads the badge
+  // and the table rows in one step on the page, and they must agree.
+  const counts = await page.locator('body').evaluate((body) => {
+    const badge = body.querySelector(
+      ':scope aside[aria-label="Sidebar"] [title="Pending scans"]',
+    );
+    const tableRows = body.querySelectorAll(
+      ':scope table[aria-label="Pending scans"] tbody tr',
+    );
+    return { badge: badge?.textContent, rows: String(tableRows.length) };
+  });
+  expect(counts.badge).toBe(counts.rows);
 
   await removeRows(request, (row) =>
     [purchase.id, inventory.id].includes(row.id),
