@@ -144,6 +144,23 @@ describe('the Transfer pending scans of the Next API', () => {
     expect(second).toMatchObject({ amount: 2, id: first.id });
   });
 
+  it('makes a new Transfer row when the "to" location of the scan is not the "to" location of the open row', async () => {
+    await create({ code: '5449000000996', toLocationId: 2 });
+
+    const second = await create({ code: '5449000000996', toLocationId: 3 });
+
+    expect(second.status).toBe(201);
+    expect(await list()).toHaveLength(2);
+  });
+
+  it('adds the product barcode amount 2 of 8000500310427 on a second Transfer scan', async () => {
+    const first = await createAndRead({ code: '8000500310427' });
+
+    const second = await createAndRead({ code: '8000500310427' });
+
+    expect(second).toMatchObject({ amount: 4, id: first.id });
+  });
+
   it('accepts a Transfer of product 1 from the Fridge to the Pantry and returns the transfer bookings', async () => {
     const created = await createAndRead({
       amount: 1,

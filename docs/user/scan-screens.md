@@ -316,9 +316,13 @@ The detail line shows the time of the scan and the locations:
   opened packs. The text uses the Grocy stock and the older rows of the scan
   session.
 
-A repeat scan of a code with the same booking type adds to the amount of its
-row: the amount of the product barcode, else 1. A Consume row and a Transfer
-row of the same code are two rows.
+A repeat scan of a code adds to the amount of its row when the row has the
+same booking type, the same "from" location, the same "to" location, and the
+same stock entry. A spoiled row gets no repeat scan, and a spoiled scan makes
+a new row. The scan adds the amount that a new row of the scan gets: the
+amount of the product barcode, the amount of the stock entry of a stock entry
+Grocycode, or the default amount. A Consume row and a Transfer row of the
+same code are two rows.
 
 Tap the minus button or the plus button to change the amount by 1. The
 amount does not go below 1.

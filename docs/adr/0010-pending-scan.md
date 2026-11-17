@@ -94,7 +94,9 @@ booking.
     this, so the rule has one default.
   - A scan of a stock entry Grocycode sets the stock entry on the row. The
     accept then takes that stock entry only, as Grocy does.
-  - The repeat rule applies with no change.
+  - The repeat rule applies. Amended by the milestone 3 code review: a
+    repeat scan merges only into an unspoiled row with the same locations
+    and stock entry, and adds the amount of a new row of the scan.
   - An unknown code goes through the same create call, with the lookup, the
     write-in name, and the short product form.
   - The price, the price type, the store, and the due date do not apply.
