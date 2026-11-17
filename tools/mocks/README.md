@@ -202,6 +202,14 @@ of product 9 read that store and have the factor 1000. Its resolved
 conversions are the household conversions between the Kilogram, the Gram,
 and the Ounce.
 
+A product create with the name `Oat drink 1 l` answers the id 10. The MCP
+tool test of the product create uses it. The create captures its fields into
+the store `product10`, and the details of product 10 read that store. The API
+test files run at the same time and share one Grocy mock. Thus each test file
+that creates a product must use its own id and its own store. If two files
+use the store `product`, a create in one file can change the read of
+product 4 in the other file, and a test fails sometimes.
+
 A conversion create captures the product, the two units, and the factor of
 the request into the store `created-conversion`. The mock holds no state, so
 a test reads that store through the Imposter system API at
