@@ -12,15 +12,6 @@ type ProductUnits = Pick<
   'consumeUnitId' | 'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
 >;
 
-export const bookingTypeLabel: Readonly<
-  Record<PendingScan['bookingType'], string>
-> = {
-  consume: 'Consume',
-  inventory: 'Inventory',
-  purchase: 'Purchase',
-  transfer: 'Transfer',
-};
-
 // The unit of a row with no scanned unit, as ADR 0010 decided: the purchase
 // unit on a Purchase, the consume unit on a Consume, and the stock unit on an
 // Inventory and a Transfer.

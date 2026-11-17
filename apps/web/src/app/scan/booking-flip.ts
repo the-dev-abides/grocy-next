@@ -1,12 +1,8 @@
 import type { PendingScan } from '../api/next-api';
-import type { SwitchBookingType } from '../booking-types';
+
+import { bookingTypeLabel, type SwitchBookingType } from '../booking-types';
 
 type BookingType = PendingScan['bookingType'];
-
-const LABEL: Readonly<Record<SwitchBookingType, string>> = {
-  consume: 'Consume',
-  transfer: 'Transfer',
-};
 
 // The booking type after a flip, as the spec of milestone 3 decided. A row
 // flips between Consume and Transfer only. A Purchase and an Inventory have
@@ -27,5 +23,5 @@ export function flippedBookingType(
 // row, and the booking type after a tap.
 export function flipLabel(bookingType: SwitchBookingType): string {
   const other = bookingType === 'consume' ? 'transfer' : 'consume';
-  return `${LABEL[bookingType]}. Change to ${LABEL[other]}.`;
+  return `${bookingTypeLabel[bookingType]}. Change to ${bookingTypeLabel[other]}.`;
 }

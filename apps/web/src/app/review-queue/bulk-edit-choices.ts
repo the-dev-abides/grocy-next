@@ -1,6 +1,10 @@
 import type { BulkEdit } from './bulk-edit';
 
-import { isSwitchBookingType } from '../booking-types';
+import {
+  bookingTypeChoices,
+  isSwitchBookingType,
+  SWITCH_BOOKING_TYPES,
+} from '../booking-types';
 import { KEEP, NONE } from './keep-choices';
 
 // The choices of the bulk edit selects, and the values of the fields that
@@ -26,8 +30,7 @@ export const PRICE_TYPE_CHOICES = [
 
 export const BOOKING_TYPE_CHOICES = [
   KEEP_CHOICE,
-  { label: 'Consume', value: 'consume' },
-  { label: 'Transfer', value: 'transfer' },
+  ...bookingTypeChoices(SWITCH_BOOKING_TYPES),
 ];
 
 export const SPOILED_CHOICES = [

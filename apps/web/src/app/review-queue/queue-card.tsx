@@ -10,6 +10,7 @@ import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
 
+import { bookingTypeLabel } from '../booking-types';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { nextAmount } from '../scan/swipe';
 import { SwipeRow } from '../scan/swipe-row';
@@ -20,7 +21,7 @@ import { ProductButtons } from './product-buttons';
 import { ErrorLine, RowMeta, RowName, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
 import { RowSpoiledButton } from './row-spoiled-button';
-import { amountText, bookingTypeLabel, locationText } from './row-text';
+import { amountText, locationText } from './row-text';
 import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
 

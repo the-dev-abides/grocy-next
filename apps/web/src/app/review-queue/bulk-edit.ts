@@ -1,5 +1,6 @@
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
-import type { SwitchBookingType } from '../booking-types';
+
+import { BOOKING_TYPES, type SwitchBookingType } from '../booking-types';
 
 type BookingType = PendingScan['bookingType'];
 
@@ -50,12 +51,7 @@ export type BulkField =
 
 type RowFacts = Pick<PendingScan, 'bookingType'>;
 
-const ALL_TYPES: readonly BookingType[] = [
-  'purchase',
-  'inventory',
-  'consume',
-  'transfer',
-];
+const ALL_TYPES = BOOKING_TYPES;
 
 // The booking types that each field applies to. The row form uses the same rule.
 // The Inventory accept sends the store and the price to Grocy, as the Grocy inventory form has them.

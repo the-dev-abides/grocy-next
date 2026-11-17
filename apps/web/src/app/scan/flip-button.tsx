@@ -1,15 +1,9 @@
-import { ArrowRightLeft, Utensils } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
+import { bookingTypeIcon } from '../booking-types';
 import { flipLabel, flippedBookingType } from './booking-flip';
-
-const flipIcon = {
-  consume: { icon: Utensils },
-  transfer: { icon: ArrowRightLeft },
-} as const;
 
 // The icon of a Consume row or a Transfer row as a button: the fork and knife
 // of Consume and the two arrows of Transfer. A tap sends one update with the
@@ -30,7 +24,7 @@ export function FlipButton({
   }
   const current = flipped === 'consume' ? 'transfer' : 'consume';
   const label = flipLabel(current);
-  const meta = flipIcon[current];
+  const meta = { icon: bookingTypeIcon[current] };
   return (
     <Button
       variant="ghost"

@@ -1,6 +1,6 @@
+import { bookingTypeLabel } from '../booking-types';
 import {
   amountText,
-  bookingTypeLabel,
   defaultUnitLabel,
   locationText,
   rowName,

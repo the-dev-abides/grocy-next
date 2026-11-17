@@ -1,10 +1,9 @@
-import type { PendingScan } from '../api/next-api';
 import type { QueueFilter } from './queue-filter';
 import type { QueueLists } from './use-review-queue';
 
+import { BOOKING_TYPES, bookingTypeChoices } from '../booking-types';
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { type RowState, stateLabel } from './row-state';
-import { bookingTypeLabel } from './row-text';
 
 // The value of a select for no filter.
 const ALL = 'all';
@@ -22,21 +21,9 @@ const STATE_CHOICES = [
   ...STATES.map((state) => ({ label: stateLabel[state], value: state })),
 ];
 
-const BOOKING_TYPES: readonly PendingScan['bookingType'][] = [
-  'purchase',
-  'inventory',
-  'consume',
-  'transfer',
-];
-
 const BOOKING_TYPE_CHOICES = [
   { label: 'All booking types', value: ALL },
-  ...BOOKING_TYPES.map((type) => {
-    return {
-      label: bookingTypeLabel[type],
-      value: type,
-    };
-  }),
+  ...bookingTypeChoices(BOOKING_TYPES),
 ];
 
 function bookingTypeOf(value: string): QueueFilter['bookingType'] {

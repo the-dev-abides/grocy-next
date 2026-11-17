@@ -6,7 +6,11 @@ import type { PendingScan, Product } from '../api/next-api';
 import type { RowForm } from './row-form';
 import type { QueueLists } from './use-review-queue';
 
-import { isSwitchBookingType } from '../booking-types';
+import {
+  bookingTypeChoices,
+  isSwitchBookingType,
+  SWITCH_BOOKING_TYPES,
+} from '../booking-types';
 import { nameOf } from '../scan/scan-text';
 import { ChoiceSelect } from './choice-select';
 import { IdSelect } from './id-select';
@@ -26,10 +30,7 @@ interface FieldsProperties {
   scan: PendingScan;
 }
 
-const BOOKING_TYPE_CHOICES = [
-  { label: 'Consume', value: 'consume' },
-  { label: 'Transfer', value: 'transfer' },
-];
+const BOOKING_TYPE_CHOICES = bookingTypeChoices(SWITCH_BOOKING_TYPES);
 
 // The booking type of a Consume row and of a Transfer row. The user can
 // change it between Consume and Transfer only.

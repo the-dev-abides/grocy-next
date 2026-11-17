@@ -9,9 +9,9 @@ import { TableCell } from '@/components/ui/table';
 import type { PendingScan } from '../api/next-api';
 import type { QueueLists } from './use-review-queue';
 
+import { bookingTypeLabel } from '../booking-types';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { type RowState, stateLabel } from './row-state';
-import { bookingTypeLabel } from './row-text';
 
 // The state of a row as a badge. The accept failed badge is the destructive
 // one, a ready row the quiet outline, and a row that needs something the

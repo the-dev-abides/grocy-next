@@ -1,22 +1,21 @@
 import { cn } from 'cn';
-import { ArrowRightLeft, type LucideIcon, Utensils } from 'lucide-react';
 
-import type { SwitchBookingType } from '../booking-types';
 import type { DefaultsLists } from './session-defaults';
 import type { ScanDefaults } from './use-scan-defaults';
 
+import {
+  bookingTypeChoices,
+  bookingTypeIcon,
+  SWITCH_BOOKING_TYPES,
+} from '../booking-types';
 import { RowSelect } from './defaults-section';
 import { nextScanText } from './scan-text';
 
 // The two halves of the switch, with the icon of each booking type.
-const HALVES: readonly {
-  icon: LucideIcon;
-  label: string;
-  value: SwitchBookingType;
-}[] = [
-  { icon: Utensils, label: 'Consume', value: 'consume' },
-  { icon: ArrowRightLeft, label: 'Transfer', value: 'transfer' },
-];
+const HALVES = bookingTypeChoices(SWITCH_BOOKING_TYPES).map((choice) => {
+  const icon = bookingTypeIcon[choice.value];
+  return { ...choice, icon };
+});
 
 // The switch with two halves under the camera. It sets the booking type of
 // the next scan and stays where the user puts it.
