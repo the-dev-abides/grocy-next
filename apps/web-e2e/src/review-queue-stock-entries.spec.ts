@@ -176,3 +176,41 @@ test('the stock entry lines of a Consume of a parent product show the stock of i
   ]);
   await removeRows(request, (item) => item.note === note);
 });
+
+// An accept changes the stock, so the review queue loads the product read of
+// the booked product again. The stock entry lines of the other rows of the
+// product and the Inventory preview then use the new stock. The Grocy mock
+// answers the consume of product 1 and keeps its stock.
+test('an accept loads the product read of the booked product again', async ({
+  page,
+  request,
+}, testInfo) => {
+  const note = `review-queue-stock-entry-refresh-${testInfo.project.name}`;
+  await removeRows(request, (row) => row.note?.startsWith(note) === true);
+  for (const name of ['accepted', 'kept']) {
+    await createRow(request, {
+      amount: 1,
+      bookingType: 'consume',
+      locationId: 1,
+      note: `${note}-${name}`,
+      productId: 1,
+    });
+  }
+  await page.goto('/review-queue');
+  const kept = queueRows(page).filter({ hasText: `${note}-kept` });
+  await expect(kept.getByRole('list', { name: 'Stock entries' })).toBeVisible();
+
+  const productRead = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return (
+      response.request().method() === 'GET' &&
+      url.pathname === '/api/v2/products/1'
+    );
+  });
+  const accepted = queueRows(page).filter({ hasText: `${note}-accepted` });
+  await accepted.getByRole('button', { name: 'Accept' }).click();
+
+  await expect(accepted).toHaveCount(0);
+  await productRead;
+  await removeRows(request, (row) => row.note?.startsWith(note) === true);
+});
