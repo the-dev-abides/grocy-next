@@ -188,14 +188,16 @@ describe('the product tools and the master data tools of the MCP server', () => 
     });
   });
 
-  // The Fridge is location 1, and the Pack, unit 2, is both units. The Grocy
-  // mock answers the id 4 for a new product. The body is the body of the
-  // product create of the Next API.
+  // The Fridge is location 1, and the Pack, unit 2, is both units. The body
+  // is the body of the product create of the Next API. The Grocy mock answers
+  // the id 10 for the name 'Oat drink 1 l' and keeps its own store for it.
+  // The product create test of the Next API runs at the same time and uses
+  // product 4, so this test must not use product 4.
   it('creates a product and returns the product as Grocy stores it', async () => {
     const result = await client.callTool({
       arguments: {
         locationId: 1,
-        name: 'Milk 1 l',
+        name: 'Oat drink 1 l',
         purchaseUnitId: 2,
         stockUnitId: 2,
       },
@@ -211,11 +213,11 @@ describe('the product tools and the master data tools of the MCP server', () => 
       defaultDueDays: 0,
       description: null,
       hasPicture: false,
-      id: 4,
+      id: 10,
       isParent: false,
       locationId: 1,
       minStockAmount: 0,
-      name: 'Milk 1 l',
+      name: 'Oat drink 1 l',
       productGroupId: null,
       purchaseToStockFactor: 1,
       purchaseUnitId: 2,

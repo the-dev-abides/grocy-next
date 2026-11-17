@@ -135,6 +135,43 @@ resources:
     response:
       statusCode: 400
       content: '{"error_message": "UNIQUE constraint failed: products.name"}'
+  # The product create of the MCP tool test. The name 'Oat drink 1 l' gets
+  # the id 10 and the store `product10`. The API test files run at the same
+  # time, so each test file that creates a product must have its own id and
+  # its own store. If two files use the store `product`, a create in one file
+  # can change the read of product 4 in the other file.
+  - path: /api/objects/products
+    method: POST
+    requestBody:
+      jsonPath: $.name
+      value: 'Oat drink 1 l'
+    capture:
+      name:
+        store: product10
+        requestBody:
+          jsonPath: $.name
+      location_id:
+        store: product10
+        requestBody:
+          jsonPath: $.location_id
+      qu_id_purchase:
+        store: product10
+        requestBody:
+          jsonPath: $.qu_id_purchase
+      qu_id_stock:
+        store: product10
+        requestBody:
+          jsonPath: $.qu_id_stock
+      min_stock_amount:
+        store: product10
+        requestBody:
+          jsonPath: $.min_stock_amount
+      default_best_before_days:
+        store: product10
+        requestBody:
+          jsonPath: $.default_best_before_days
+    response:
+      file: responses/objects-products-created-10.json
   # The product create with the Kilogram as the purchase unit and the Gram as
   # the stock unit. The household conversion 1 Kilogram = 1000 Gram resolves
   # this pair, so the Grocy trigger creates no conversion row. Grocy answers
@@ -229,6 +266,14 @@ resources:
     method: GET
     queryParams:
       query[]: product_id=9
+    response:
+      file: responses/stock-product-entries-none.json
+  # The product conversions of the new product 10: none, because its purchase
+  # unit is its stock unit.
+  - path: /api/objects/quantity_unit_conversions
+    method: GET
+    queryParams:
+      query[]: product_id=10
     response:
       file: responses/stock-product-entries-none.json
   # The full conversion table with no filter. It holds three household
@@ -340,6 +385,17 @@ resources:
       query[]: product_id=9
     response:
       file: responses/objects-quantity-unit-conversions-resolved-product-9.json
+  # The resolved conversions of the new product 10 hold the one row from its
+  # stock unit to itself with factor 1.
+  - path: /api/objects/quantity_unit_conversions_resolved
+    method: GET
+    queryParams:
+      query[]: product_id=10
+    response:
+      template: true
+      file: responses/objects-quantity-unit-conversions-resolved-product-10.json.template
+      headers:
+        Content-Type: application/json
 
   # The product details by barcode. The three fixture codes and the second
   # product barcode of product 1 resolve. Every other code gets the Grocy
@@ -440,6 +496,17 @@ resources:
     response:
       template: true
       file: responses/stock-product-9.json.template
+      headers:
+        Content-Type: application/json
+  # Product 10 is the product that the product create of the MCP tool test
+  # answers. Its template reads the store `product10`.
+  - path: /api/stock/products/{productId}
+    method: GET
+    pathParams:
+      productId: '10'
+    response:
+      template: true
+      file: responses/stock-product-10.json.template
       headers:
         Content-Type: application/json
   # Product 8 is inactive. Grocy refuses the details read of an inactive
