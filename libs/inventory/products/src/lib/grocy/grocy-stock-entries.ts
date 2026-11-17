@@ -73,7 +73,5 @@ export function toStockEntries(
 export function toStockEntriesWithProduct(
   rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
 ): (StockEntry & { productId: number })[] {
-  return rows.map((row) => {
-    return { ...toStockEntry(row), productId: row.product_id };
-  });
+  return rows.map((row) => ({ ...toStockEntry(row), productId: row.product_id }));
 }

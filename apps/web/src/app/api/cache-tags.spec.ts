@@ -61,11 +61,11 @@ function consumeOf(productId: number, stockEntryId: number): Booking {
   };
 }
 
-function shareTag(booking: Booking, product: Product): boolean {
+function hasSharedTag(booking: Booking, product: Product): boolean {
   const booked = bookingTagsOf(booking);
-  return productTagsOf(product).some((tag) => {
-    return booked.some((item) => item.type === tag.type && item.id === tag.id);
-  });
+  return productTagsOf(product).some((tag) =>
+    booked.some((item) => item.type === tag.type && item.id === tag.id),
+  );
 }
 
 // An accept changes the stock, so it marks the product reads that show the
@@ -82,18 +82,18 @@ describe('the product reads that an accept marks as old', () => {
   const other = productOf({ id: 1 });
 
   it('marks the read of the booked product as old', () => {
-    expect(shareTag(consumeOf(1, 11), other)).toBe(true);
+    expect(hasSharedTag(consumeOf(1, 11), other)).toBe(true);
   });
 
   it('marks the read of a sub-product as old after a Consume of its parent product', () => {
-    expect(shareTag(consumeOf(5, 20), child)).toBe(true);
+    expect(hasSharedTag(consumeOf(5, 20), child)).toBe(true);
   });
 
   it('marks the read of a parent product as old after a booking of its sub-product', () => {
-    expect(shareTag(consumeOf(6, 20), parent)).toBe(true);
+    expect(hasSharedTag(consumeOf(6, 20), parent)).toBe(true);
   });
 
   it('keeps the read of a product that the booking does not touch', () => {
-    expect(shareTag(consumeOf(6, 20), other)).toBe(false);
+    expect(hasSharedTag(consumeOf(6, 20), other)).toBe(false);
   });
 });

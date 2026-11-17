@@ -23,15 +23,17 @@ export function productTagsOf(product: Product): StockTag[] {
 // stock entries of its sub-products, so the reads of the sub-products are
 // marked as old too.
 export function bookingTagsOf(booking: Booking): StockTag[] {
-  const entryIds = booking.bookings.flatMap((row) =>
-    row.stockEntryId === null ? [] : [row.stockEntryId],
-  );
+  const entryIds = booking.bookings
+    .map((row) => row.stockEntryId)
+    .filter((id) => id !== null);
   return [
     { id: booking.productId, type: 'Product' },
-    ...[...new Set(entryIds)].map((id) => ({
-      id,
-      type: 'StockEntry' as const,
-    })),
+    ...[...new Set(entryIds)].map((id) => {
+      return {
+        id,
+        type: 'StockEntry' as const,
+      };
+    }),
   ];
 }
 
@@ -51,10 +53,12 @@ export const cachedApi = nextApi.enhanceEndpoints({
   addTagTypes: ['PendingScan', 'Product', 'StockEntry'],
   endpoints: {
     createBooking: {
-      invalidatesTags: (booking) => [
-        'PendingScan',
-        ...(booking === undefined ? [] : bookingTagsOf(booking)),
-      ],
+      invalidatesTags: (booking) => {
+        return [
+          'PendingScan',
+          ...(booking === undefined ? [] : bookingTagsOf(booking)),
+        ];
+      },
     },
     createPendingScan: { invalidatesTags: ['PendingScan'] },
     deletePendingScan: { invalidatesTags: ['PendingScan'] },
