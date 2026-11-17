@@ -73,3 +73,25 @@ export function stockEntryDefaultsOf(
       }
     : located;
 }
+
+// The "from" location of the Grocy form of a new Consume or Transfer. A
+// location in the body wins. Else the one default of the Grocy form applies
+// when it has stock, else the first location with stock, as `fromLocationOf`
+// decides. The stock entries include the stock entries of the sub-products,
+// because a Consume can take them. A Transfer counts the stock entries of the
+// product only.
+export function formLocationOf(
+  body: Pick<CreatePendingScan, 'bookingType' | 'locationId'>,
+  product: Pick<ProductDetails, 'consumeLocationId' | 'id' | 'locationId'>,
+  entries: readonly ConsumeStockEntry[],
+): null | number {
+  if (body.locationId !== undefined) {
+    return body.locationId;
+  }
+  return fromLocationOf(
+    [formDefaultOf(body.bookingType, product)],
+    body.bookingType === 'consume'
+      ? entries
+      : entries.filter((entry) => entry.productId === product.id),
+  );
+}

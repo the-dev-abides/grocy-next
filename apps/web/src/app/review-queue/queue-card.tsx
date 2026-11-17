@@ -19,6 +19,7 @@ import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ErrorLine, RowMeta, RowName, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
+import { RowSpoiledButton } from './row-spoiled-button';
 import { amountText, bookingTypeLabel, locationText } from './row-text';
 import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
@@ -142,7 +143,8 @@ function AcceptButton({
   );
 }
 
-// The buttons of a card: the full form, Reject, and the accept. A card that
+// The buttons of a card: the spoiled trash can of a Consume, the full form,
+// Reject, and the accept. A card that
 // needs a product shows Pick product and New product in place of the
 // accept.
 function CardButtons({
@@ -162,6 +164,7 @@ function CardButtons({
 }>) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <RowSpoiledButton actions={actions} scan={scan} size="icon-lg" />
       <RowEditButton
         actions={actions}
         lists={lists}

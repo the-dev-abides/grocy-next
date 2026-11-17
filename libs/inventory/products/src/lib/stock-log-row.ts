@@ -6,7 +6,8 @@ import type { GrocyRefusal } from '@grocy-next/shared-next-api';
 // not on a purchase. The transaction id is the text id that every booking of
 // one stock action shares. The product id and the stock id name the stock
 // entry that the booking changed. The stock id is the Grocy `stock_id` text.
-// The open on consume reads them. The Next API does not show them.
+// The open on consume reads them. The Next API does not show them. The
+// spoiled flag is true on the booking of a spoiled consume.
 export interface StockLogRow {
   amount: number;
   dueDate: null | string;
@@ -16,6 +17,7 @@ export interface StockLogRow {
   price: null | number;
   productId: number;
   purchasedDate: null | string;
+  spoiled: boolean;
   stockEntryId: null | number;
   stockId: string;
   storeId: null | number;

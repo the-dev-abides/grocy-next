@@ -42,6 +42,7 @@ export interface PendingScanRow {
   productId: null | number;
   quantityUnitId: null | number;
   scannedAt: string;
+  spoiled: boolean;
   storeId: null | number;
   toLocationId: null | number;
   updatedAt: string;

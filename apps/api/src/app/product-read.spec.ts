@@ -197,11 +197,13 @@ describe('the product read of the Next API', () => {
   });
 
   // Product 3 is in the Pantry, location 2, in the product group Snacks, 2,
-  // with the Pack, unit 2, as both units.
+  // with the Pack, unit 2, as the purchase unit, the stock unit, and the
+  // consume unit.
   it('reads the product group and the units of a product', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/3`);
 
     expect(await response.json()).toMatchObject({
+      consumeUnitId: 2,
       locationId: 2,
       productGroupId: 2,
       purchaseUnitId: 2,

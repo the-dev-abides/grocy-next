@@ -24,6 +24,7 @@ const TRANSFER_ROW = {
   note: null,
   price: 0.85,
   purchasedDate: '2026-10-20',
+  spoiled: false,
   stockEntryId: 11,
   storeId: 1,
 };

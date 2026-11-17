@@ -85,7 +85,7 @@ const productSchema = z
     }),
     consumeUnitId: z.int().meta({
       description:
-        'The id of the consume quantity unit. A Consume with no unit is in this unit.',
+        'The id of the consume quantity unit. The empty unit of a Consume is this unit.',
     }),
     conversions: z.array(quantityUnitConversionSchema).meta({
       description: 'The resolved conversions of the product.',

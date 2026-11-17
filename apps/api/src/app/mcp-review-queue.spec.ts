@@ -317,6 +317,39 @@ describe('the review queue tools of the MCP server', () => {
     expect(cleared.structuredContent).toMatchObject({ stockEntryId: null });
   });
 
+  it('sets spoiled on a Consume and the "to" location on a Transfer with update_pending_scan', async () => {
+    const consume = await createWithApi({
+      bookingType: 'consume',
+      productId: 1,
+    });
+    const transfer = await createWithApi({
+      bookingType: 'transfer',
+      productId: 1,
+    });
+
+    const spoiled = await client.callTool({
+      arguments: { id: consume.id, spoiled: true },
+      name: 'update_pending_scan',
+    });
+    const moved = await client.callTool({
+      arguments: { id: transfer.id, toLocationId: 3 },
+      name: 'update_pending_scan',
+    });
+
+    expect(spoiled.isError).not.toBe(true);
+    expect(spoiled.structuredContent).toMatchObject({
+      id: consume.id,
+      spoiled: true,
+    });
+    expect(await readWithApi(consume.id)).toEqual(spoiled.structuredContent);
+    expect(moved.isError).not.toBe(true);
+    expect(moved.structuredContent).toMatchObject({
+      id: transfer.id,
+      toLocationId: 3,
+    });
+    expect(await readWithApi(transfer.id)).toEqual(moved.structuredContent);
+  });
+
   // The code is in no product barcode of the fixture household, so the row
   // has no product.
   it('refuses the accept of a pending scan with no product with the no-product problem', async () => {
@@ -368,6 +401,7 @@ describe('the review queue tools of the MCP server', () => {
           note: null,
           price: 0.85,
           purchasedDate: '2026-11-10',
+          spoiled: false,
           stockEntryId: null,
           storeId: null,
           transactionType: 'purchase',

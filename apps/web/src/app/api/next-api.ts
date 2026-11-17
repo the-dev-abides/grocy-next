@@ -182,7 +182,7 @@ export type Product = {
   canBeOpened: boolean;
   /** The id of the default consume location, or null. */
   consumeLocationId: number | null;
-  /** The id of the consume quantity unit. A Consume with no unit is in this unit. */
+  /** The id of the consume quantity unit. The empty unit of a Consume is this unit. */
   consumeUnitId: number;
   /** The resolved conversions of the product. */
   conversions: QuantityUnitConversion[];
@@ -472,6 +472,8 @@ export type StockLogRow = {
   price: number | null;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** Whether the booking is a spoiled consume. False on every other booking. */
+  spoiled: boolean;
   /** The id of the stock entry, when Grocy wrote it. */
   stockEntryId: number | null;
   /** The id of the store. */

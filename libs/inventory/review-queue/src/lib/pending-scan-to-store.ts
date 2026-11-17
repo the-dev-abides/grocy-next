@@ -59,6 +59,13 @@ function bodyFields(body: CreatePendingScan): BodyFields {
   };
 }
 
+function stockEntryIdOf(
+  body: CreatePendingScan,
+  match: null | ProductMatch,
+): null | string {
+  return body.stockEntryId ?? match?.stockEntryId ?? null;
+}
+
 // The product, the note, and the stock entry come from the match where the
 // body left them unset. Every booking type takes them.
 function productFields(
@@ -68,7 +75,7 @@ function productFields(
   return {
     note: body.note ?? match?.barcode?.note ?? null,
     productId: body.productId ?? match?.productId ?? null,
-    stockEntryId: body.stockEntryId ?? match?.stockEntryId ?? null,
+    stockEntryId: stockEntryIdOf(body, match),
   };
 }
 

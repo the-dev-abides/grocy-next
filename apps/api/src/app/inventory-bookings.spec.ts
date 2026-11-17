@@ -28,6 +28,7 @@ const MOCK_INCREASE_ROW = {
   amount: 3,
   id: 102,
   purchasedDate: '2026-11-10',
+  spoiled: false,
   stockEntryId: null,
   transactionType: 'inventory-correction',
 };
@@ -161,6 +162,7 @@ describe('the accept of an Inventory pending scan', () => {
           note: null,
           price: 0.85,
           purchasedDate: '2026-10-20',
+          spoiled: false,
           stockEntryId: 11,
           storeId: 1,
           transactionType: 'inventory-correction',
@@ -173,6 +175,7 @@ describe('the accept of an Inventory pending scan', () => {
           note: null,
           price: 0.85,
           purchasedDate: '2026-11-01',
+          spoiled: false,
           stockEntryId: 12,
           storeId: 1,
           transactionType: 'inventory-correction',
