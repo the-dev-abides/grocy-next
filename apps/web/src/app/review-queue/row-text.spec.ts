@@ -28,6 +28,18 @@ describe('the words of a review queue row', () => {
     ).toBe('Pack');
   });
 
+  // The empty unit of a Consume is the consume unit. The product read does
+  // not give it, so the row names no unit.
+  it('names no unit for a Consume row with no unit', () => {
+    expect(
+      unitOf(
+        { bookingType: 'consume', quantityUnitId: null },
+        product,
+        quantityUnits,
+      ),
+    ).toBe('');
+  });
+
   it('names the stock unit of the product for an Inventory row', () => {
     expect(
       unitOf(
