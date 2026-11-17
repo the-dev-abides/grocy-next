@@ -38,7 +38,12 @@ Each row and each card starts with the icon of its booking type:
 | Fork and knife | Consume      |
 | Two arrows     | Transfer     |
 
-A tap on the icon does nothing.
+On a Consume row and a Transfer row, the icon is a button. Tap it to flip
+the row between Consume and Transfer. Do this when you scanned with the
+switch in the wrong position. The row keeps all its fields, so a flip two
+times loses no data. The flip clears the Grocy message of the last failed
+accept, as each change of a row does. On a Purchase row and an Inventory row,
+a tap on the icon does nothing.
 
 The location of a Transfer shows as "From → To", for example
 `Fridge → Freezer`. A Transfer with no "to" location shows

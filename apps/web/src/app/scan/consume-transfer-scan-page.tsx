@@ -27,6 +27,9 @@ export function ConsumeTransferScanPage() {
           <ConsumeTransferRow
             lists={session.lists}
             scan={scan}
+            onFlip={(bookingType) => {
+              session.update(scan, { bookingType });
+            }}
             onReject={() => {
               session.reject(scan);
             }}

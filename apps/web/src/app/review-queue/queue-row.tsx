@@ -217,7 +217,7 @@ export function QueueRow({
     >
       <CheckCell isChecked={isChecked} name={name} onToggle={onToggle} />
       <TableCell className="w-10">
-        <BookingTypeIcon bookingType={scan.bookingType} />
+        <BookingTypeIcon scan={scan} onSave={actions.save} />
       </TableCell>
       <ProductCell lists={lists} name={name} scan={scan} state={state}>
         <InventoryLines
