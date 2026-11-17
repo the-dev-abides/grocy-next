@@ -25,6 +25,14 @@ interface FormProperties {
   scan: PendingScan;
 }
 
+// The words under the title name what the accept does.
+const DESCRIPTIONS: Readonly<Record<PendingScan['bookingType'], string>> = {
+  consume: 'Consume. The accept takes the amount out of the stock.',
+  inventory: 'Inventory. The accept sets the stock to the count.',
+  purchase: 'Purchase. The accept adds one stock entry.',
+  transfer: 'Transfer. The accept moves the amount to the "to" location.',
+};
+
 // The form of the dialog. The dialog mounts it when it opens, so the form
 // starts from the fields of the row every time.
 function RowFormBody({
@@ -90,9 +98,7 @@ export function RowFormDialog({
         <DialogHeader>
           <DialogTitle>{name}</DialogTitle>
           <DialogDescription>
-            {props.scan.bookingType === 'inventory'
-              ? 'Inventory. The accept sets the stock to the count.'
-              : 'Purchase. The accept adds one stock entry.'}
+            {DESCRIPTIONS[props.scan.bookingType]}
           </DialogDescription>
         </DialogHeader>
         {isOpen && <RowFormBody {...props} />}

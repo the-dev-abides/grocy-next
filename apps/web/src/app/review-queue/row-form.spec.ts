@@ -2,6 +2,7 @@ import { rowFormBody, rowFormOf, unitChoices } from './row-form';
 
 const scan = {
   amount: 2,
+  bookingType: 'purchase' as const,
   dueDate: '2027-02-01',
   locationId: 1,
   note: 'Top shelf',
@@ -9,6 +10,7 @@ const scan = {
   priceType: 'unit' as const,
   productGroupId: null,
   quantityUnitId: 3,
+  spoiled: false,
   storeId: 1,
   toLocationId: null,
 };
@@ -17,6 +19,7 @@ describe('the full form of one row', () => {
   it('opens with the fields of the row, the numbers as text', () => {
     expect(rowFormOf(scan)).toEqual({
       amount: '2',
+      bookingType: 'purchase',
       dueDate: '2027-02-01',
       locationId: 1,
       note: 'Top shelf',
@@ -24,6 +27,7 @@ describe('the full form of one row', () => {
       priceType: 'unit',
       productGroupId: null,
       quantityUnitId: 3,
+      spoiled: false,
       storeId: 1,
       toLocationId: null,
     });
@@ -45,6 +49,7 @@ describe('the full form of one row', () => {
     expect(
       rowFormBody({
         amount: '4',
+        bookingType: 'transfer',
         dueDate: '2027-03-01',
         locationId: 2,
         note: ' Box 2 ',
@@ -52,11 +57,13 @@ describe('the full form of one row', () => {
         priceType: 'total',
         productGroupId: 1,
         quantityUnitId: 2,
+        spoiled: true,
         storeId: null,
         toLocationId: 3,
       }),
     ).toEqual({
       amount: 4,
+      bookingType: 'transfer',
       dueDate: '2027-03-01',
       locationId: 2,
       note: 'Box 2',
@@ -64,6 +71,7 @@ describe('the full form of one row', () => {
       priceType: 'total',
       productGroupId: 1,
       quantityUnitId: 2,
+      spoiled: true,
       storeId: null,
       toLocationId: 3,
     });
@@ -90,10 +98,11 @@ describe('the unit choices of a Purchase row', () => {
     { id: 4, name: 'Gram' },
   ];
 
-  it('offers the purchase unit, the stock unit, and the units of the conversions of the product', () => {
+  it('offers the purchase unit, the stock unit, the consume unit, and the units of the conversions of the product', () => {
     expect(
       unitChoices(
         {
+          consumeUnitId: 1,
           conversions: [
             { factor: 6, fromQuantityUnitId: 3, toQuantityUnitId: 2 },
           ],
@@ -103,6 +112,7 @@ describe('the unit choices of a Purchase row', () => {
         units,
       ),
     ).toEqual([
+      { id: 1, name: 'Can' },
       { id: 2, name: 'Pack' },
       { id: 3, name: 'Box' },
     ]);
