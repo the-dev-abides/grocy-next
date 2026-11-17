@@ -245,6 +245,19 @@ function entriesAfter(
   return after;
 }
 
+// The stock entries that the stock entry select lists: the stock entries at
+// the "from" location in the Grocy consume order, as the Grocy consume form
+// and transfer form list them. With no "from" location, the list has every
+// stock entry.
+export function stockEntriesAt(
+  product: Pick<PlanProduct, 'consumeLocationId' | 'stockEntries'>,
+  locationId: null | number,
+): StockEntry[] {
+  return product.stockEntries
+    .filter((entry) => locationId === null || entry.locationId === locationId)
+    .toSorted(consumeOrder(product.consumeLocationId));
+}
+
 // The plan of one Consume or Transfer row on the stock entries of the product
 // read.
 export function planOfRow(
