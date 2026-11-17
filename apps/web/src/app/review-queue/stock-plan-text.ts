@@ -1,9 +1,9 @@
-import type { StockEntry } from '../api/next-api';
+import type { PendingScan, StockEntry } from '../api/next-api';
 import type { Choice } from './choice-select';
 import type { Plan, PlanLine, PlanProduct } from './stock-plan';
 
 import { nameOf } from '../scan/scan-text';
-import { stockEntriesAt } from './stock-plan';
+import { stockEntriesAt } from './stock-entries';
 
 interface Named {
   id: number;
@@ -111,16 +111,25 @@ function choiceOf(entry: StockEntry): Choice {
 }
 
 // The choices of the stock entry select: no stock entry first, then the stock
-// entries at the "from" location in the Grocy consume order. A stock entry
+// entries at the "from" location in the Grocy consume order. A Consume also
+// lists the stock entries of the sub-products. A stock entry
 // of the row that the list does not hold, such as a stock entry that is used
 // up, stays as a choice with its stock id, so the select shows it.
 export function stockEntryChoices(
-  product: Pick<PlanProduct, 'consumeLocationId' | 'stockEntries'> | undefined,
+  product:
+    | Pick<
+        PlanProduct,
+        'consumeLocationId' | 'stockEntries' | 'subProductStockEntries'
+      >
+    | undefined,
   locationId: null | number,
   stockEntryId: null | string,
+  bookingType: PendingScan['bookingType'],
 ): Choice[] {
   const entries =
-    product === undefined ? [] : stockEntriesAt(product, locationId);
+    product === undefined
+      ? []
+      : stockEntriesAt(product, locationId, bookingType);
   const choices = [
     { label: 'Next in the Grocy consume order', value: ANY_STOCK_ENTRY },
     ...entries.map((entry) => choiceOf(entry)),

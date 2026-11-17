@@ -1,6 +1,6 @@
 import type { PendingScan, Product, UpdatePendingScan } from '../api/next-api';
 
-import { numberOf } from './bulk-edit';
+import { isFieldOfType, numberOf } from './bulk-edit';
 
 interface Named {
   id: number;
@@ -118,4 +118,21 @@ export function unitChoices<Unit extends Named>(
     ids.add(conversion.toQuantityUnitId);
   }
   return (units ?? []).filter((unit) => ids.has(unit.id));
+}
+
+// The fields of the full form that depend on the booking type, by the same rule as the bulk edit.
+// A Purchase row and an Inventory row have the due date, the store, and the price.
+// Only a Purchase row has the price type.
+export function rowFormFieldsOf(bookingType: PendingScan['bookingType']): {
+  hasDueDate: boolean;
+  hasPrice: boolean;
+  hasPriceType: boolean;
+  hasStore: boolean;
+} {
+  return {
+    hasDueDate: isFieldOfType('dueDate', bookingType),
+    hasPrice: isFieldOfType('price', bookingType),
+    hasPriceType: isFieldOfType('priceType', bookingType),
+    hasStore: isFieldOfType('store', bookingType),
+  };
 }

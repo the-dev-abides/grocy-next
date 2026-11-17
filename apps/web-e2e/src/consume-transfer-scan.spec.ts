@@ -2,23 +2,31 @@ import { expect, test } from './fixtures.js';
 
 import {
   listRows,
+  type PendingScanRow,
   pickOption,
   removeRows,
   sessionRows,
   typeCode,
 } from './pending-scans.js';
 
+function isTransferOf(row: PendingScanRow, code: string): boolean {
+  return row.bookingType === 'transfer' && row.code === code;
+}
+
 // The tests of the Consume and Transfer scan screen. Each test removes the rows
 // of its code and its booking type first, so a repeat scan from an earlier run
 // does not merge into the new row.
 
-// The Consume takes 1 of the 2 sealed cans of stock entry 11 at the Fridge,
-// so the accept opens the rest.
+// The Grocycode grcy:p:1 is product 1. The Consume takes 1 of the 2 sealed
+// cans of stock entry 11 at the Fridge, so the accept opens the rest. The
+// camera test of this screen scans the barcode of product 1, so this test
+// types the Grocycode. The Transfer row form test types the same Grocycode
+// and reads the Transfer rows only.
 test('a typed code on the Consume and Transfer scan screen shows one Consume row with the fork and knife icon and "Opens a new pack"', async ({
   page,
   request,
 }) => {
-  const code = '5449000000996';
+  const code = 'grcy:p:1';
   await removeRows(
     request,
     (row) => row.bookingType === 'consume' && row.code === code,
@@ -145,10 +153,11 @@ test('a tap on the trash can of a Consume row makes the trash can red and the de
   ]);
 });
 
-// The Grocycode grcy:p:1 is product 1, with its stock at the Fridge. A tap on
-// the name opens the row form. The plus button and the typed amount change
-// the amount, the "To" select sets the "to" location, and Reject removes the
-// row.
+// The Grocycode grcy:p:1 is product 1, with its stock at the Fridge. The
+// Consume test types the same Grocycode, so this test reads the Transfer rows
+// only. A tap on the name opens the row form. The plus button and the typed
+// amount change the amount, the "To" select sets the "to" location, and
+// Reject removes the row.
 test('the row form of a Transfer row takes a typed amount and the "to" location, and its Reject removes the row', async ({
   page,
   request,
@@ -177,7 +186,7 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
   await pickOption(row, 'To', 'Freezer');
   await expect(row).toContainText('Transfer Fridge → Freezer');
   const stored = await listRows(request);
-  expect(stored.filter((item) => item.code === code)).toMatchObject([
+  expect(stored.filter((item) => isTransferOf(item, code))).toMatchObject([
     { amount: 0.5, bookingType: 'transfer', toLocationId: 3 },
   ]);
 
@@ -185,5 +194,33 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
 
   await expect(page.getByText('0 scans in the review queue')).toBeVisible();
   const left = await listRows(request);
-  expect(left.filter((item) => item.code === code)).toEqual([]);
+  expect(left.filter((item) => isTransferOf(item, code))).toEqual([]);
+});
+
+// The Grocycode grcy:p:5 is product 5, Yoghurt, a parent product with no own
+// stock. Its child, product 6, has 3 sealed packs at the Fridge. A Consume of
+// 1 of the parent takes a part of the pack of the child, as the accept does,
+// so the accept opens the rest.
+test('a Consume row of a parent product on the scan screen says "Opens a new pack" from the stock of its sub-product', async ({
+  page,
+  request,
+}) => {
+  const code = 'grcy:p:5';
+  await removeRows(
+    request,
+    (row) => row.bookingType === 'consume' && row.code === code,
+  );
+  await page.goto('/scan/consume-transfer');
+  await typeCode(page, code);
+
+  const rows = sessionRows(page);
+  await expect(rows).toHaveCount(1, { timeout: 3000 });
+  const row = rows.first();
+  await expect(row).toContainText('Yoghurt');
+  await expect(row).toContainText('Consume from Fridge');
+  await expect(row).toContainText('Opens a new pack');
+  await removeRows(
+    request,
+    (item) => item.bookingType === 'consume' && item.code === code,
+  );
 });

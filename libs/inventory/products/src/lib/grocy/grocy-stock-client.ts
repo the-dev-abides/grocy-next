@@ -18,6 +18,7 @@ import {
   grocyStockEntriesSchema,
   toConsumeStockEntries,
   toStockEntries,
+  toStockEntriesWithProduct,
 } from './grocy-stock-entries.ts';
 import { stockLogRowsOf } from './grocy-stock-log.ts';
 import { toGrocyTransferBody } from './grocy-transfer.ts';
@@ -131,5 +132,21 @@ export class GrocyStockClient {
       `/api/stock/products/${String(productId)}/entries`,
     );
     return toStockEntries(grocyStockEntriesSchema.parse(data));
+  }
+
+  // The stock entries of one product and of its sub-products in the Grocy
+  // consume order, with the product of each stock entry. The product read of
+  // a parent product reads them, because a Consume of the parent product
+  // takes them. This is the read of the accept of a Consume, with the dates.
+  async readStockEntriesWithSubProducts(
+    productId: number,
+  ): Promise<(StockEntry & { productId: number })[]> {
+    const data = await this.grocy.get(
+      `/api/stock/products/${String(productId)}/entries`,
+      { include_sub_products: 'true' },
+    );
+    return toStockEntriesWithProduct(
+      grocyConsumeStockEntriesSchema.parse(data),
+    );
   }
 }

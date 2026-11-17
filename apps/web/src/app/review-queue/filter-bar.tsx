@@ -1,8 +1,10 @@
+import type { PendingScan } from '../api/next-api';
 import type { QueueFilter } from './queue-filter';
 import type { QueueLists } from './use-review-queue';
 
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { type RowState, stateLabel } from './row-state';
+import { bookingTypeLabel } from './row-text';
 
 // The value of a select for no filter.
 const ALL = 'all';
@@ -20,6 +22,27 @@ const STATE_CHOICES = [
   ...STATES.map((state) => ({ label: stateLabel[state], value: state })),
 ];
 
+const BOOKING_TYPES: readonly PendingScan['bookingType'][] = [
+  'purchase',
+  'inventory',
+  'consume',
+  'transfer',
+];
+
+const BOOKING_TYPE_CHOICES = [
+  { label: 'All booking types', value: ALL },
+  ...BOOKING_TYPES.map((type) => {
+    return {
+      label: bookingTypeLabel[type],
+      value: type,
+    };
+  }),
+];
+
+function bookingTypeOf(value: string): QueueFilter['bookingType'] {
+  return BOOKING_TYPES.find((type) => type === value) ?? null;
+}
+
 function idOf(value: string): null | number {
   return value === ALL ? null : Number(value);
 }
@@ -32,9 +55,8 @@ function stateOfValue(value: string): null | RowState {
   return STATES.find((state) => state === value) ?? null;
 }
 
-// The filter above the table: a location, a product group, and a state, as
-// the spec decided. The filter narrows the table and the rows that the bulk
-// actions act on.
+// The filter above the table: a booking type, a location, a product group, and a state, as the spec decided.
+// The filter narrows the table and the rows that the bulk actions act on.
 export function FilterBar({
   filter,
   lists,
@@ -48,10 +70,18 @@ export function FilterBar({
     <div
       className="
         grid gap-3
-        sm:grid-cols-3
-        lg:max-w-3xl
+        sm:grid-cols-2
+        lg:max-w-4xl lg:grid-cols-4
       "
     >
+      <ChoiceSelect
+        choices={BOOKING_TYPE_CHOICES}
+        label="Booking type"
+        value={filter.bookingType ?? ALL}
+        onChange={(value) => {
+          onChange({ ...filter, bookingType: bookingTypeOf(value) });
+        }}
+      />
       <ChoiceSelect
         choices={choicesOf(
           [{ label: 'All locations', value: ALL }],

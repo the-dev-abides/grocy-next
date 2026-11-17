@@ -171,6 +171,26 @@ export type StockEntry = {
   /** The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text. */
   stockId: string;
 };
+export type SubProductStockEntry = {
+  /** The amount in the stock unit of the parent product. */
+  amount: number;
+  /** The due date of the stock entry. */
+  dueDate: string | null;
+  /** The id of the stock entry. */
+  id: number;
+  /** The id of the location. */
+  locationId: number | null;
+  /** Whether the stock entry is open. */
+  open: boolean;
+  /** The purchase date. */
+  purchasedDate: string | null;
+  /** The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text. */
+  stockId: string;
+  /** Whether the open on consume can open the rest of the stock entry. It is false for a sub-product with "cannot be opened" or with tare weight handling. */
+  canBeOpened: boolean;
+  /** The id of the sub-product of the stock entry. */
+  productId: number;
+};
 export type Product = {
   /** The description of the product, or null when it has none. */
   description: string | null;
@@ -208,6 +228,8 @@ export type Product = {
   stockEntries: StockEntry[];
   /** The id of the stock quantity unit. */
   stockUnitId: number;
+  /** The stock entries of the sub-products of a parent product, in the Grocy consume order. A Consume of the parent product takes them after the sub-product substitution. The list is empty for a product that is no parent product. */
+  subProductStockEntries: SubProductStockEntry[];
   /** The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight. */
   tareWeight: number | null;
 };
