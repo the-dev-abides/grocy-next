@@ -1,4 +1,7 @@
-import type { ProductDetails } from '@grocy-next/inventory-products';
+import type {
+  ConsumeStockEntry,
+  ProductDetails,
+} from '@grocy-next/inventory-products';
 
 import { GrocyClient, GrocyStockClient } from '@grocy-next/inventory-products';
 import { Injectable } from '@nestjs/common';
@@ -8,7 +11,11 @@ import type { CreatePendingScan } from './pending-scan.ts';
 import type { ProductMatch } from './resolve-code.ts';
 
 import { consumeAmountOf } from './consume-amount.ts';
-import { formDefaultOf, fromLocationOf } from './from-location.ts';
+import {
+  formDefaultOf,
+  fromLocationOf,
+  stockEntryDefaultsOf,
+} from './from-location.ts';
 import { readActiveProduct } from './read-product.ts';
 import { resolveCode } from './resolve-code.ts';
 
@@ -37,23 +44,38 @@ export class ScanDefaults {
 
   // The "from" location of the Grocy form. A location in the body wins. Else
   // the one default of the Grocy form applies when it has stock, else the
-  // first location with stock, as `fromLocationOf` decides. The read includes the stock entries
-  // of the sub-products, because a Consume can take them. A Transfer counts
-  // the stock entries of the product only. A code with no product has no
-  // location.
-  private async fromLocationOf(
+  // first location with stock, as `fromLocationOf` decides. The stock entries
+  // include the stock entries of the sub-products, because a Consume can take
+  // them. A Transfer counts the stock entries of the product only.
+  private static fromLocationOf(
     body: CreatePendingScan,
-    product: null | ProductDetails,
-  ): Promise<null | number> {
+    product: ProductDetails,
+    entries: readonly ConsumeStockEntry[],
+  ): null | number {
     if (body.locationId !== undefined) {
       return body.locationId;
     }
-    if (product === null) {
-      return null;
-    }
-    const entries = await this.stock.readConsumeStockEntries(product.id);
     const defaults = [formDefaultOf(body.bookingType, product)];
-    return fromLocationOf(defaults, body.bookingType === 'consume' ? entries : entries.filter((entry) => entry.productId === product.id));
+    return fromLocationOf(
+      defaults,
+      body.bookingType === 'consume'
+        ? entries
+        : entries.filter((entry) => entry.productId === product.id),
+    );
+  }
+
+  // The stock entries that the defaults need. The read includes the stock
+  // entries of the sub-products. A body with a location and no stock entry
+  // needs no read.
+  private async readEntries(
+    body: CreatePendingScan,
+    product: ProductDetails,
+    stockEntryId: null | string,
+  ): Promise<ConsumeStockEntry[]> {
+    if (body.locationId !== undefined && stockEntryId === null) {
+      return [];
+    }
+    return this.stock.readConsumeStockEntries(product.id);
   }
 
   // The amount and the unit of a new Consume pending scan, as the Grocy
@@ -80,7 +102,9 @@ export class ScanDefaults {
   // reads from Grocy, as the Grocy form of the booking type sets them. The
   // amount of a Transfer is the amount of the body, else the product barcode
   // amount, else one. The product barcode unit applies. The empty unit means
-  // the stock unit.
+  // the stock unit. A code with no product has no location. A row that names
+  // a stock entry takes the defaults of the stock entry, as
+  // `stockEntryDefaultsOf` decides.
   private async formDefaults(
     body: CreatePendingScan,
     match: null | ProductMatch,
@@ -94,10 +118,19 @@ export class ScanDefaults {
             amount: body.amount ?? barcode.amount ?? DEFAULT_TRANSFER_AMOUNT,
             quantityUnitId: body.quantityUnitId ?? barcode.quantityUnitId,
           };
-    return {
+    if (product === null) {
+      return { ...amount, locationId: body.locationId ?? null };
+    }
+    const stockEntryId = body.stockEntryId ?? match?.stockEntryId ?? null;
+    const entries = await this.readEntries(body, product, stockEntryId);
+    const defaults = {
       ...amount,
-      locationId: await this.fromLocationOf(body, product),
+      locationId: ScanDefaults.fromLocationOf(body, product, entries),
     };
+    const entry = entries.find((item) => item.stockId === stockEntryId);
+    return entry === undefined
+      ? defaults
+      : stockEntryDefaultsOf(body, defaults, entry, product);
   }
 
   // A product id must name an active product, else the call is the
