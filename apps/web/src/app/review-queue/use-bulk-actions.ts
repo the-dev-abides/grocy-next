@@ -19,7 +19,10 @@ type Line = Omit<ResultLine, 'key'>;
 
 export interface BulkActions {
   acceptAll: (rows: readonly PendingScan[]) => void;
-  editAll: (rows: readonly PendingScan[], body: UpdatePendingScan) => void;
+  editAll: (
+    rows: readonly PendingScan[],
+    bodyOf: (scan: PendingScan) => UpdatePendingScan,
+  ) => void;
   isRunning: boolean;
   rejectAll: (rows: readonly PendingScan[]) => void;
 }
@@ -109,7 +112,8 @@ async function failureLine(
 }
 
 // The bulk actions of ADR 0010: the client calls one operation per row, and
-// each call is one result. Accept all sends only the rows that can be booked
+// each call is one result. The bulk edit sends no update to a row that no set
+// field applies to. Accept all sends only the rows that can be booked
 // and gives each skipped row a line.
 export function useBulkActions({
   lists,
@@ -133,11 +137,17 @@ export function useBulkActions({
           : acceptOne(scan);
       });
     },
-    editAll: (rows, body) => {
+    editAll: (rows, bodyOf) => {
       void run(rows, (scan) => {
-        return failureLine(nameOfRow(scan), () =>
-          updatePendingScan({ id: scan.id, updatePendingScan: body }).unwrap(),
-        );
+        const body = bodyOf(scan);
+        return Object.keys(body).length === 0
+          ? Promise.resolve(null)
+          : failureLine(nameOfRow(scan), () => {
+              return updatePendingScan({
+                id: scan.id,
+                updatePendingScan: body,
+              }).unwrap();
+            });
       });
     },
     isRunning,
