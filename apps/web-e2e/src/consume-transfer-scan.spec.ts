@@ -74,9 +74,9 @@ test('the switch on Transfer with the Freezer makes a typed code one Transfer ro
   await expect(page.getByRole('radio', { name: 'Transfer' })).toBeChecked();
 });
 
-// The code 0049000006346 belongs to no other Consume or Transfer test. A tap on
-// the icon of the row sends one update that flips the booking type. The row
-// keeps its other fields.
+// The code 0049000006346 belongs to no other Consume or Transfer test. The
+// Inventory tests use it too, so the test ignores the Inventory rows. A tap on
+// the icon of the row sends one update that flips the booking type.
 test('a tap on the icon of a Transfer row on the scan screen makes the row a Consume', async ({
   page,
   request,
@@ -106,6 +106,8 @@ test('a tap on the icon of a Transfer row on the scan screen makes the row a Con
   await expect(rows).toHaveCount(1);
   const stored = await listRows(request);
   expect(
-    stored.filter((item) => item.code === code).map((item) => item.bookingType),
+    stored
+      .filter((item) => item.code === code && item.bookingType !== 'inventory')
+      .map((item) => item.bookingType),
   ).toEqual(['consume']);
 });
