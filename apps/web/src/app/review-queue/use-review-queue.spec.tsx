@@ -136,4 +136,24 @@ describe('the review queue', () => {
     });
     expect(result.current.lists.stores).toBeUndefined();
   });
+
+  // The rows wait for the master data lists, and the first draw of many rows
+  // is slow. The product reads must not wait for these. Thus the queue starts
+  // them when the pending scan list arrives.
+  it('starts the product reads of the rows when the list arrives, while a list that names a row still loads', async () => {
+    const store = storeForTest();
+    await putLists(store, [scan(1), { ...scan(2), productId: 7 }]);
+
+    const { result } = renderHook(useReviewQueue, {
+      wrapper: wrapperOf(store),
+    });
+
+    expect(result.current.rows).toBeUndefined();
+    const statusOf = (id: number) =>
+      cachedApi.endpoints.getProduct.select({ id })(store.getState()).status;
+    await waitFor(() => {
+      expect(statusOf(3)).not.toBe('uninitialized');
+      expect(statusOf(7)).not.toBe('uninitialized');
+    });
+  });
 });

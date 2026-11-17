@@ -20,6 +20,7 @@ import {
   useListStoresQuery,
 } from '../api/next-api';
 import { POLL_MS } from '../api/poll-interval';
+import { useRowProductReads } from '../api/use-product-reads';
 import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
@@ -42,6 +43,8 @@ export interface ReviewQueue {
   rows: readonly PendingScan[] | undefined;
 }
 
+const NO_ITEMS: readonly PendingScan[] = [];
+
 // The review queue. It holds every pending scan of both booking types, most
 // recent at the top, and the lists that name a row. It polls the list while the
 // screen is open. An accept and a reject refetch the list, so the row changes
@@ -51,7 +54,8 @@ export interface ReviewQueue {
 // in draws every row again, so rows that show early cost one full draw per
 // list, and they show "#3" in place of the names in the meantime. The lists
 // and the refetch keep their identity between draws, so a row that did not
-// change does not draw again.
+// change does not draw again. The product reads of the rows start when the
+// list arrives. They do not wait for the lists or for the first draw.
 export function useReviewQueue(): ReviewQueue {
   // The hook reads only the fields that the queue uses. Thus a poll that
   // brings the same list does not draw the screen again: the fetch flag of
@@ -68,6 +72,7 @@ export function useReviewQueue(): ReviewQueue {
   });
   const { refetch } = pendingScans;
   const items = pendingScans.data?.items;
+  useRowProductReads(items ?? NO_ITEMS);
   const masterData = useMasterDataLists();
   const isLoading = pendingScans.isLoading || masterData.isLoading;
   const rows = useMemo(
