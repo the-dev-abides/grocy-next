@@ -20,8 +20,12 @@ import {
 // Each test creates its own rows through the API with a note of its own.
 // The rows have no code, so no scan merges into them.
 // The rows are in the Fridge and in the group Dairy, and the tests filter on the two.
-// No other file puts a row in that location and that group, so the list shows no row of another file.
 // The swipe and the bulk edit act only on the cards of the note of the test.
+// The tests of this file run one after the other, because they share the filter.
+// A swipe starts at the place of its card. When a test adds a card while another test swipes, the new card can push the swiped card down, and the swipe then rejects the new card.
+// The full form test of the bulk file can also save a row in the Fridge and the group Dairy. That row has no product, so the swipe test also filters on the state Ready.
+
+test.describe.configure({ mode: 'default' });
 
 const FRIDGE = 1;
 const PANTRY = 2;
@@ -118,6 +122,7 @@ test('a swipe to the left on a card removes the row, and a short swipe keeps it'
     productId: 2,
   });
   await openCards(page);
+  await pickOption(page, 'State', 'Ready');
   const card = cardsOf(page, note);
   await expect(card).toContainText('Philadelphia Original 150 g');
 
