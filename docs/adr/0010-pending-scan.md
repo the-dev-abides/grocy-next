@@ -81,11 +81,17 @@ booking.
   - A Consume pending scan has a `spoiled` field, off at the scan.
   - The `locationId` field is the "from" location. A Transfer pending scan
     also has a `toLocationId` field. When the scan screen sends no "from"
-    location, the server sets the default of the Grocy form. Consume: the
-    default consume location of the product, else its default location,
-    else the first location with stock. Transfer: the default location of
-    the product when it has stock there, else the first location with
-    stock.
+    location, the server sets the location of the Grocy form. The Grocy
+    form has one default. Consume: the default consume location of the
+    product when the product has one, else its default location. Transfer:
+    the default location of the product. When the default has stock, the
+    row takes the default. Else the row takes the first location with stock,
+    in the Grocy consume order. A Consume counts the stock of the
+    sub-products too. When the product has no stock, the row takes the
+    default. Amended by the Consume and Transfer documentation
+    ticket: the first text tried the default location after a default
+    consume location with no stock. Grocy 4.7.1 (`consume.js`) does not do
+    this, so the rule has one default.
   - A scan of a stock entry Grocycode sets the stock entry on the row. The
     accept then takes that stock entry only, as Grocy does.
   - The repeat rule applies with no change.
