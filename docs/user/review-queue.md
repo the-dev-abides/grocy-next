@@ -81,6 +81,8 @@ shows, and the number that you checked.
 
 Each row and each card has these buttons:
 
+- `Spoiled` (a trash can) shows only on a Consume. A tap turns the spoiled
+  flag on or off. The trash can is red when the flag is on.
 - `Edit` (the pencil icon) opens the full form of the pending scan.
 - `Reject` (the trash icon) deletes the pending scan.
 - `Accept` (the check icon) makes the booking. This button shows only on a
@@ -143,11 +145,29 @@ the form stays open and shows the problem.
 
 ## The full form
 
-Tap `Edit` to open the full form of one pending scan. The form has every
-field: the amount or the count, the unit, the location, the due date, the
-store, the price and the price type, the product group of a new product,
-and the note. On a Transfer, the location is `From`, and the form also has
-`To`, the "to" location. Tap `Save` to keep the changes.
+Tap `Edit` to open the full form of one pending scan. Tap `Save` to keep the
+changes. The fields depend on the booking type:
+
+- Purchase: the amount, the unit, the location, the due date, the store, the
+  price, and the price type.
+- Inventory: the count, the location of added stock, and the due date of
+  added stock.
+- Consume: the booking type, `Spoiled`, the amount, the unit, and `From`, the
+  "from" location.
+- Transfer: the booking type, the amount, the unit, `From`, and `To`, the "to"
+  location.
+
+Every form also has the product group of a new product, when the pending scan
+has no product, and the note.
+
+The empty unit is the default unit of the booking type. The unit select names
+it, for example `Consume unit (Can)`. It is the purchase unit on a Purchase,
+the consume unit on a Consume, and the stock unit on a Transfer. A Consume
+with no unit shows the amount in the consume unit of the product, as Grocy
+does.
+
+The booking type field changes a Consume to a Transfer, or a Transfer to a
+Consume. The pending scan keeps all its fields.
 
 ## The bulk actions
 
@@ -237,6 +257,8 @@ The accept of a Consume pending scan takes the amount out of stock at the
 - A Consume of a parent product can take the stock of its child products,
   as the Grocy consume form does.
 - A product with a tare weight needs the gross weight, with the container.
+- A spoiled Consume follows the same steps. Grocy stores the consume as
+  spoiled.
 
 The result panel shows the consume and the open.
 

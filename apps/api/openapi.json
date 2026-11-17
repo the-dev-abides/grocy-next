@@ -1594,6 +1594,12 @@
             "type": "string",
             "description": "The name of the product."
           },
+          "consumeUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the consume quantity unit. The empty unit of a Consume is this unit."
+          },
           "conversions": {
             "type": "array",
             "items": {
@@ -1670,6 +1676,7 @@
           "description",
           "id",
           "name",
+          "consumeUnitId",
           "conversions",
           "defaultDueDays",
           "hasPicture",
@@ -2366,6 +2373,10 @@
             "description": "The purchase date.",
             "nullable": true
           },
+          "spoiled": {
+            "type": "boolean",
+            "description": "Whether the booking is a spoiled consume. False on every other booking."
+          },
           "stockEntryId": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -2393,6 +2404,7 @@
           "note",
           "price",
           "purchasedDate",
+          "spoiled",
           "stockEntryId",
           "storeId",
           "transactionType"

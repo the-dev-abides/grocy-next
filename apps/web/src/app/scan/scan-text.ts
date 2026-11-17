@@ -43,12 +43,13 @@ export function dueDateText(dueDate: null | string): string {
 
 // The detail of a Consume row: the booking type and the "from" location. The
 // server sets the location of a known product, so only a code with no product
-// has none.
+// has none. A spoiled Consume ends with "Spoiled".
 export function consumeDetailText(
-  scan: Pick<PendingScan, 'locationId'>,
+  scan: Pick<PendingScan, 'locationId' | 'spoiled'>,
   locations: readonly Named[] | undefined,
 ): string {
-  return `Consume from ${nameOf(locations, scan.locationId, 'the product default')}`;
+  const text = `Consume from ${nameOf(locations, scan.locationId, 'the product default')}`;
+  return scan.spoiled ? `${text} · Spoiled` : text;
 }
 
 // The two locations of a Transfer: "From → To". The words name a missing

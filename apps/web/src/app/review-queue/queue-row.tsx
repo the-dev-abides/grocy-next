@@ -18,13 +18,47 @@ import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
+import { RowSpoiledButton } from './row-spoiled-button';
 import { amountText, locationText, unitOf } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
-// The edit button and the reject button on every row. The accept button on
-// a ready row, and the Accept again button on a failed row. A row that needs
-// a product shows Pick product and New product in place of the accept. A row
-// that needs a count has no accept.
+// The accept button on a ready row, and the Accept again button on a failed
+// row. Other rows have no accept.
+function RowAcceptButton({
+  actions,
+  state,
+}: Readonly<{ actions: RowActions; state: RowState }>) {
+  if (state === 'ready') {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Accept"
+        disabled={actions.isBusy}
+        onClick={actions.accept}
+      >
+        <Check />
+      </Button>
+    );
+  }
+  if (state === 'failed') {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={actions.isBusy}
+        onClick={actions.accept}
+      >
+        <RotateCw data-icon="inline-start" /> Accept again
+      </Button>
+    );
+  }
+  return null;
+}
+
+// The spoiled trash can on a Consume row. The edit button and the reject
+// button on every row. Then the accept. A row that needs a product shows Pick
+// product and New product in place of the accept.
 function RowButtons({
   actions,
   lists,
@@ -42,6 +76,7 @@ function RowButtons({
 }>) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-1">
+      <RowSpoiledButton actions={actions} scan={scan} />
       <RowEditButton
         actions={actions}
         lists={lists}
@@ -58,27 +93,7 @@ function RowButtons({
       >
         <Trash2 />
       </Button>
-      {state === 'ready' && (
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Accept"
-          disabled={actions.isBusy}
-          onClick={actions.accept}
-        >
-          <Check />
-        </Button>
-      )}
-      {state === 'failed' && (
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={actions.isBusy}
-          onClick={actions.accept}
-        >
-          <RotateCw data-icon="inline-start" /> Accept again
-        </Button>
-      )}
+      <RowAcceptButton actions={actions} state={state} />
       {state === 'needs-product' && (
         <ProductButtons actions={actions} lists={lists} scan={scan} />
       )}

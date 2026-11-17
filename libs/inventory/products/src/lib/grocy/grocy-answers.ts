@@ -19,6 +19,16 @@ export type GrocyAnswer =
 // coerces the string to a number.
 export const grocyNumber = z.coerce.number();
 
+// Grocy writes a flag as a number, as text, or as a boolean. A user setting
+// that the user never changed comes from the Grocy defaults. Thus a flag can
+// be `true`, `1`, `"1"`, or `"true"`, and every other value is off.
+export const grocyFlag = z
+  .union([z.boolean(), z.number(), z.string()])
+  .transform(
+    (value) =>
+      value === true || value === 1 || value === '1' || value === 'true',
+  );
+
 // The body of a Grocy refusal: 400 with the error message.
 export const grocyErrorSchema = z.looseObject({ error_message: z.string() });
 // The answer of a Grocy object create: the id of the new row.

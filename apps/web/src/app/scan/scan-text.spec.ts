@@ -50,14 +50,20 @@ describe('the words of a pending scan', () => {
   });
 
   it('writes the booking type and the "from" location of a Consume row', () => {
-    expect(consumeDetailText({ locationId: 1 }, locations)).toBe(
-      'Consume from Fridge',
-    );
+    expect(
+      consumeDetailText({ locationId: 1, spoiled: false }, locations),
+    ).toBe('Consume from Fridge');
   });
 
   it('writes the product default for a Consume row with no location', () => {
-    expect(consumeDetailText({ locationId: null }, locations)).toBe(
-      'Consume from the product default',
+    expect(
+      consumeDetailText({ locationId: null, spoiled: false }, locations),
+    ).toBe('Consume from the product default');
+  });
+
+  it('writes "Spoiled" for a spoiled Consume row', () => {
+    expect(consumeDetailText({ locationId: 1, spoiled: true }, locations)).toBe(
+      'Consume from Fridge · Spoiled',
     );
   });
 

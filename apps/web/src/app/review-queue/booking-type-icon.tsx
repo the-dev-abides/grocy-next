@@ -39,15 +39,7 @@ export function BookingTypeIcon({
   size?: 'icon' | 'icon-lg';
 }>) {
   if (bookingType === 'consume' || bookingType === 'transfer') {
-    return (
-      <FlipButton
-        bookingType={bookingType}
-        size={size}
-        onFlip={(flipped) => {
-          onSave({ bookingType: flipped });
-        }}
-      />
-    );
+    return <FlipButton scan={{ bookingType }} size={size} onUpdate={onSave} />;
   }
   const meta = bookingTypeIcon[bookingType];
   return (

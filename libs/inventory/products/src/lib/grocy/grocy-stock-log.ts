@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { StockLogRow } from '../stock-log-row.ts';
 
-import { grocyNumber } from './grocy-answers.ts';
+import { grocyFlag, grocyNumber } from './grocy-answers.ts';
 
 const grocyNullableNumber = grocyNumber.nullable();
 
@@ -19,6 +19,7 @@ const grocyStockLogRowSchema = z.looseObject({
   product_id: grocyNumber,
   purchased_date: z.string().nullable(),
   shopping_location_id: grocyNullableNumber,
+  spoiled: grocyFlag,
   stock_id: z.string(),
   stock_row_id: grocyNullableNumber,
   transaction_id: z.string(),
@@ -45,6 +46,7 @@ function toStockLogRows(
       price: row.price,
       productId: row.product_id,
       purchasedDate: row.purchased_date,
+      spoiled: row.spoiled,
       stockEntryId: row.stock_row_id,
       stockId: row.stock_id,
       storeId: row.shopping_location_id,

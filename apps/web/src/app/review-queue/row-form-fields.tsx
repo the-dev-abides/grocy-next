@@ -1,3 +1,7 @@
+import { useId } from 'react';
+
+import { Checkbox } from '@/components/ui/checkbox';
+
 import type { PendingScan, Product } from '../api/next-api';
 import type { RowForm } from './row-form';
 import type { QueueLists } from './use-review-queue';
@@ -6,6 +10,7 @@ import { nameOf } from '../scan/scan-text';
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { keepIdOf, keepValueOf, NONE } from './keep-choices';
 import { unitChoices } from './row-form';
+import { defaultUnitLabel } from './row-text';
 import { TextField } from './text-field';
 
 type Patch = (fields: Partial<RowForm>) => void;
@@ -18,13 +23,18 @@ interface FieldsProperties {
   scan: PendingScan;
 }
 
+const BOOKING_TYPE_CHOICES = [
+  { label: 'Consume', value: 'consume' },
+  { label: 'Transfer', value: 'transfer' },
+];
+
 const PRICE_TYPE_CHOICES = [
   { label: 'per unit', value: 'unit' },
   { label: 'in total', value: 'total' },
 ];
 
 // A select of a master data list with a row for none on top.
-function IdSelect({
+export function IdSelect({
   label,
   none,
   onChange,
@@ -49,8 +59,43 @@ function IdSelect({
   );
 }
 
-// The amount, and on a Purchase row the unit of the amount. An Inventory
-// amount is the count in the stock unit of the product.
+// The booking type of a Consume row and of a Transfer row. The user can
+// change it between Consume and Transfer only.
+function BookingTypeField({ form, patch }: Readonly<FieldsProperties>) {
+  return (
+    <ChoiceSelect
+      choices={BOOKING_TYPE_CHOICES}
+      label="Booking type"
+      value={form.bookingType}
+      onChange={(value) => {
+        patch({ bookingType: value === 'transfer' ? 'transfer' : 'consume' });
+      }}
+    />
+  );
+}
+
+// The spoiled flag of a Consume row.
+function SpoiledField({ form, patch }: Readonly<FieldsProperties>) {
+  const id = useId();
+  return (
+    <div className="flex items-center gap-2 self-end py-2">
+      <Checkbox
+        id={id}
+        checked={form.spoiled}
+        onCheckedChange={(checked) => {
+          patch({ spoiled: checked });
+        }}
+      />
+      <label htmlFor={id} className="text-sm font-medium">
+        Spoiled
+      </label>
+    </div>
+  );
+}
+
+// The amount and the unit of the amount. The empty unit is the default unit
+// of the booking type. An Inventory amount is the count in the stock unit of
+// the product.
 function AmountFields({
   form,
   lists,
@@ -95,7 +140,7 @@ function AmountFields({
       />
       <IdSelect
         label="Unit"
-        none="Purchase unit"
+        none={defaultUnitLabel(form.bookingType, product, lists.quantityUnits)}
         rows={unitChoices(product, lists.quantityUnits)}
         value={form.quantityUnitId}
         onChange={(quantityUnitId) => {
@@ -144,20 +189,16 @@ function locationLabel(bookingType: PendingScan['bookingType']): string {
   if (bookingType === 'inventory') {
     return 'Location of added stock';
   }
-  return bookingType === 'transfer' ? 'From' : 'Location';
+  return bookingType === 'purchase' ? 'Location' : 'From';
 }
 
-// The location, and on a Transfer row the "to" location.
-function LocationFields({
-  form,
-  lists,
-  patch,
-  scan,
-}: Readonly<FieldsProperties>) {
+// The location, and on a Transfer row the "to" location. A Consume and a
+// Transfer take the stock from the "from" location.
+function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
   return (
     <>
       <IdSelect
-        label={locationLabel(scan.bookingType)}
+        label={locationLabel(form.bookingType)}
         none="Product default"
         rows={lists.locations}
         value={form.locationId}
@@ -165,7 +206,7 @@ function LocationFields({
           patch({ locationId });
         }}
       />
-      {scan.bookingType === 'transfer' && (
+      {form.bookingType === 'transfer' && (
         <IdSelect
           label="To"
           none="Not set"
@@ -180,23 +221,13 @@ function LocationFields({
   );
 }
 
-// Every field of one row, in the two-column grid of ADR 0013, as in the
-// prototype. The fields are the amount and the unit, the location, and the due
-// date. A Transfer row has the "from" location and the "to" location. A
-// Purchase row also has the store and the price. A row with no product
-// has the product group of a new product. The note comes last.
-export function RowFormFields(props: Readonly<FieldsProperties>) {
-  const { form, lists, patch, scan } = props;
+// The fields of a Purchase row and of an Inventory row after the locations:
+// the due date, and on a Purchase row the store and the price.
+function StockFields(props: Readonly<FieldsProperties>) {
+  const { form, patch, scan } = props;
   const isInventory = scan.bookingType === 'inventory';
   return (
-    <div
-      className="
-        grid gap-3
-        sm:grid-cols-2
-      "
-    >
-      <AmountFields {...props} />
-      <LocationFields {...props} />
+    <>
       <TextField
         label={isInventory ? 'Due date of added stock' : 'Due date'}
         type="date"
@@ -206,6 +237,32 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
         }}
       />
       {!isInventory && <PurchaseFields {...props} />}
+    </>
+  );
+}
+
+// Every field of one row, in the two-column grid of ADR 0013, as in the
+// prototype. The price, the store, and the due date do not apply to a Consume
+// or a Transfer, so only a Purchase row and an Inventory row show them. A
+// Consume row and a Transfer row show the booking type, and a Consume row
+// shows the spoiled flag. A row with no product has the product group of a
+// new product. The note comes last.
+export function RowFormFields(props: Readonly<FieldsProperties>) {
+  const { form, lists, patch, scan } = props;
+  const isConsumeOrTransfer =
+    scan.bookingType === 'consume' || scan.bookingType === 'transfer';
+  return (
+    <div
+      className="
+        grid gap-3
+        sm:grid-cols-2
+      "
+    >
+      {isConsumeOrTransfer && <BookingTypeField {...props} />}
+      {form.bookingType === 'consume' && <SpoiledField {...props} />}
+      <AmountFields {...props} />
+      <LocationFields {...props} />
+      {!isConsumeOrTransfer && <StockFields {...props} />}
       {scan.productId === null && (
         <IdSelect
           label="Product group of the new product"

@@ -46,6 +46,7 @@ function toStockLogRowItem(row: StockLogRow): StockLogRowItem {
     note: row.note,
     price: row.price,
     purchasedDate: row.purchasedDate,
+    spoiled: row.spoiled,
     stockEntryId: row.stockEntryId,
     storeId: row.storeId,
     transactionType: row.transactionType,

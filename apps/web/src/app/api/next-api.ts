@@ -176,6 +176,8 @@ export type Product = {
   id: number;
   /** The name of the product. */
   name: string;
+  /** The id of the consume quantity unit. The empty unit of a Consume is this unit. */
+  consumeUnitId: number;
   /** The resolved conversions of the product. */
   conversions: QuantityUnitConversion[];
   /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */
@@ -464,6 +466,8 @@ export type StockLogRow = {
   price: number | null;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** Whether the booking is a spoiled consume. False on every other booking. */
+  spoiled: boolean;
   /** The id of the stock entry, when Grocy wrote it. */
   stockEntryId: number | null;
   /** The id of the store. */
