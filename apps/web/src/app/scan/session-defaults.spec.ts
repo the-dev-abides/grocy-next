@@ -81,6 +81,15 @@ describe('the session defaults of a scan screen', () => {
     ).toBe('Pantry · Supermarket · +7 days · Dairy');
   });
 
+  it('shows only the "from" location in the summary of the Consume screen', () => {
+    expect(defaultsSummary(INITIAL_DEFAULTS, lists, 'consume')).toBe(
+      'From product default',
+    );
+    expect(
+      defaultsSummary({ ...INITIAL_DEFAULTS, locationId: 2 }, lists, 'consume'),
+    ).toBe('From Pantry');
+  });
+
   it('leaves the store out of the summary line of the Inventory screen', () => {
     expect(defaultsSummary(INITIAL_DEFAULTS, lists, 'inventory')).toBe(
       'Product default · Product default · Default group',

@@ -85,12 +85,16 @@ export function createFieldsOf(
 }
 
 // The one line of the collapsed defaults section: the location, the store
-// on the Purchase screen, the due date rule, and the product group.
+// on the Purchase screen, the due date rule, and the product group. The
+// Consume screen has the "from" location only.
 export function defaultsSummary(
   defaults: SessionDefaults,
   lists: DefaultsLists,
   bookingType: PendingScan['bookingType'],
 ): string {
+  if (bookingType === 'consume') {
+    return `From ${nameOf(lists.locations, defaults.locationId, 'product default')}`;
+  }
   const store =
     bookingType === 'purchase'
       ? [nameOf(lists.stores, defaults.storeId, 'No store')]

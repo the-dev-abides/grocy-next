@@ -41,6 +41,16 @@ export function dueDateText(dueDate: null | string): string {
   return dueDate ?? 'default due';
 }
 
+// The detail of a Consume row: the booking type and the "from" location. The
+// server sets the location of a known product, so only a code with no product
+// has none.
+export function consumeDetailText(
+  scan: Pick<PendingScan, 'locationId'>,
+  locations: readonly Named[] | undefined,
+): string {
+  return `Consume from ${nameOf(locations, scan.locationId, 'the product default')}`;
+}
+
 // The Grocy stock of the product of an Inventory row, in the stock unit of the
 // product. While the product read has not answered, the function returns the
 // words.

@@ -4,6 +4,7 @@ import {
   Inbox,
   type LucideIcon,
   Package,
+  PackageMinus,
   ScanBarcode,
 } from 'lucide-react';
 import { NavLink } from 'react-router';
@@ -23,10 +24,15 @@ interface Group {
   name: string;
 }
 
-// The two scan items. The sidebar and the top bar show them.
+// The three scan items. The sidebar and the top bar show them.
 export const scanItems: readonly NavItem[] = [
   { icon: ScanBarcode, label: 'Purchase', to: '/scan/purchase' },
   { icon: ClipboardList, label: 'Inventory', to: '/scan/inventory' },
+  {
+    icon: PackageMinus,
+    label: 'Consume and Transfer',
+    to: '/scan/consume-transfer',
+  },
 ];
 
 // The review queue item carries the count of pending scans as a badge.

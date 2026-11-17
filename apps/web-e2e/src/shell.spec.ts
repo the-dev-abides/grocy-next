@@ -7,6 +7,7 @@ const ROUTES = [
   { path: '/', title: 'Review queue' },
   { path: '/scan/purchase', title: 'Purchase' },
   { path: '/scan/inventory', title: 'Inventory' },
+  { path: '/scan/consume-transfer', title: 'Consume and Transfer' },
   { path: '/review-queue', title: 'Review queue' },
   { path: '/stock', title: 'Products' },
   { path: '/no-such-page', title: 'Review queue' },

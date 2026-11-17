@@ -57,7 +57,7 @@ function MenuSheet() {
   );
 }
 
-// The two scan buttons of the top bar. They hide below `sm`, where the
+// The three scan buttons of the top bar. They hide below `sm`, where the
 // sidebar holds them. The button of the open scan screen is the primary one.
 function ScanButtons() {
   const { pathname } = useLocation();
