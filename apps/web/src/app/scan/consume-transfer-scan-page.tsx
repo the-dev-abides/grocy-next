@@ -26,6 +26,7 @@ export function ConsumeTransferScanPage() {
         return (
           <ConsumeTransferRow
             lists={session.lists}
+            rows={session.rows}
             scan={scan}
             onReject={() => {
               session.reject(scan);

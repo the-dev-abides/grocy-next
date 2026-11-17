@@ -19,6 +19,7 @@ import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
 import { amountText, locationText, unitOf } from './row-text';
+import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
 
 // The edit button and the reject button on every row. The accept button on
@@ -226,6 +227,7 @@ export function QueueRow({
           scan={scan}
           unit={unit}
         />
+        <StockEntryLines lists={lists} product={product} scan={scan} />
       </ProductCell>
       <FactCells
         lists={lists}

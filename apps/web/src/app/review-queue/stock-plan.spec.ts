@@ -1,6 +1,7 @@
 import type { StockEntry } from '../api/next-api';
 import type { PlanProduct, PlanRow } from './stock-plan';
 
+import { planOfScan } from './plan-of-scan';
 import { planOfRow, plansOf } from './stock-plan';
 
 // The Fridge is 1, the Pantry is 2, and the Freezer is 3.
@@ -279,5 +280,36 @@ describe('the stock entry lines of the rows of one product', () => {
       'l',
     );
     expect(plans.get(8)?.missing).toBe(0);
+  });
+});
+
+describe('the stock entry lines of one row of the review queue', () => {
+  it('chains the rows of the same product by scan time, and skips other products', () => {
+    const opened = entryOf({ amount: 0.2, id: 1, open: true });
+    const sealed = entryOf({ id: 2 });
+    const older = {
+      ...rowOf({ amount: 0.2, id: 9 }),
+      productId: 1,
+      scannedAt: '2026-11-17T08:00:00Z',
+    };
+    const newer = {
+      ...rowOf({ amount: 0.2, id: 3 }),
+      productId: 1,
+      scannedAt: '2026-11-17T09:00:00Z',
+    };
+    const other = {
+      ...rowOf({ amount: 5, id: 4 }),
+      productId: 2,
+      scannedAt: '2026-11-17T07:00:00Z',
+    };
+    const plan = planOfScan(
+      newer,
+      [newer, older, other],
+      productOf([sealed, opened]),
+      'l',
+    );
+    expect(plan?.lines).toEqual([
+      { amount: 0.2, entry: sealed, kind: 'part', opensRest: true },
+    ]);
   });
 });

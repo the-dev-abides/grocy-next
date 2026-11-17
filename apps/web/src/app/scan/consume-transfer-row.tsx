@@ -5,6 +5,7 @@ import type { PendingScanRowLists } from './pending-scan-row';
 
 import { PendingScanRow, RejectButton } from './pending-scan-row';
 import { consumeDetailText, nameOf, transferDetailText } from './scan-text';
+import { useOpenText } from './use-open-text';
 import { WriteInNameField } from './write-in-name-field';
 
 // The icon of the booking type: the fork and knife of Consume and the two
@@ -23,21 +24,24 @@ function BookingIcon({
 
 // One row of the Consume and Transfer session list. The row starts with the
 // icon of its booking type. The detail line shows the time, the booking type,
-// and the locations. A Transfer row with no "to" location shows the line in
-// red. The amount in its unit and the reject button are on the right. A row
+// and the locations. A Consume row also says "Opens a new pack" or "From the
+// opened pack". A Transfer row with no "to" location shows the line in red. The amount in its unit and the reject button are on the right. A row
 // with no product and no lookup result has the write-in name field, as on the
 // other scan screens.
 export function ConsumeTransferRow({
   lists,
   onReject,
   onWriteInName,
+  rows,
   scan,
 }: Readonly<{
   lists: PendingScanRowLists;
   onReject: () => void;
   onWriteInName: (name: string) => void;
+  rows: readonly PendingScan[];
   scan: PendingScan;
 }>) {
+  const open = useOpenText(scan, rows);
   const unit = nameOf(lists.quantityUnits, scan.quantityUnitId, '');
   const isTransfer = scan.bookingType === 'transfer';
   return (
@@ -51,6 +55,7 @@ export function ConsumeTransferRow({
           isTransfer
             ? transferDetailText(scan, lists.locations)
             : consumeDetailText(scan, lists.locations),
+          ...(open === null ? [] : [open]),
         ]}
       >
         {scan.productId === null && scan.lookupResult === null && (
