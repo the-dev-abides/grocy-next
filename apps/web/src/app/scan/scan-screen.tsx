@@ -186,13 +186,13 @@ function ScanControls({
   );
 }
 
-// The scan screen that the Purchase and the Inventory screens share, in the
-// layout of the prototype. A left column stays at the top. It holds the
-// defaults section, the camera view, the controls of the screen, and the typed
-// code field. The scans of the session are the page, most recent at the top. A
-// camera scan, a hardware scanner code, and a typed code send the same create
-// call and get the same feedback. The screen gives the controls under the
-// camera and the row of the session list.
+// The scan screen that the Purchase, the Inventory, and the Consume and
+// Transfer screens share, in the layout of the prototype. A left column stays
+// at the top. It holds the defaults section, the camera view, the controls of
+// the screen, and the typed code field. The scans of the session are the
+// page, most recent at the top. A camera scan, a hardware scanner code, and a
+// typed code send the same create call and get the same feedback. The screen
+// gives the controls under the camera and the row of the session list.
 export function ScanScreen({
   bookingType,
   emptyText,

@@ -26,8 +26,9 @@ different device or browser when they need one.
 | QA-008     | Scan with a Bluetooth hardware scanner on the phone    | The test phone, in Chrome |
 | QA-009     | Scan with a keyboard layout that is not US             | A desktop browser         |
 | QA-010     | Scan with a host layout that differs from the scanner  | A desktop browser         |
-| QA-011     | Scan while a field of a row has the focus              | A desktop browser         |
+| QA-011     | Scan while the amount field of a row has the focus     | A desktop browser         |
 | QA-012     | Scan a GS1 DataMatrix code with a group separator      | A desktop browser         |
+| QA-013     | Consume and transfer with the camera, then accept both | The test phone, in Chrome |
 
 ## QA-001 Install the app from the manifest
 
@@ -282,7 +283,20 @@ Steps:
    Expected: the focused button works as before. An Enter with no code does
    nothing to the list.
 7. Reject the row.
-   Expected: the row is gone. The test leaves no pending scan of the code.
+   Expected: the row is gone.
+8. Open the Consume and Transfer scan screen from the sidebar. Click on the
+   title of the screen. Scan the barcode `5449000000996`.
+   Expected: one Consume row with the product name and the fork and knife
+   icon appears. The line at the bottom left of the camera picture shows the
+   word `Scanner`.
+9. Tap `Transfer` on the switch under the camera. Click on the title of the
+   screen. Scan the barcode `5449000000996`.
+   Expected: one Transfer row with the two arrows icon appears. The list has
+   two rows.
+10. Reject the two rows. Use the `Reject` button in the row form, which
+    opens when you click the product name of the row.
+    Expected: the rows are gone. The test leaves no pending scan of the
+    code.
 
 ## QA-008 Scan with a Bluetooth hardware scanner on the phone
 
@@ -367,14 +381,10 @@ Steps:
 3. Reject the row.
    Expected: the row is gone.
 
-## QA-011 Scan while a field of a row has the focus
+## QA-011 Scan while the amount field of a row has the focus
 
 Device or browser: a desktop browser, and a USB hardware scanner in keyboard
 mode.
-
-The rows of the Purchase and the Inventory scan screens have no amount
-field. The Inventory row of an unknown code has the field `Type the product
-name`, so this case uses that field.
 
 Preconditions:
 
@@ -385,20 +395,21 @@ Preconditions:
 
 Steps:
 
-1. Open the Inventory scan screen. Type `4027` into the code field and click
-   `Add`.
-   Expected: one row with the code `4027` and the field `Type the product
-name` appears.
-2. Click into the field `Type the product name` of the row, so that the
-   field has the focus. Then scan the barcode `5449000000996` with the
-   hardware scanner.
-   Expected: the digits of the code go into the field. The app makes no new
-   row. The line at the bottom left of the camera picture does not show the
-   word `Scanner`.
-3. Clear the field, then click on the title of the screen.
-   Expected: the field is empty.
-4. Reject the row.
-   Expected: the row is gone.
+1. Open the Consume and Transfer scan screen. Type `5449000000996` into the
+   code field and click `Add`.
+   Expected: one Consume row with the product name of the code appears.
+2. Click the product name of the row.
+   Expected: the row form opens under the row, with the field `Amount`.
+3. Click into the field `Amount`, so that the field has the focus. Then
+   scan the barcode `5449000000996` with the hardware scanner.
+   Expected: the digits of the code go into the field, after the amount.
+   The Enter of the hardware scanner stores the text of the field as the
+   amount of the row. The app makes no new row. The line at the bottom left
+   of the camera picture does not show the word `Scanner`.
+4. Select the text of the field `Amount`, type `1`, and press Enter.
+   Expected: the row shows the amount `1`.
+5. Click `Reject` in the row form.
+   Expected: the row is gone. The test leaves no pending scan of the code.
 
 ## QA-012 Scan a GS1 DataMatrix code with a group separator
 
@@ -425,3 +436,55 @@ Steps:
    (0x1D, written `\u001d` in the JSON) between `ABC123` and `21XYZ`.
 4. Reject the row.
    Expected: the row is gone.
+
+## QA-013 Consume and transfer with the camera, then accept both
+
+Device or browser: the test phone, in Chrome.
+
+This case is the exit condition of the Consume and Transfer milestone.
+
+Preconditions:
+
+- The build under test runs, and the phone reaches it over HTTPS. Chrome
+  gives the camera to a secure origin only.
+- The API reaches a Grocy with stock of two products. Each product has a
+  product barcode, and each barcode is at hand as a printed or on-screen
+  barcode. Use a Grocy for tests, because the accept changes the stock.
+- Grocy has at least two locations.
+- Note the stock and the locations of the two products in Grocy before the
+  test.
+
+Steps:
+
+1. Open the Consume and Transfer scan screen from the sidebar.
+   Expected: the camera starts with no tap. The strip under the camera
+   reads `The next scan is a Consume`.
+2. Point the camera at the barcode of the first product.
+   Expected: the frame turns green. The banner shows the product name and a
+   line that starts with `Consume ·`.
+   One Consume row with the product name and the fork and knife icon
+   appears. The detail line names the "from" location.
+3. Tap `Transfer` on the switch, then pick a "to" location in `To` that is
+   not the location of the second product.
+   Expected: the strip reads `The next scan is a Transfer to` and the name
+   of the location.
+4. Point the camera at the barcode of the second product.
+   Expected: the frame turns green. The banner shows the product name and a
+   line that starts with `Transfer ·`.
+   One Transfer row with the two arrows icon appears. The detail line shows
+   the "from" location, an arrow, and the "to" location.
+5. Tap `Done`.
+   Expected: the review queue opens. It shows the Consume row and the
+   Transfer row with the state `Ready`. Each row shows its stock entry
+   lines.
+6. Tap `Accept` on the Consume row.
+   Expected: the result panel shows the consume of the first product. When
+   the consume took a part of a sealed pack, it also shows the open of the
+   rest. The row is gone.
+7. Tap `Accept` on the Transfer row.
+   Expected: the result panel shows one `transfer_from` booking and one
+   `transfer_to` booking. The row is gone.
+8. Open Grocy and look at the stock of the two products.
+   Expected: the stock of the first product is less by the amount of the
+   Consume. The second product has the amount of the Transfer at the "to"
+   location.
