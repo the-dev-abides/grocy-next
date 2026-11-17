@@ -95,7 +95,11 @@ export function useScanSession(
       const fields = scanDefaults.takeCreateFields();
       return send(
         createPendingScan({
-          createPendingScan: { ...fields, bookingType, code },
+          createPendingScan: {
+            ...fields,
+            bookingType: scanDefaults.bookingType,
+            code,
+          },
         }).unwrap(),
       );
     },

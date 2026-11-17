@@ -29,7 +29,7 @@ export const MOCK_DUE_DATE = '2027-01-01';
 // The fields of a pending scan that the spec files read.
 export interface PendingScanRow {
   amount: null | number;
-  bookingType: 'consume' | 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   code: null | string;
   dueDate: null | string;
   id: number;
@@ -43,6 +43,7 @@ export interface PendingScanRow {
   quantityUnitId: null | number;
   scannedAt: string;
   storeId: null | number;
+  toLocationId: null | number;
   updatedAt: string;
   writeInName: null | string;
 }

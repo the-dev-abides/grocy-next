@@ -2,14 +2,17 @@ import {
   consumeDetailText,
   dueDateText,
   nameOf,
+  nextScanText,
   priceText,
   stockText,
+  transferDetailText,
 } from './scan-text';
 
 describe('the words of a pending scan', () => {
   const locations = [
     { id: 1, name: 'Fridge' },
     { id: 2, name: 'Pantry' },
+    { id: 3, name: 'Freezer' },
   ];
 
   it('names a master data row by its id', () => {
@@ -22,7 +25,7 @@ describe('the words of a pending scan', () => {
 
   it('shows the id while the list has not loaded or has no such row', () => {
     expect(nameOf(undefined, 3, 'Product default')).toBe('#3');
-    expect(nameOf(locations, 3, 'Product default')).toBe('#3');
+    expect(nameOf(locations, 9, 'Product default')).toBe('#9');
   });
 
   it('writes the price as entered with its type', () => {
@@ -55,6 +58,33 @@ describe('the words of a pending scan', () => {
   it('writes the product default for a Consume row with no location', () => {
     expect(consumeDetailText({ locationId: null }, locations)).toBe(
       'Consume from the product default',
+    );
+  });
+
+  it('writes the booking type and both locations of a Transfer row', () => {
+    expect(
+      transferDetailText({ locationId: 1, toLocationId: 3 }, locations),
+    ).toBe('Transfer Fridge → Freezer');
+  });
+
+  it('names the missing "to" location of a Transfer row', () => {
+    expect(
+      transferDetailText({ locationId: 1, toLocationId: null }, locations),
+    ).toBe('Transfer Fridge → No "to" location');
+  });
+
+  it('names the booking type of the next scan in the strip', () => {
+    expect(nextScanText('consume', 3, locations)).toBe(
+      'The next scan is a Consume',
+    );
+    expect(nextScanText('transfer', 3, locations)).toBe(
+      'The next scan is a Transfer to Freezer',
+    );
+  });
+
+  it('says in the strip that the next Transfer has no "to" location', () => {
+    expect(nextScanText('transfer', null, locations)).toBe(
+      'The next scan is a Transfer with no "to" location',
     );
   });
 

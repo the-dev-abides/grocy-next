@@ -328,10 +328,10 @@ export type LookupResult = {
   sourceUrl: string;
 };
 export type PendingScan = {
-  /** The amount. Purchase and Consume: in the unit quantityUnitId, or else the purchase unit or the consume unit of the product. Inventory: the new own stock in the stock unit. */
+  /** The amount. Purchase, Consume, and Transfer: in the unit quantityUnitId, or else the purchase unit, the consume unit, or the stock unit of the product. Inventory: the new own stock in the stock unit. */
   amount: number | null;
   /** The booking that the accept makes. */
-  bookingType: 'consume' | 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed, or null for a row from the assistant. */
   code: string | null;
   /** The time of the create, in UTC. */
@@ -344,7 +344,7 @@ export type PendingScan = {
   id: number;
   /** The time of the last lookup attempt, in UTC, or null. */
   lastLookupAt: string | null;
-  /** The id of the location. Consume: the "from" location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId: number | null;
   /** The lookup result, or null. */
   lookupResult: LookupResult | null;
@@ -360,7 +360,7 @@ export type PendingScan = {
   productGroupId: number | null;
   /** The id of the product, or null. */
   productId: number | null;
-  /** The id of the quantity unit of the amount. Purchase and Consume only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId: number | null;
   /** The time of the scan, in UTC. */
   scannedAt: string;
@@ -381,12 +381,12 @@ export type CreatePendingScan = {
   /** The amount. */
   amount?: number;
   /** The booking that the accept makes. */
-  bookingType: 'consume' | 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed. */
   code?: string;
   /** The due date. */
   dueDate?: string;
-  /** The id of the location. Consume: the "from" location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId?: number;
   /** The note. */
   note?: string;
@@ -398,7 +398,7 @@ export type CreatePendingScan = {
   productGroupId?: number;
   /** The id of the product. */
   productId?: number;
-  /** The id of the quantity unit of the amount. Purchase and Consume only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId?: number;
   /** Whether the product was spoiled. Consume only. */
   spoiled?: boolean;
@@ -419,12 +419,12 @@ export type UpdatePendingScan = {
   /** The amount. */
   amount?: number | null;
   /** The booking that the accept makes. Set at create. */
-  bookingType?: 'consume' | 'inventory' | 'purchase';
+  bookingType?: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed. */
   code?: string | null;
   /** The due date. */
   dueDate?: string | null;
-  /** The id of the location. Consume: the "from" location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId?: number | null;
   /** The note. */
   note?: string | null;
@@ -436,7 +436,7 @@ export type UpdatePendingScan = {
   productGroupId?: number | null;
   /** The id of the product. */
   productId?: number | null;
-  /** The id of the quantity unit of the amount. Purchase and Consume only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId?: number | null;
   /** Whether the product was spoiled. Consume only. */
   spoiled?: boolean;
@@ -472,10 +472,10 @@ export type StockLogRow = {
   transactionType: string;
 };
 export type Booking = {
-  /** The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. */
+  /** The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. On a Transfer, the list holds a `transfer_from` row and a `transfer_to` row for each stock entry that Grocy moved. */
   bookings: StockLogRow[];
   /** The booking that the accept made. */
-  bookingType: 'consume' | 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The id of the accepted pending scan. */
   pendingScanId: number;
   /** The id of the product. */

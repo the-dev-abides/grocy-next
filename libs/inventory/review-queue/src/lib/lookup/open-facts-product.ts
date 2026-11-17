@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { LookupResult } from '../pending-scan.ts';
+import type { LookupResult } from '../lookup-result.ts';
 import type {
   NutrientColumns,
   NutritionFactsFromLookup,

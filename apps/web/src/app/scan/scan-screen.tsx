@@ -135,7 +135,6 @@ function ScanCamera({
 // controls of the screen under the camera. From `lg` up, it also holds the
 // typed code field.
 function ScanControls({
-  bookingType,
   children,
   feedback,
   hardwareScanner,
@@ -144,7 +143,6 @@ function ScanControls({
   session,
   title,
 }: Readonly<{
-  bookingType: PendingScan['bookingType'];
   children?: ReactNode;
   feedback: ScanFeedback;
   hardwareScanner: HardwareScannerHandle;
@@ -163,7 +161,7 @@ function ScanControls({
     >
       <h1 className="px-3 pt-3 pb-2 text-2xl font-medium">{title}</h1>
       <DefaultsSection
-        bookingType={bookingType}
+        bookingType={scanDefaults.bookingType}
         defaults={scanDefaults.defaults}
         lists={lists}
         onChange={scanDefaults.setDefaults}
@@ -227,7 +225,6 @@ export function ScanScreen({
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
       <ScanControls
-        bookingType={bookingType}
         feedback={feedback}
         hardwareScanner={hardwareScanner}
         scanner={scanner}

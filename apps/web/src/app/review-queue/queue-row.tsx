@@ -18,7 +18,7 @@ import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
-import { amountText, unitOf } from './row-text';
+import { amountText, locationText, unitOf } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
 // The edit button and the reject button on every row. The accept button on
@@ -136,7 +136,7 @@ function FactCells({
         </span>
       </TableCell>
       <TableCell className={FROM_MD}>
-        {nameOf(lists.locations, scan.locationId, 'Product default')}
+        {locationText(scan, lists.locations)}
       </TableCell>
       <TableCell className={FROM_XL}>{dueDateText(scan.dueDate)}</TableCell>
       <TableCell className={cn(FROM_XL, 'text-right')}>

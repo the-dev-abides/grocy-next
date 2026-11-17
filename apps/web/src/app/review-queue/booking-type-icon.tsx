@@ -1,5 +1,6 @@
 import { cn } from 'cn';
 import {
+  ArrowRightLeft,
   ClipboardList,
   type LucideIcon,
   ScanBarcode,
@@ -11,14 +12,15 @@ import type { PendingScan } from '../api/next-api';
 import { bookingTypeLabel } from './row-text';
 
 // The icon of each booking type. The icons are the icons of the scan screens:
-// the barcode of Purchase, the clipboard of Inventory, and the fork and knife
-// of Consume.
+// the barcode of Purchase, the clipboard of Inventory, the fork and knife of
+// Consume, and the two arrows of Transfer.
 const bookingTypeIcon: Readonly<
   Record<PendingScan['bookingType'], { icon: LucideIcon }>
 > = {
   consume: { icon: Utensils },
   inventory: { icon: ClipboardList },
   purchase: { icon: ScanBarcode },
+  transfer: { icon: ArrowRightLeft },
 };
 
 // The booking type icon at the start of a row. The icon has the name of the

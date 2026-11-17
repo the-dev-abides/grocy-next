@@ -1,4 +1,15 @@
-import { amountText, bookingTypeLabel, rowName, unitOf } from './row-text';
+import {
+  amountText,
+  bookingTypeLabel,
+  locationText,
+  rowName,
+  unitOf,
+} from './row-text';
+
+const locations = [
+  { id: 1, name: 'Fridge' },
+  { id: 3, name: 'Freezer' },
+];
 
 const quantityUnits = [
   { id: 1, name: 'Can' },
@@ -38,6 +49,16 @@ describe('the words of a review queue row', () => {
         quantityUnits,
       ),
     ).toBe('');
+  });
+
+  it('names the stock unit of the product when the Transfer row has no unit', () => {
+    expect(
+      unitOf(
+        { bookingType: 'transfer', quantityUnitId: null },
+        { ...product, stockUnitId: 1 },
+        quantityUnits,
+      ),
+    ).toBe('Can');
   });
 
   it('names the stock unit of the product for an Inventory row', () => {
@@ -93,6 +114,35 @@ describe('the words of a review queue row', () => {
   it('names the booking type', () => {
     expect(bookingTypeLabel.purchase).toBe('Purchase');
     expect(bookingTypeLabel.inventory).toBe('Inventory');
+  });
+});
+
+describe('the location of a review queue row', () => {
+  it('is the location of a Consume row', () => {
+    expect(
+      locationText(
+        { bookingType: 'consume', locationId: 1, toLocationId: null },
+        locations,
+      ),
+    ).toBe('Fridge');
+  });
+
+  it('is "From → To" on a Transfer row', () => {
+    expect(
+      locationText(
+        { bookingType: 'transfer', locationId: 1, toLocationId: 3 },
+        locations,
+      ),
+    ).toBe('Fridge → Freezer');
+  });
+
+  it('names the missing "to" location of a Transfer row', () => {
+    expect(
+      locationText(
+        { bookingType: 'transfer', locationId: 1, toLocationId: null },
+        locations,
+      ),
+    ).toBe('Fridge → No "to" location');
   });
 });
 

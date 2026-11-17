@@ -9,13 +9,18 @@ import {
   grocyRefused,
   GrocyStockClient,
 } from '@grocy-next/inventory-products';
-import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import type { Booking, CreateBooking, StockLogRowItem } from './booking.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
+import {
+  inventoryAmountOf,
+  positiveAmountOf,
+  productIdOf,
+  toLocationIdOf,
+} from './accept-checks.ts';
 import {
   aboveStockRefusal,
   consumedAmountOf,
@@ -31,42 +36,6 @@ import { toStockAmount, toStockUnit } from './purchase-conversion.ts';
 import { readActiveProduct } from './read-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
-
-// The accept of a pending scan with no product is refused, as ADR 0010
-// decided. The row gets a product first.
-function productIdOf(row: StoredPendingScan): number {
-  if (row.productId === null) {
-    throw new ProblemException(
-      PROBLEM_TYPES.noProduct,
-      'The pending scan has no product. Set a product first.',
-    );
-  }
-  return row.productId;
-}
-
-// A Purchase and a Consume book an amount of more than zero. Null, zero, or
-// less is the no-amount problem.
-function positiveAmountOf(row: StoredPendingScan, words: string): number {
-  if (row.amount === null || row.amount <= 0) {
-    throw new ProblemException(
-      PROBLEM_TYPES.noAmount,
-      `${words} needs an amount of more than zero.`,
-    );
-  }
-  return row.amount;
-}
-
-// An Inventory pending scan arrives with no amount, and the review queue
-// sets it. The accept with no amount is refused, as ADR 0010 decided.
-function inventoryAmountOf(row: StoredPendingScan): number {
-  if (row.amount === null) {
-    throw new ProblemException(
-      PROBLEM_TYPES.noAmount,
-      'An Inventory needs the new amount of the product.',
-    );
-  }
-  return row.amount;
-}
 
 function toStockLogRowItem(row: StockLogRow): StockLogRowItem {
   return {
@@ -225,6 +194,33 @@ export class BookingsService {
     });
   }
 
+  // The Transfer accept converts the amount to the stock unit with the resolved conversions of the product. The empty unit is the stock unit.
+  // Then it books the transfer in Grocy with both locations. Grocy applies
+  // the freezer rules and refuses a tare weight product. Grocy Next adds no
+  // rule.
+  private async acceptTransfer(
+    row: StoredPendingScan,
+    productId: number,
+  ): Promise<Booking> {
+    const toLocationId = toLocationIdOf(row);
+    const entered = positiveAmountOf(row, 'A Transfer');
+    const product = await readActiveProduct(this.grocy, productId);
+    const amount = toStockAmount(
+      entered,
+      row.quantityUnitId ?? product.stockUnitId,
+      {
+        conversions: await this.stock.readResolvedConversions(productId),
+        stockUnitId: product.stockUnitId,
+      },
+    );
+    const result = await this.stock.transfer(productId, {
+      amount,
+      fromLocationId: row.locationId,
+      toLocationId,
+    });
+    return this.finish(row, productId, result);
+  }
+
   // The end of an accept after the Grocy call. On success the row goes and
   // the response is the booking. On a Grocy refusal the row stays with the
   // Grocy message as its error, and the response is the grocy-refused
@@ -259,6 +255,9 @@ export class BookingsService {
       }
       case 'purchase': {
         return this.acceptPurchase(row, productId);
+      }
+      case 'transfer': {
+        return this.acceptTransfer(row, productId);
       }
     }
   }

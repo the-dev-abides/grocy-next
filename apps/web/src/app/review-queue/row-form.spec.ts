@@ -10,6 +10,7 @@ const scan = {
   productGroupId: null,
   quantityUnitId: 3,
   storeId: 1,
+  toLocationId: null,
 };
 
 describe('the full form of one row', () => {
@@ -24,6 +25,7 @@ describe('the full form of one row', () => {
       productGroupId: null,
       quantityUnitId: 3,
       storeId: 1,
+      toLocationId: null,
     });
   });
 
@@ -51,6 +53,7 @@ describe('the full form of one row', () => {
         productGroupId: 1,
         quantityUnitId: 2,
         storeId: null,
+        toLocationId: 3,
       }),
     ).toEqual({
       amount: 4,
@@ -62,6 +65,7 @@ describe('the full form of one row', () => {
       productGroupId: 1,
       quantityUnitId: 2,
       storeId: null,
+      toLocationId: 3,
     });
   });
 

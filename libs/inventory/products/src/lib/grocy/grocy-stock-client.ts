@@ -5,6 +5,7 @@ import type { Inventory } from '../inventory.ts';
 import type { QuantityUnitConversion, StockEntry } from '../product.ts';
 import type { Purchase } from '../purchase.ts';
 import type { BookingResult } from '../stock-log-row.ts';
+import type { Transfer } from '../transfer.ts';
 
 import { resultOf } from './grocy-answers.ts';
 import { GrocyClient } from './grocy-client.ts';
@@ -19,6 +20,7 @@ import {
   toStockEntries,
 } from './grocy-stock-entries.ts';
 import { stockLogRowsOf } from './grocy-stock-log.ts';
+import { toGrocyTransferBody } from './grocy-transfer.ts';
 
 // The stock reads and the stock bookings of the Grocy API, for the product
 // read and for the accept of the review queue. The client sends every call
@@ -90,6 +92,20 @@ export class GrocyStockClient {
     const answer = await this.grocy.post(
       `/api/stock/products/${String(productId)}/add`,
       toGrocyPurchaseBody(purchase),
+    );
+    return resultOf(answer, stockLogRowsOf);
+  }
+
+  // This method books a transfer of one product. Grocy answers a
+  // `transfer_from` row and a `transfer_to` row for each stock entry that it
+  // moves, all in one transaction.
+  async transfer(
+    productId: number,
+    transfer: Transfer,
+  ): Promise<BookingResult> {
+    const answer = await this.grocy.post(
+      `/api/stock/products/${String(productId)}/transfer`,
+      toGrocyTransferBody(transfer),
     );
     return resultOf(answer, stockLogRowsOf);
   }

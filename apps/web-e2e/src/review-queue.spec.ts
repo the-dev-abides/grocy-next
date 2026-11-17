@@ -9,6 +9,7 @@ import {
   pickOption,
   queueRows,
   removeRows,
+  storedRow,
 } from './pending-scans.js';
 
 // The tests of the review queue screen.
@@ -184,6 +185,47 @@ test('a Consume row shows the fork and knife icon, and its accept shows the cons
   );
   const stored = await listRows(request);
   expect(stored.filter((item) => item.note === note)).toEqual([]);
+});
+
+// The Grocy mock answers the transfer of product 1 with a transfer_from row at
+// the Fridge and a transfer_to row at the Pantry.
+test("a Transfer with no 'to' location needs one, and after the row form sets it, the accept removes the row", async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-transfer-to';
+  await removeRows(request, (row) => row.note === note);
+  const created = await createRow(request, {
+    amount: 1,
+    bookingType: 'transfer',
+    locationId: 1,
+    note,
+    productId: 1,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row.getByRole('img', { name: 'Transfer' })).toBeVisible();
+  await expect(row).toContainText("Needs a 'to' location");
+  await expect(row).toContainText('Fridge → No "to" location');
+  await expect(row.getByRole('button', { name: 'Accept' })).toHaveCount(0);
+
+  await row.getByRole('button', { name: 'Edit' }).click();
+  const dialog = page.getByRole('dialog', {
+    name: 'Coca-Cola Original 330 ml',
+  });
+  await pickOption(dialog, 'To', 'Pantry');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(row).toContainText('Fridge → Pantry');
+  expect(await storedRow(request, created.id)).toMatchObject({
+    toLocationId: 2,
+  });
+
+  await row.getByRole('button', { name: 'Accept' }).click();
+
+  await expect(row).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('1 booked');
+  expect(await storedRow(request, created.id)).toBeUndefined();
 });
 
 test('a reject removes the row', async ({ page, request }) => {

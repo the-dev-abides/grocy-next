@@ -1,4 +1,4 @@
-import type { LookupResult } from '../pending-scan.ts';
+import type { LookupResult } from '../lookup-result.ts';
 import type { NutritionFactsFromLookup } from '../storage/stored-nutrition-facts.ts';
 
 // What a lookup returns for a code that the service holds. It returns the

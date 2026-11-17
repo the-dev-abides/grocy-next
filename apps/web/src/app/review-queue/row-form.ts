@@ -19,6 +19,7 @@ export interface RowForm {
   productGroupId: null | number;
   quantityUnitId: null | number;
   storeId: null | number;
+  toLocationId: null | number;
 }
 
 type FormFacts = Pick<
@@ -32,6 +33,7 @@ type FormFacts = Pick<
   | 'productGroupId'
   | 'quantityUnitId'
   | 'storeId'
+  | 'toLocationId'
 >;
 
 function textOf(value: null | number | string): string {
@@ -50,6 +52,7 @@ export function rowFormOf(scan: FormFacts): RowForm {
     productGroupId: scan.productGroupId,
     quantityUnitId: scan.quantityUnitId,
     storeId: scan.storeId,
+    toLocationId: scan.toLocationId,
   };
 }
 
@@ -71,6 +74,7 @@ export function rowFormBody(form: RowForm): UpdatePendingScan {
     productGroupId: form.productGroupId,
     quantityUnitId: form.quantityUnitId,
     storeId: form.storeId,
+    toLocationId: form.toLocationId,
   };
 }
 

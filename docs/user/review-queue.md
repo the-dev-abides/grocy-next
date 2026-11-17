@@ -36,20 +36,26 @@ Each row and each card starts with the icon of its booking type:
 | Barcode        | Purchase     |
 | Clipboard      | Inventory    |
 | Fork and knife | Consume      |
+| Two arrows     | Transfer     |
 
 A tap on the icon does nothing.
 
+The location of a Transfer shows as "From → To", for example
+`Fridge → Freezer`. A Transfer with no "to" location shows
+`No "to" location` in place of the "to" location.
+
 ## The state of a pending scan
 
-Each pending scan has one of four states. A badge on the row or the card
+Each pending scan has one of five states. A badge on the row or the card
 shows the state.
 
-| State             | Meaning                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `Needs a product` | The code matched no product in Grocy.                     |
-| `Needs a count`   | The Inventory pending scan has no count.                  |
-| `Ready`           | You can accept the pending scan.                          |
-| `Accept failed`   | Grocy refused the last accept. The row shows the message. |
+| State                   | Meaning                                                   |
+| ----------------------- | --------------------------------------------------------- |
+| `Needs a product`       | The code matched no product in Grocy.                     |
+| `Needs a count`         | The Inventory pending scan has no count.                  |
+| `Needs a 'to' location` | The Transfer pending scan has no "to" location.           |
+| `Ready`                 | You can accept the pending scan.                          |
+| `Accept failed`         | Grocy refused the last accept. The row shows the message. |
 
 A row or a card with `Accept failed` has a different background colour.
 
@@ -60,7 +66,7 @@ The filter is above the list. It has three fields:
 - `Location`: the location of the pending scan.
 - `Product group`: the product group of the pending scan. The scan screens
   copy it from the session defaults.
-- `State`: one of the four states.
+- `State`: one of the five states.
 
 The filter changes the pending scans that the list shows. The line above
 the list shows the number of pending scans, the number that the filter
@@ -135,7 +141,8 @@ the form stays open and shows the problem.
 Tap `Edit` to open the full form of one pending scan. The form has every
 field: the amount or the count, the unit, the location, the due date, the
 store, the price and the price type, the product group of a new product,
-and the note. Tap `Save` to keep the changes.
+and the note. On a Transfer, the location is `From`, and the form also has
+`To`, the "to" location. Tap `Save` to keep the changes.
 
 ## The bulk actions
 
@@ -227,6 +234,22 @@ The accept of a Consume pending scan takes the amount out of stock at the
 - A product with a tare weight needs the gross weight, with the container.
 
 The result panel shows the consume and the open.
+
+## The Transfer accept
+
+The accept of a Transfer pending scan moves the amount from the "from"
+location to the "to" location. The amount is in the stock unit of the
+product, unless the pending scan has a different unit.
+
+- A Transfer with no "to" location has no `Accept` button. Tap `Edit`, set
+  `To`, and tap `Save`.
+- Grocy picks the stock entries at the "from" location in its consume order.
+  Grocy applies its freezer rules to the due dates.
+- Grocy cannot transfer a product with a tare weight. The accept fails with
+  the Grocy message.
+
+The result panel shows one `transfer_from` booking and one `transfer_to`
+booking for each stock entry that Grocy moved.
 
 ## The attribution
 
