@@ -61,7 +61,7 @@ export class ReviewQueueTools {
   // them to the service as two arguments, as the controller does.
   @Tool({
     description:
-      'Update one pending scan by its id with a JSON merge patch, and return the pending scan after the update. An update that sets a product also adds the code of the pending scan to that product in Grocy.',
+      'Update one pending scan by its id with a JSON merge patch, and return the pending scan after the update. An update that sets a product also adds the code of the pending scan to that product in Grocy. The booking type can flip between consume and transfer only.',
     inputSchema: toolInputOf(UpdatePendingScanToolInput),
     name: 'update_pending_scan',
     outputSchema: PendingScan.schema,

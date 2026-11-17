@@ -176,7 +176,9 @@ test('a Consume row shows the fork and knife icon, and its accept shows the cons
   });
   await page.goto('/review-queue');
   const row = queueRows(page).filter({ hasText: note });
-  await expect(row.getByRole('img', { name: 'Consume' })).toBeVisible();
+  await expect(
+    row.getByRole('button', { name: 'Consume. Change to Transfer.' }),
+  ).toBeVisible();
 
   await row.getByRole('button', { name: 'Accept' }).click();
 
@@ -242,7 +244,9 @@ test("a Transfer with no 'to' location needs one, and after the row form sets it
   });
   await page.goto('/review-queue');
   const row = queueRows(page).filter({ hasText: note });
-  await expect(row.getByRole('img', { name: 'Transfer' })).toBeVisible();
+  await expect(
+    row.getByRole('button', { name: 'Transfer. Change to Consume.' }),
+  ).toBeVisible();
   await expect(row).toContainText("Needs a 'to' location");
   await expect(row).toContainText('Fridge → No "to" location');
   await expect(row.getByRole('button', { name: 'Accept' })).toHaveCount(0);

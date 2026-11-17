@@ -232,7 +232,7 @@ export function QueueCard({
           className="mt-1"
           onCheckedChange={onToggle}
         />
-        <BookingTypeIcon bookingType={scan.bookingType} size="icon-lg" />
+        <BookingTypeIcon scan={scan} size="icon-lg" onSave={actions.save} />
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1.5 text-base">
             <RowName name={name} scan={scan} />
