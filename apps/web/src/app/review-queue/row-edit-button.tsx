@@ -1,5 +1,4 @@
 import { Pencil } from 'lucide-react';
-import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
@@ -9,9 +8,11 @@ import type { RowActions } from './use-row-actions';
 
 import { PickProductDialog } from './pick-product-dialog';
 import { RowFormDialog } from './row-form-dialog';
+import { useRowDialogs } from './use-row-dialogs';
 
 // The Edit button of a row. It opens the full form of the row. Change the
-// product closes the form and opens the product pick dialog.
+// product closes the form and opens the product pick dialog. Each dialog
+// draws only after its first open.
 export function RowEditButton({
   actions,
   lists,
@@ -25,10 +26,7 @@ export function RowEditButton({
   product: Product | undefined;
   scan: PendingScan;
 }>) {
-  const [dialog, setDialog] = useState<'form' | 'pick' | null>(null);
-  const close = () => {
-    setDialog(null);
-  };
+  const { close, dialog, isDrawn, open } = useRowDialogs<'form' | 'pick'>();
   return (
     <>
       <Button
@@ -37,30 +35,34 @@ export function RowEditButton({
         aria-label="Edit"
         disabled={actions.isBusy}
         onClick={() => {
-          setDialog('form');
+          open('form');
         }}
       >
         <Pencil />
       </Button>
-      <RowFormDialog
-        isOpen={dialog === 'form'}
-        lists={lists}
-        name={name}
-        product={product}
-        scan={scan}
-        onClose={close}
-        onPick={() => {
-          setDialog('pick');
-        }}
-        onSave={actions.save}
-      />
-      <PickProductDialog
-        isOpen={dialog === 'pick'}
-        products={lists.products}
-        scan={scan}
-        onClose={close}
-        onPick={actions.setProduct}
-      />
+      {isDrawn('form') && (
+        <RowFormDialog
+          isOpen={dialog === 'form'}
+          lists={lists}
+          name={name}
+          product={product}
+          scan={scan}
+          onClose={close}
+          onPick={() => {
+            open('pick');
+          }}
+          onSave={actions.save}
+        />
+      )}
+      {isDrawn('pick') && (
+        <PickProductDialog
+          isOpen={dialog === 'pick'}
+          products={lists.products}
+          scan={scan}
+          onClose={close}
+          onPick={actions.setProduct}
+        />
+      )}
     </>
   );
 }
