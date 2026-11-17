@@ -1,4 +1,4 @@
-import { toStockUnit } from './purchase-conversion.ts';
+import { emptyUnitIdOf, toStockUnit } from './purchase-conversion.ts';
 
 // The fixture: the stock unit 2 (Pack), the purchase unit 2, and the
 // conversion 1 Box (unit 3) = 6 Packs in both directions.
@@ -90,5 +90,17 @@ describe('the Purchase amount and price conversion', () => {
         { ...PRODUCT, conversions: [] },
       ),
     ).toEqual({ amount: 3, price: null });
+  });
+});
+
+describe('the unit of a Consume row or a Transfer row with no unit', () => {
+  const product = { consumeUnitId: 4, stockUnitId: 1 };
+
+  it('is the consume unit on a Consume', () => {
+    expect(emptyUnitIdOf('consume', product)).toBe(4);
+  });
+
+  it('is the stock unit on a Transfer', () => {
+    expect(emptyUnitIdOf('transfer', product)).toBe(1);
   });
 });

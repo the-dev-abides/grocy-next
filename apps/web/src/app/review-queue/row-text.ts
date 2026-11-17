@@ -1,5 +1,6 @@
 import type { PendingScan, Product } from '../api/next-api';
 
+import { isSwitchBookingType, type SwitchBookingType } from '../booking-types';
 import { nameOf, transferLocationsText } from '../scan/scan-text';
 
 interface Named {
@@ -12,24 +13,30 @@ type ProductUnits = Pick<
   'consumeUnitId' | 'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
 >;
 
+// The unit of a Consume row or a Transfer row with no unit, as ADR 0010
+// decided: the consume unit on a Consume, and the stock unit on a Transfer.
+export function emptyUnitIdOf(
+  bookingType: SwitchBookingType,
+  product: Pick<Product, 'consumeUnitId' | 'stockUnitId'>,
+): number {
+  return bookingType === 'consume'
+    ? product.consumeUnitId
+    : product.stockUnitId;
+}
+
 // The unit of a row with no scanned unit, as ADR 0010 decided: the purchase
-// unit on a Purchase, the consume unit on a Consume, and the stock unit on an
-// Inventory and a Transfer.
+// unit on a Purchase, the stock unit on an Inventory, and on a Consume and a
+// Transfer the unit that `emptyUnitIdOf` gives.
 function defaultUnitIdOf(
   bookingType: PendingScan['bookingType'],
   product: Omit<ProductUnits, 'stockAmount'>,
 ): number {
-  switch (bookingType) {
-    case 'consume': {
-      return product.consumeUnitId;
-    }
-    case 'purchase': {
-      return product.purchaseUnitId;
-    }
-    default: {
-      return product.stockUnitId;
-    }
+  if (isSwitchBookingType(bookingType)) {
+    return emptyUnitIdOf(bookingType, product);
   }
+  return bookingType === 'purchase'
+    ? product.purchaseUnitId
+    : product.stockUnitId;
 }
 
 const defaultUnitWords: Readonly<Record<PendingScan['bookingType'], string>> = {

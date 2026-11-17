@@ -34,7 +34,11 @@ import {
 } from './consume-accept.ts';
 import { isNoChange } from './inventory-change.ts';
 import { PendingScansService } from './pending-scans.service.ts';
-import { toStockAmount, toStockUnit } from './purchase-conversion.ts';
+import {
+  emptyUnitIdOf,
+  toStockAmount,
+  toStockUnit,
+} from './purchase-conversion.ts';
 import { readActiveProduct } from './read-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
@@ -161,7 +165,7 @@ export class BookingsService {
       row,
       product,
       positiveAmountOf(row, 'A Consume'),
-      product.consumeUnitId,
+      'consume',
     );
     const entries = await this.stock.readConsumeStockEntries(productId);
     const products = await readConsumeProducts(
@@ -216,12 +220,7 @@ export class BookingsService {
     const toLocationId = toLocationIdOf(row);
     const entered = positiveAmountOf(row, 'A Transfer');
     const product = await readActiveProduct(this.grocy, productId);
-    const amount = await this.stockAmountOf(
-      row,
-      product,
-      entered,
-      product.stockUnitId,
-    );
+    const amount = await this.stockAmountOf(row, product, entered, 'transfer');
     const result = await this.stock.transfer(productId, {
       amount,
       fromLocationId: row.locationId,
@@ -233,14 +232,15 @@ export class BookingsService {
 
   // The amount of a Consume or a Transfer in the stock unit. The conversion
   // uses the resolved conversions of the product. A row with no unit has the
-  // amount in the given unit.
+  // amount in the unit that `emptyUnitIdOf` gives.
   private async stockAmountOf(
     row: StoredPendingScan,
     product: ProductDetails,
     amount: number,
-    emptyUnitId: number,
+    bookingType: 'consume' | 'transfer',
   ): Promise<number> {
-    return toStockAmount(amount, row.quantityUnitId ?? emptyUnitId, {
+    const unitId = row.quantityUnitId ?? emptyUnitIdOf(bookingType, product);
+    return toStockAmount(amount, unitId, {
       conversions: await this.stock.readResolvedConversions(product.id),
       stockUnitId: product.stockUnitId,
     });

@@ -2,6 +2,7 @@ import type { PendingScan, Product } from '../api/next-api';
 import type { PlanEntry } from './stock-entries';
 
 import { isSwitchBookingType, type SwitchBookingType } from '../booking-types';
+import { emptyUnitIdOf } from './row-text';
 import { consumeOrder, entriesOf, isOfSubProduct } from './stock-entries';
 
 // One stock entry that the accept takes from or changes.
@@ -55,15 +56,14 @@ export function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
+// A Consume row or a Transfer row with an amount.
+type PlannedRow = PlanRow & { amount: number; bookingType: SwitchBookingType };
+
 // The factor from the unit of the row to the stock unit, or null when the
 // product has no resolved conversion between them. The empty unit is the
-// consume unit on a Consume and the stock unit on a Transfer.
-function stockFactorOf(row: PlanRow, product: PlanProduct): null | number {
-  const unitId =
-    row.quantityUnitId ??
-    (row.bookingType === 'consume'
-      ? product.consumeUnitId
-      : product.stockUnitId);
+// unit that `emptyUnitIdOf` gives.
+function stockFactorOf(row: PlannedRow, product: PlanProduct): null | number {
+  const unitId = row.quantityUnitId ?? emptyUnitIdOf(row.bookingType, product);
   if (unitId === product.stockUnitId) {
     return 1;
   }
@@ -80,7 +80,7 @@ function stockFactorOf(row: PlanRow, product: PlanProduct): null | number {
 // weight product is the gross weight, so Grocy takes the difference to the
 // stock plus the tare weight.
 function takenAmountOf(
-  row: PlanRow & { amount: number },
+  row: PlannedRow,
   product: PlanProduct,
   entries: readonly PlanEntry[],
 ): null | number {
@@ -151,9 +151,7 @@ function lineOf(
   return { amount, entry, kind: 'part', opensRest: canOpen };
 }
 
-function isPlanned(
-  row: PlanRow,
-): row is PlanRow & { amount: number; bookingType: SwitchBookingType } {
+function isPlanned(row: PlanRow): row is PlannedRow {
   return row.amount !== null && isSwitchBookingType(row.bookingType);
 }
 

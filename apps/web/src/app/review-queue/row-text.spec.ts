@@ -1,5 +1,6 @@
 import { bookingTypeLabel } from '../booking-types';
 import {
+  emptyUnitIdOf,
   amountText,
   defaultUnitLabel,
   locationText,
@@ -226,5 +227,14 @@ describe('the name of a review queue row', () => {
         products,
       ),
     ).toBe('4011');
+  });
+});
+
+describe('the unit of a Consume row or a Transfer row with no unit', () => {
+  const product = { consumeUnitId: 4, stockUnitId: 1 };
+
+  it('is the consume unit on a Consume and the stock unit on a Transfer', () => {
+    expect(emptyUnitIdOf('consume', product)).toBe(4);
+    expect(emptyUnitIdOf('transfer', product)).toBe(1);
   });
 });
