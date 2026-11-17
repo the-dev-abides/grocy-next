@@ -30,8 +30,8 @@ export function ConsumeTransferScanPage() {
             onReject={() => {
               session.reject(scan);
             }}
-            onWriteInName={(writeInName) => {
-              session.update(scan, { writeInName });
+            onUpdate={(patch) => {
+              session.update(scan, patch);
             }}
           />
         );

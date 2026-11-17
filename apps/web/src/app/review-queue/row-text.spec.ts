@@ -1,6 +1,7 @@
 import {
   amountText,
   bookingTypeLabel,
+  defaultUnitLabel,
   locationText,
   rowName,
   unitOf,
@@ -73,6 +74,20 @@ describe('the words of a review queue row', () => {
         quantityUnits,
       ),
     ).toBe('Pack');
+  });
+
+  // The unit select of the row form names the default unit of the booking
+  // type, with the unit of the product when the product read has answered.
+  it('names the default unit of each booking type in the unit select', () => {
+    expect(defaultUnitLabel('purchase', product, quantityUnits)).toBe(
+      'Purchase unit (Pack)',
+    );
+    expect(defaultUnitLabel('consume', product, quantityUnits)).toBe(
+      'Consume unit (Can)',
+    );
+    expect(defaultUnitLabel('transfer', undefined, quantityUnits)).toBe(
+      'Stock unit',
+    );
   });
 
   it('names no unit while the product read has not answered', () => {

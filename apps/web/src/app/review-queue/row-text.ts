@@ -24,7 +24,7 @@ export const bookingTypeLabel: Readonly<
 // The unit of a row with no scanned unit, as ADR 0010 decided: the purchase
 // unit on a Purchase, the consume unit on a Consume, and the stock unit on an
 // Inventory and a Transfer.
-export function defaultUnitIdOf(
+function defaultUnitIdOf(
   bookingType: PendingScan['bookingType'],
   product: Omit<ProductUnits, 'stockAmount'>,
 ): number {
@@ -39,6 +39,28 @@ export function defaultUnitIdOf(
       return product.stockUnitId;
     }
   }
+}
+
+const defaultUnitWords: Readonly<Record<PendingScan['bookingType'], string>> = {
+  consume: 'Consume unit',
+  inventory: 'Stock unit',
+  purchase: 'Purchase unit',
+  transfer: 'Stock unit',
+};
+
+// The words of the empty unit in the unit select of a row form: the default
+// unit of the booking type, with the name of the unit of the product.
+export function defaultUnitLabel(
+  bookingType: PendingScan['bookingType'],
+  product: Omit<ProductUnits, 'stockAmount'> | undefined,
+  quantityUnits: readonly Named[] | undefined,
+): string {
+  const words = defaultUnitWords[bookingType];
+  if (product === undefined) {
+    return words;
+  }
+  const name = nameOf(quantityUnits, defaultUnitIdOf(bookingType, product), '');
+  return name === '' ? words : `${words} (${name})`;
 }
 
 // The unit of the amount of a row, as ADR 0010 decided. An Inventory amount
