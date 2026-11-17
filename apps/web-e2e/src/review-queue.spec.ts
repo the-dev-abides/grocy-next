@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, type Response, test } from '@playwright/test';
 import {
   createRow,
   GROCY_MOCK_URL,
@@ -6,6 +6,7 @@ import {
   LOOKUP_TIMEOUT_MS,
   MOCK_DUE_DATE,
   OPEN_FACTS_MOCK_URL,
+  PENDING_SCANS,
   pickOption,
   queueRows,
   removeRows,
@@ -103,18 +104,21 @@ test('the table shows the rows of both booking types, most recent at the top, an
     ),
   ).toBeVisible();
 
-  // The badge counts every pending scan. Other tests add and remove rows at
-  // the same time, so the check retries until the badge and the API agree.
-  const badge = page
-    .getByRole('complementary', { name: 'Sidebar' })
-    .getByTitle('Pending scans');
-  await expect
-    .poll(async () => {
-      const rows = await listRows(request);
-      const text = await badge.textContent();
-      return text === String(rows.length);
-    })
-    .toBe(true);
+  // The badge counts every pending scan, and the table with no filter shows
+  // every pending scan. Other tests add and remove rows at the same time, so
+  // the count of the API changes between two reads. The badge and the table
+  // show one answer of the pending scan list. Thus the check reads the badge
+  // and the table rows in one step on the page, and they must agree.
+  const counts = await page.locator('body').evaluate((body) => {
+    const badge = body.querySelector(
+      ':scope aside[aria-label="Sidebar"] [title="Pending scans"]',
+    );
+    const tableRows = body.querySelectorAll(
+      ':scope table[aria-label="Pending scans"] tbody tr',
+    );
+    return { badge: badge?.textContent, rows: String(tableRows.length) };
+  });
+  expect(counts.badge).toBe(counts.rows);
 
   await removeRows(request, (row) =>
     [purchase.id, inventory.id].includes(row.id),
@@ -203,6 +207,84 @@ test('a reject removes the row', async ({ page, request }) => {
   await expect(row).toHaveCount(0);
   const stored = await listRows(request);
   expect(stored.filter((item) => item.note === note)).toEqual([]);
+});
+
+// The browser holds the answer of the next poll of the pending scan list until
+// the answer of the change arrives. The API reads the list when the poll
+// starts, so the held answer does not have the change. The function returns
+// when the API has read the list for the held poll.
+async function holdNextPollUntil(
+  page: Page,
+  isChange: (response: Response) => boolean,
+): Promise<void> {
+  const changed = page.waitForResponse(isChange);
+  let isHeld = false;
+  let isRead = false;
+  await page.route(`**${PENDING_SCANS}`, async (route) => {
+    if (isHeld || route.request().method() !== 'GET') {
+      await route.continue();
+      return;
+    }
+    isHeld = true;
+    const response = await route.fetch();
+    isRead = true;
+    await changed;
+    await route.fulfill({ response });
+  });
+  await expect.poll(() => isRead).toBe(true);
+}
+
+// The next poll comes three seconds after the held answer. The list must load
+// again after the held answer, so the change shows before that poll.
+const BEFORE_NEXT_POLL_MS = 2000;
+
+test('a reject while a poll is on the way removes the row before the next poll', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-reject-during-poll';
+  await removeRows(request, (row) => row.note === note);
+  await createRow(request, { bookingType: 'purchase', note, productId: 2 });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row).toBeVisible();
+  await holdNextPollUntil(
+    page,
+    (response) => response.request().method() === 'DELETE',
+  );
+
+  await row.getByRole('button', { name: 'Reject' }).click();
+
+  await expect(row).toHaveCount(0, { timeout: BEFORE_NEXT_POLL_MS });
+});
+
+test('a failed accept while a poll is on the way shows the failure before the next poll', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-failed-accept-during-poll';
+  await removeRows(request, (row) => row.note === note);
+  // The Grocy mock refuses a purchase into the inactive location 4 with no
+  // due date.
+  const created = await createRow(request, {
+    bookingType: 'purchase',
+    locationId: 4,
+    note,
+    productId: 3,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row.getByRole('button', { name: 'Accept' })).toBeVisible();
+  await holdNextPollUntil(page, (response) =>
+    response.url().endsWith('/api/v2/bookings'),
+  );
+
+  await row.getByRole('button', { name: 'Accept' }).click();
+
+  await expect(row).toContainText('Accept failed', {
+    timeout: BEFORE_NEXT_POLL_MS,
+  });
+  await removeRows(request, (item) => item.id === created.id);
 });
 
 test('a failed accept keeps the row with the red tint, the Grocy message, and Accept again', async ({
