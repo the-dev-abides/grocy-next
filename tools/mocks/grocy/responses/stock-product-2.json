@@ -35,7 +35,7 @@
     "auto_reprint_stock_label": 0,
     "quick_open_amount": 1,
     "qu_id_price": 2,
-    "disable_open": 0,
+    "disable_open": 1,
     "default_purchase_price_type": 1
   },
   "product_barcodes": [
