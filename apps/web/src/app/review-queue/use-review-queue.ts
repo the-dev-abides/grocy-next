@@ -43,7 +43,8 @@ export interface ReviewQueue {
 // The review queue. It holds every pending scan of both booking types, most
 // recent at the top, and the lists that name a row. It polls the list while the
 // screen is open. An accept and a reject refetch the list, so the row changes
-// before the next poll.
+// before the next poll. The cache tags of `cache-tags.ts` load the list again
+// when a poll was on the way during the change.
 export function useReviewQueue(): ReviewQueue {
   const pendingScans = useListPendingScansQuery(undefined, {
     pollingInterval: POLL_MS,
