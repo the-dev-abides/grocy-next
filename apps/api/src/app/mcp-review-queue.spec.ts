@@ -288,6 +288,35 @@ describe('the review queue tools of the MCP server', () => {
     expect(await readWithApi(created.id)).toEqual(result.structuredContent);
   });
 
+  // The stock entry 69131a2b3c84c is the open can of product 1 at the
+  // Pantry. The update sets it, and a later update clears it with null.
+  it('sets and clears the stock entry of a Consume pending scan with update_pending_scan', async () => {
+    const created = await createWithApi({
+      bookingType: 'consume',
+      locationId: 2,
+      productId: 1,
+    });
+
+    const set = await client.callTool({
+      arguments: { id: created.id, stockEntryId: '69131a2b3c84c' },
+      name: 'update_pending_scan',
+    });
+
+    expect(set.isError).not.toBe(true);
+    expect(set.structuredContent).toMatchObject({
+      id: created.id,
+      stockEntryId: '69131a2b3c84c',
+    });
+    expect(await readWithApi(created.id)).toEqual(set.structuredContent);
+
+    const cleared = await client.callTool({
+      arguments: { id: created.id, stockEntryId: null },
+      name: 'update_pending_scan',
+    });
+
+    expect(cleared.structuredContent).toMatchObject({ stockEntryId: null });
+  });
+
   // The code is in no product barcode of the fixture household, so the row
   // has no product.
   it('refuses the accept of a pending scan with no product with the no-product problem', async () => {
