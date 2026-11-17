@@ -25,12 +25,6 @@ import {
 // time. The file lock stops the other browsers. The block runs its tests one
 // after the other in one worker. Each test first removes the Consume rows and
 // the Transfer rows of both products.
-//
-// The review queue shows every row of every test. On a busy host, the first
-// drawing of the table and the product reads can take more than 5 s. That is
-// the default time of an expectation. Thus the first check of the stock entry
-// lines of a test waits longer.
-const FIRST_LINES = { timeout: 15_000 };
 
 const DUE = '(25 Nov|Nov 25)';
 
@@ -79,7 +73,6 @@ test.describe('the Consume rows of product 5 and product 6', () => {
       new RegExp(
         String.raw`^1 Pack from a new pack in Fridge, due ${DUE}\. Opens the rest\.$`,
       ),
-      FIRST_LINES,
     );
     const newerRow = queueRows(page).filter({ hasText: `${note}-newer` });
     const lines = newerRow.getByRole('list', { name: 'Stock entries' });
@@ -126,13 +119,10 @@ test.describe('the Consume rows of product 5 and product 6', () => {
 
     const row = queueRows(page).filter({ hasText: note });
     const lines = row.getByRole('list', { name: 'Stock entries' });
-    await expect(lines.getByRole('listitem')).toHaveText(
-      [
-        new RegExp(`^3 Pack, all of a sealed pack in Fridge, due ${DUE}$`),
-        'Grocy has only 3 Pack for this Consume. The accept fails.',
-      ],
-      FIRST_LINES,
-    );
+    await expect(lines.getByRole('listitem')).toHaveText([
+      new RegExp(`^3 Pack, all of a sealed pack in Fridge, due ${DUE}$`),
+      'Grocy has only 3 Pack for this Consume. The accept fails.',
+    ]);
     await removeYoghurtRows(request);
   });
 
@@ -163,13 +153,10 @@ test.describe('the Consume rows of product 5 and product 6', () => {
 
     const child = queueRows(page).filter({ hasText: `${note}-child` });
     const lines = child.getByRole('list', { name: 'Stock entries' });
-    await expect(lines.getByRole('listitem')).toHaveText(
-      [
-        new RegExp(`^2 Pack from the opened pack in Fridge, due ${DUE}$`),
-        'Grocy has only 2 Pack for this Consume. The accept fails.',
-      ],
-      FIRST_LINES,
-    );
+    await expect(lines.getByRole('listitem')).toHaveText([
+      new RegExp(`^2 Pack from the opened pack in Fridge, due ${DUE}$`),
+      'Grocy has only 2 Pack for this Consume. The accept fails.',
+    ]);
     await removeYoghurtRows(request);
   });
 
@@ -189,7 +176,31 @@ test.describe('the Consume rows of product 5 and product 6', () => {
     const row = rows.first();
     await expect(row).toContainText('Yoghurt');
     await expect(row).toContainText('Consume from Fridge');
-    await expect(row).toContainText('Opens a new pack', FIRST_LINES);
+    await expect(row).toContainText('Opens a new pack');
+    await removeYoghurtRows(request);
+  });
+
+  // The stock entry Grocycode of stock entry 69131a2b3cd91 names its 3 packs.
+  // A Consume of it takes the whole stock entry. The repeat scan merges and
+  // adds 3 packs again, so the pill of the banner shows "+3", not "+1".
+  test('the pill of a repeat scan of a stock entry Grocycode shows the amount that the merge added', async ({
+    page,
+    request,
+  }) => {
+    const code = 'grcy:p:6:69131a2b3cd91';
+    await removeYoghurtRows(request);
+    await page.goto('/scan/consume-transfer');
+    await typeCode(page, code);
+    const rows = sessionRows(page);
+    await expect(rows).toHaveCount(1, { timeout: 3000 });
+    await expect(rows.first()).toContainText('3 Pack');
+
+    await typeCode(page, code);
+
+    const banner = page.getByRole('status');
+    await expect(banner).toContainText('Consume · 6 Pack');
+    await expect(banner).toContainText('+3');
+    await expect(rows).toHaveCount(1);
     await removeYoghurtRows(request);
   });
 });
@@ -215,9 +226,7 @@ test('an accept loads the product read of the booked product again', async ({
   }
   await page.goto('/review-queue');
   const kept = queueRows(page).filter({ hasText: `${note}-kept` });
-  await expect(kept.getByRole('list', { name: 'Stock entries' })).toBeVisible(
-    FIRST_LINES,
-  );
+  await expect(kept.getByRole('list', { name: 'Stock entries' })).toBeVisible();
 
   const productRead = page.waitForResponse((response) => {
     const url = new URL(response.url());

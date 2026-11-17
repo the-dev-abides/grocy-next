@@ -43,16 +43,42 @@ function withBookingType(scan: PendingScan, detail: string): string {
   return scan.bookingType === 'transfer' ? `Transfer · ${detail}` : detail;
 }
 
+// What the session knew of the row before the create call: whether it held
+// the row, and the amount of the row in the last list. The amount is null
+// when the last list did not have the row.
+export interface PreviousRow {
+  previousAmount: null | number;
+  wasInSession: boolean;
+}
+
+const NO_PREVIOUS_ROW: PreviousRow = {
+  previousAmount: null,
+  wasInSession: false,
+};
+
+// The pill of a repeat: the amount that the merge added. A stock entry
+// Grocycode adds the amount of the stock entry, so the pill is not always
+// plus one. The rounding removes the floating point noise of a fraction. With
+// no old amount, the added amount is not known, so there is no pill.
+function pillOf(scan: PendingScan, previousAmount: null | number) {
+  if (previousAmount === null) {
+    return {};
+  }
+  const added = Number(((scan.amount ?? 0) - previousAmount).toFixed(6));
+  return { pill: `+${String(added)}` };
+}
+
 // The banner of one create call: the words for an unknown code, else the name
 // of the product. A Purchase row and a Consume row show the amount, and a
-// repeat adds the plus one pill. An Inventory row has no amount on the scan
-// screen, so it shows the code. A repeat says that the product is in the list.
+// repeat adds the pill with the added amount. An Inventory row has no amount
+// on the scan screen, so it shows the code. A repeat says that the product is
+// in the list.
 export function bannerOf(
   scan: PendingScan,
   lists: PendingScanRowLists,
-  wasInSession = false,
+  previous: PreviousRow = NO_PREVIOUS_ROW,
 ): ScanBanner {
-  const kind = outcomeOf(scan, wasInSession);
+  const kind = outcomeOf(scan, previous.wasInSession);
   const code = scan.code ?? '';
   if (kind === 'unknown') {
     return {
@@ -68,6 +94,6 @@ export function bannerOf(
   }
   const detail = withBookingType(scan, amountText(scan, lists));
   return kind === 'repeat'
-    ? { detail, kind, pill: '+1', title }
+    ? { detail, kind, ...pillOf(scan, previous.previousAmount), title }
     : { detail, kind, title };
 }

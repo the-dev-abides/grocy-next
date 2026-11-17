@@ -1,4 +1,6 @@
-import type { Booking, Product } from './next-api';
+import { copyWithStructuralSharing } from '@reduxjs/toolkit/query';
+
+import type { Booking, ListPendingScansResponse, Product } from './next-api';
 
 import { nextApi } from './next-api';
 
@@ -37,6 +39,32 @@ export function bookingTagsOf(booking: Booking): StockTag[] {
   ];
 }
 
+// The merge of a new pending scan list into the list in the cache. The list
+// comes most recent first, so a new row at the top moves every other row one
+// place down. The default structural sharing of RTK Query compares the rows
+// place by place. It then gave every row a new object, and the review queue
+// drew every row again. This merge compares each row with the cached row of
+// the same id. A row that did not change keeps its object. When no row
+// changed, the merge changes nothing, so the list keeps its object too.
+export function mergePendingScans(
+  cached: ListPendingScansResponse,
+  response: ListPendingScansResponse,
+): void {
+  const cachedById = new Map(cached.items.map((row) => [row.id, row]));
+  const items = response.items.map((row) => {
+    const old = cachedById.get(row.id);
+    return old !== undefined && copyWithStructuralSharing(old, row) === old
+      ? old
+      : row;
+  });
+  const isSame =
+    items.length === cached.items.length &&
+    items.every((row, index) => row === cached.items[index]);
+  if (!isSame) {
+    cached.items = items;
+  }
+}
+
 // The cache tags of the API slice.
 // The code generator writes no tags, so this file adds them to the endpoints.
 //
@@ -67,7 +95,10 @@ export const cachedApi = nextApi.enhanceEndpoints({
       providesTags: (product) =>
         product === undefined ? [] : productTagsOf(product),
     },
-    listPendingScans: { providesTags: ['PendingScan'] },
+    listPendingScans: {
+      merge: mergePendingScans,
+      providesTags: ['PendingScan'],
+    },
     updatePendingScan: { invalidatesTags: ['PendingScan'] },
   },
 });

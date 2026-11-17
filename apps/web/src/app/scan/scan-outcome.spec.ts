@@ -100,7 +100,7 @@ describe('the banner of a create call', () => {
       bannerOf(
         row({ amount: null, bookingType: 'inventory', productId: 1 }),
         lists,
-        true,
+        { previousAmount: null, wasInSession: true },
       ),
     ).toEqual({
       detail: 'Already in the list',
@@ -133,6 +133,7 @@ describe('the banner of a create call', () => {
           scannedAt: '2026-11-11T10:00:05.000Z',
         }),
         lists,
+        { previousAmount: 1, wasInSession: true },
       ),
     ).toEqual({
       detail: 'Consume · 2 Can',
@@ -170,6 +171,7 @@ describe('the banner of a create call', () => {
           scannedAt: '2026-11-11T10:00:05.000Z',
         }),
         lists,
+        { previousAmount: 1, wasInSession: true },
       ),
     ).toEqual({
       detail: '2 Can',
@@ -184,7 +186,63 @@ describe('the banner of a create call', () => {
       bannerOf(
         row({ amount: 2, code: '4011', scannedAt: '2026-11-11T10:00:05.000Z' }),
         lists,
+        { previousAmount: 1, wasInSession: true },
       ),
     ).toEqual({ detail: '2', kind: 'repeat', pill: '+1', title: '4011' });
+  });
+
+  it('shows the amount that the merge added for a stock entry Grocycode', () => {
+    expect(
+      bannerOf(
+        row({
+          amount: 3,
+          bookingType: 'consume',
+          code: 'grcy:p:1:69131a2b3c84c',
+          productId: 1,
+          quantityUnitId: 1,
+          scannedAt: '2026-11-11T10:00:05.000Z',
+        }),
+        lists,
+        { previousAmount: 1, wasInSession: true },
+      ),
+    ).toEqual({
+      detail: 'Consume · 3 Can',
+      kind: 'repeat',
+      pill: '+2',
+      title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('shows the added part of an amount with a fraction', () => {
+    expect(
+      bannerOf(
+        row({
+          amount: 1.3,
+          productId: 1,
+          quantityUnitId: 1,
+          scannedAt: '2026-11-11T10:00:05.000Z',
+        }),
+        lists,
+        { previousAmount: 1.2, wasInSession: true },
+      ),
+    ).toMatchObject({ pill: '+0.1' });
+  });
+
+  it('shows no pill for a repeat when the old amount is not known', () => {
+    expect(
+      bannerOf(
+        row({
+          amount: 2,
+          productId: 1,
+          quantityUnitId: 1,
+          scannedAt: '2026-11-11T10:00:05.000Z',
+        }),
+        lists,
+      ),
+    ).toEqual({
+      detail: '2 Can',
+      kind: 'repeat',
+      title: 'Coca-Cola Original 330 ml',
+    });
   });
 });
