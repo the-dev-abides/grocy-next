@@ -168,24 +168,6 @@ describe('the Consume pending scans of the Next API', () => {
     });
   });
 
-  // TEMPORARY: ticket #143 builds the Consume accept and removes this test.
-  it('refuses the accept of a Consume pending scan with the validation problem', async () => {
-    const row = await createAndRead({
-      bookingType: 'consume',
-      code: '5449000000996',
-    });
-    const response = await fetch(`${baseUrl}/api/v2/bookings`, {
-      body: JSON.stringify({ pendingScanId: row.id }),
-      headers: { 'content-type': 'application/json' },
-      method: 'POST',
-    });
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({
-      type: '/problems/validation',
-    });
-    expect(await list()).toHaveLength(1);
-  });
-
   it('describes the consume booking type and the three new fields in the OpenAPI document', async () => {
     const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
     const document = (await response.json()) as {

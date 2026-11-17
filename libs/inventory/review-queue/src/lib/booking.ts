@@ -41,12 +41,16 @@ export type StockLogRowItem = z.infer<typeof stockLogRowSchema>;
 
 // The booking resource: the result of one accept, with the stock log rows
 // of the Grocy transaction. The transaction id is null and the list is
-// empty when the accept found no change.
+// empty when the accept found no change. The accept of a Consume can also
+// open the rest of a stock entry, as ADR 0017 decided. The list then holds
+// the rows of the open after the rows of the consume, and the transaction id
+// is the transaction of the consume.
 const bookingSchema = z
   .strictObject({
-    bookings: z
-      .array(stockLogRowSchema)
-      .meta({ description: 'The stock log rows of the transaction.' }),
+    bookings: z.array(stockLogRowSchema).meta({
+      description:
+        'The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction.',
+    }),
     bookingType: z
       .enum(BOOKING_TYPES)
       .meta({ description: 'The booking that the accept made.' }),
@@ -55,7 +59,8 @@ const bookingSchema = z
       .meta({ description: 'The id of the accepted pending scan.' }),
     productId: z.int().meta({ description: 'The id of the product.' }),
     transactionId: z.string().nullable().meta({
-      description: 'The id of the Grocy transaction, or null on no change.',
+      description:
+        'The id of the Grocy transaction, or null on no change. On a Consume, it is the transaction of the consume, not of the open.',
     }),
   })
   .meta({ id: 'Booking' });

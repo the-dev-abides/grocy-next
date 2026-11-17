@@ -2407,7 +2407,7 @@
             "items": {
               "$ref": "#/components/schemas/StockLogRow"
             },
-            "description": "The stock log rows of the transaction."
+            "description": "The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction."
           },
           "bookingType": {
             "type": "string",
@@ -2427,7 +2427,7 @@
             "description": "The id of the product."
           },
           "transactionId": {
-            "description": "The id of the Grocy transaction, or null on no change.",
+            "description": "The id of the Grocy transaction, or null on no change. On a Consume, it is the transaction of the consume, not of the open.",
             "type": "string",
             "nullable": true
           }
