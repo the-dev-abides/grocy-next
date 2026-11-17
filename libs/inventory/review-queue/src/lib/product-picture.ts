@@ -6,8 +6,8 @@ import type {
 import { GrocyClient } from '@grocy-next/inventory-products';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import type { LookupResult } from './lookup-result.ts';
 import type { LookupProvider } from './lookup/lookup-provider.ts';
-import type { LookupResult } from './pending-scan.ts';
 
 import { LOOKUP_PROVIDER } from './lookup/lookup-provider.ts';
 

@@ -23,9 +23,10 @@ type AmountFields = Pick<
   'amount' | 'price' | 'priceType' | 'quantityUnitId' | 'storeId'
 >;
 
-// The defaults of a Consume pending scan that the server reads from Grocy: the
-// amount and its unit, and the "from" location.
-export type ConsumeFields = Pick<
+// The defaults of a Consume or a Transfer pending scan that the server reads
+// from Grocy, as the Grocy form of the booking type sets them: the amount and
+// its unit, and the "from" location.
+export type FormDefaults = Pick<
   PendingScanToStore,
   'amount' | 'locationId' | 'quantityUnitId'
 >;
@@ -117,9 +118,9 @@ function purchaseFields(
 
 // An Inventory pending scan takes none of the amount, the unit, the price,
 // and the store from the product barcode. The amount stays null until the
-// review queue sets it. A Consume pending scan takes the price and the store
-// of the body only, because they do not apply to a Consume. The row keeps
-// them.
+// review queue sets it. A Consume and a Transfer pending scan take the price
+// and the store of the body only, because they do not apply to them. The row
+// keeps them.
 function bodyAmountFields(body: CreatePendingScan): AmountFields {
   return {
     amount: body.amount ?? null,
@@ -133,26 +134,26 @@ function bodyAmountFields(body: CreatePendingScan): AmountFields {
 function amountFields(
   body: CreatePendingScan,
   match: null | ProductMatch,
-  consume: ConsumeFields | null,
-): AmountFields | (AmountFields & ConsumeFields) {
+  defaults: FormDefaults | null,
+): AmountFields | (AmountFields & FormDefaults) {
   if (body.bookingType === 'purchase') {
     return purchaseFields(body, match);
   }
-  return consume === null
+  return defaults === null
     ? bodyAmountFields(body)
-    : { ...bodyAmountFields(body), ...consume };
+    : { ...bodyAmountFields(body), ...defaults };
 }
 
 // This function builds the row of a pending scan from the create body and the
-// product that the code resolved to. A Consume also takes the defaults that
-// the server read from Grocy. The function also uses the time of the create,
+// product that the code resolved to. A Consume and a Transfer also take the
+// defaults that the server read from Grocy. The function also uses the time of the create,
 // as RFC 3339 text in UTC. The row stores the code as scanned. A value from
 // the body wins over a product barcode default.
 export function pendingScanToStore(
   body: CreatePendingScan,
   match: null | ProductMatch,
   now: string,
-  consume: ConsumeFields | null = null,
+  defaults: FormDefaults | null = null,
 ): PendingScanToStore {
   return {
     ...bodyFields(body),
@@ -164,6 +165,6 @@ export function pendingScanToStore(
     productBarcodeId: null,
     scannedAt: now,
     updatedAt: now,
-    ...amountFields(body, match, consume),
+    ...amountFields(body, match, defaults),
   };
 }

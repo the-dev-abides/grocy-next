@@ -197,6 +197,28 @@ describe('the review queue tools of the MCP server', () => {
     );
   });
 
+  // The Transfer of a product with no code takes the defaults of the Grocy
+  // transfer form: the amount one, the empty unit, and the default location
+  // of the product, the Fridge, where product 1 has stock.
+  it('creates a Transfer pending scan with the defaults of the Grocy transfer form', async () => {
+    const result = await client.callTool({
+      arguments: { bookingType: 'transfer', productId: 1, toLocationId: 2 },
+      name: 'create_pending_scan',
+    });
+
+    expect(result.isError).not.toBe(true);
+    const created = result.structuredContent as PendingScanBody;
+    expect(created).toMatchObject({
+      amount: 1,
+      bookingType: 'transfer',
+      locationId: 1,
+      productId: 1,
+      quantityUnitId: null,
+      toLocationId: 2,
+    });
+    expect(await readWithApi(created.id)).toEqual(created);
+  });
+
   it('reads one pending scan by its id', async () => {
     const created = await createWithApi({
       bookingType: 'purchase',
@@ -355,6 +377,35 @@ describe('the review queue tools of the MCP server', () => {
       pendingScanId: created.id,
       productId: 1,
       transactionId: '69131a2b3cf01',
+    });
+  });
+
+  // The Grocy mock answers the transfer of product 1 with a transfer_from row
+  // at the Fridge and a transfer_to row at the Pantry.
+  it('accepts a Transfer pending scan and returns the transfer bookings', async () => {
+    const created = await createWithApi({
+      amount: 1,
+      bookingType: 'transfer',
+      locationId: 1,
+      productId: 1,
+      toLocationId: 2,
+    });
+
+    const result = await client.callTool({
+      arguments: { pendingScanId: created.id },
+      name: 'create_booking',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      bookings: [
+        { amount: -1, locationId: 1, transactionType: 'transfer_from' },
+        { amount: 1, locationId: 2, transactionType: 'transfer_to' },
+      ],
+      bookingType: 'transfer',
+      pendingScanId: created.id,
+      productId: 1,
+      transactionId: '69131a2b3cf23',
     });
   });
 

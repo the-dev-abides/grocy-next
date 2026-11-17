@@ -64,14 +64,14 @@ export class PendingScansService {
   // a row that the worker already took. A repeat Inventory scan writes
   // nothing and returns the open row. A lookup result is never in the
   // create response. A product id in the body must name an active product,
-  // else the create is the unknown-id problem. A Consume also reads the
-  // defaults of the Grocy consume form.
+  // else the create is the unknown-id problem. A Consume and a Transfer also
+  // read the defaults of the Grocy form of the booking type.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
   ): Promise<CreateResult> {
-    const { consume, match } = await this.defaults.readCreate(body);
-    const row = pendingScanToStore(body, match, now(), consume);
+    const { defaults, match } = await this.defaults.readCreate(body);
+    const row = pendingScanToStore(body, match, now(), defaults);
     const result = await this.pendingScans.manager.transaction(
       async (manager) => {
         const target =

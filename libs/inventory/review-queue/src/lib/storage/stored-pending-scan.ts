@@ -2,7 +2,8 @@ import type { ValueTransformer } from 'typeorm';
 
 import { EntitySchema } from 'typeorm';
 
-import type { BookingType, LookupResult, PriceType } from '../pending-scan.ts';
+import type { LookupResult } from '../lookup-result.ts';
+import type { BookingType, PriceType } from '../pending-scan.ts';
 
 // One pending scan as the Grocy Next storage holds it. The shape is the pending
 // scan of the Next API. A timestamp is RFC 3339 text in UTC, a due date is

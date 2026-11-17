@@ -49,7 +49,7 @@ const bookingSchema = z
   .strictObject({
     bookings: z.array(stockLogRowSchema).meta({
       description:
-        'The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction.',
+        'The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. On a Transfer, the list holds a `transfer_from` row and a `transfer_to` row for each stock entry that Grocy moved.',
     }),
     bookingType: z
       .enum(BOOKING_TYPES)
