@@ -21,13 +21,15 @@ export interface ProductStock {
   stockEntries: StockEntry[];
 }
 
-// The details of one product as one Grocy read answers them. They hold every
-// field of the product of the Next API except the stock facts above. They also
-// hold the product barcodes that the code resolution of the review queue reads,
-// and the active flag. The stock amount is the own stock in the stock unit.
+// The details of one product as one Grocy read answers them. They hold every field of the product of the Next API except the stock facts above. They also hold the product barcodes that the code resolution of the review queue reads, and the active flag. The stock amount is the own stock in the stock unit.
+// The consume fields are the defaults of the Grocy consume form. The Next API
+// product does not show them. The quick consume amount is in the stock unit.
 export interface ProductDetails extends Omit<Product, keyof ProductStock> {
   barcodes: ProductBarcode[];
+  consumeLocationId: null | number;
+  consumeUnitId: number;
   isActive: boolean;
+  quickConsumeAmount: number;
 }
 
 // This function builds the product of the Next API from the details and the

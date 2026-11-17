@@ -8,6 +8,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
+import type { ConsumeSettings } from '../consume-settings.ts';
 import type { ProductConversion } from '../product-conversion.ts';
 import type { ProductDetails } from '../product-details.ts';
 import type { ProductListItem, QuantityUnitConversion } from '../product.ts';
@@ -46,6 +47,10 @@ import {
   grocyProductDetailsSchema,
   toProductDetails,
 } from './grocy-product-details.ts';
+import {
+  grocyUserSettingsSchema,
+  toConsumeSettings,
+} from './grocy-user-settings.ts';
 
 // The status and the message of a Grocy refusal, for the `grocy` field of
 // the grocy-refused problem. A refusal body with no message gives the
@@ -250,6 +255,13 @@ export class GrocyClient {
     return this.readDetails(
       `/api/stock/products/by-barcode/${encodeURIComponent(code)}`,
     );
+  }
+
+  // The two user settings of the default consume amount, for the create of
+  // a Consume pending scan.
+  async readConsumeSettings(): Promise<ConsumeSettings> {
+    const data = await this.get('/api/user/settings');
+    return toConsumeSettings(grocyUserSettingsSchema.parse(data));
   }
 
   // This method sets the factor of one conversion row.
