@@ -1,4 +1,9 @@
-import { type Locator, type Page, type Response } from '@playwright/test';
+import {
+  type Locator,
+  type Page,
+  type Request,
+  type Response,
+} from '@playwright/test';
 import { expect, test } from './fixtures.js';
 import {
   createRow,
@@ -38,27 +43,36 @@ async function holdNextPollUntil(
   row: Locator,
 ): Promise<HeldPoll> {
   const changed = page.waitForResponse(isChange);
+  const isListPoll = (request: Request) =>
+    request.method() === 'GET' && request.url().endsWith(PENDING_SCANS);
+  // The next poll comes every three seconds, but a busy host can delay it.
+  // Thus the waits for a poll have no time limit of their own. The test
+  // timeout limits them.
+  const pollStarted = page.waitForRequest(isListPoll, { timeout: 0 });
+  let isHeld = false;
   let isRead = false;
   let releasedAt: null | number = null;
   let nextRequestAt: null | number = null;
   await page.route(`**${PENDING_SCANS}`, async (route) => {
-    if (route.request().method() !== 'GET') {
+    if (!isListPoll(route.request())) {
       await route.continue();
       return;
     }
-    if (isRead) {
+    if (isHeld) {
       nextRequestAt ??= Date.now();
       await route.continue();
       return;
     }
-    isRead = true;
+    isHeld = true;
     const response = await route.fetch();
+    isRead = true;
     await changed;
     await expect(row.getByRole('button', { name: 'Reject' })).toBeEnabled();
     releasedAt = Date.now();
     await route.fulfill({ response });
   });
-  await expect.poll(() => isRead).toBe(true);
+  await pollStarted;
+  await expect.poll(() => isRead, { timeout: 0 }).toBe(true);
   return {
     msToNextRequest: () => msBetween(releasedAt, nextRequestAt),
   };
@@ -83,7 +97,7 @@ test('a reject while a poll is on the way loads the list again at once', async (
   await row.getByRole('button', { name: 'Reject' }).click();
 
   await expect(row).toHaveCount(0);
-  await expect.poll(heldPoll.msToNextRequest).not.toBeNull();
+  await expect.poll(heldPoll.msToNextRequest, { timeout: 0 }).not.toBeNull();
   expect(heldPoll.msToNextRequest()).toBeLessThan(AT_ONCE_MS);
 });
 
@@ -113,7 +127,7 @@ test('a failed accept while a poll is on the way loads the list again at once', 
   await row.getByRole('button', { name: 'Accept' }).click();
 
   await expect(row).toContainText('Accept failed');
-  await expect.poll(heldPoll.msToNextRequest).not.toBeNull();
+  await expect.poll(heldPoll.msToNextRequest, { timeout: 0 }).not.toBeNull();
   expect(heldPoll.msToNextRequest()).toBeLessThan(AT_ONCE_MS);
   await removeRows(request, (item) => item.id === created.id);
 });
