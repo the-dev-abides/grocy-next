@@ -21,7 +21,10 @@ function row(fields: Partial<PendingScan>): PendingScan {
     productId: null,
     quantityUnitId: null,
     scannedAt: '2026-11-11T10:00:00.000Z',
+    spoiled: false,
+    stockEntryId: null,
     storeId: null,
+    toLocationId: null,
     updatedAt: '2026-11-11T10:00:00.000Z',
     writeInName: null,
     ...fields,
@@ -103,6 +106,49 @@ describe('the banner of a create call', () => {
       detail: 'Already in the list',
       kind: 'repeat',
       title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('names the booking type and the amount for a Consume', () => {
+    expect(
+      bannerOf(
+        row({ bookingType: 'consume', productId: 1, quantityUnitId: 1 }),
+        lists,
+      ),
+    ).toEqual({
+      detail: 'Consume · 1 Can',
+      kind: 'known',
+      title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('names the booking type and the new amount for a Consume repeat', () => {
+    expect(
+      bannerOf(
+        row({
+          amount: 2,
+          bookingType: 'consume',
+          productId: 1,
+          quantityUnitId: 1,
+          scannedAt: '2026-11-11T10:00:05.000Z',
+        }),
+        lists,
+      ),
+    ).toEqual({
+      detail: 'Consume · 2 Can',
+      kind: 'repeat',
+      pill: '+1',
+      title: 'Coca-Cola Original 330 ml',
+    });
+  });
+
+  it('names the booking type and the code for an unknown code on a Consume', () => {
+    expect(
+      bannerOf(row({ bookingType: 'consume', code: '3017620422003' }), lists),
+    ).toEqual({
+      detail: 'Consume · 3017620422003',
+      kind: 'unknown',
+      title: 'Unknown barcode',
     });
   });
 

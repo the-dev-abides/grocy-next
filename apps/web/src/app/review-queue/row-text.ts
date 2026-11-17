@@ -15,6 +15,7 @@ type ProductUnits = Pick<
 export const bookingTypeLabel: Readonly<
   Record<PendingScan['bookingType'], string>
 > = {
+  consume: 'Consume',
   inventory: 'Inventory',
   purchase: 'Purchase',
 };
@@ -22,7 +23,9 @@ export const bookingTypeLabel: Readonly<
 // The unit of the amount of a row, as ADR 0010 decided. A Purchase amount is in
 // the scanned unit. When the row has no scanned unit, the amount is in the
 // purchase unit of the product. An Inventory amount is in the stock unit of the
-// product. No words while the product read has not answered.
+// product. A Consume amount with no scanned unit is in the consume unit, which
+// the product read does not give, so it has no words. No words while the
+// product read has not answered.
 export function unitOf(
   scan: Pick<PendingScan, 'bookingType' | 'quantityUnitId'>,
   product: ProductUnits | undefined,
@@ -35,6 +38,9 @@ export function unitOf(
   }
   if (scan.quantityUnitId !== null) {
     return nameOf(quantityUnits, scan.quantityUnitId, '');
+  }
+  if (scan.bookingType === 'consume') {
+    return '';
   }
   return product === undefined
     ? ''

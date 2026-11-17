@@ -23,13 +23,15 @@ const grocyProductBarcodeSchema = z.looseObject({
 // when the tare weight handling flag is 1. The factor from the purchase unit
 // to the stock unit is 1 when the product has no conversion between them.
 // The response holds every product barcode of the product, not only the one
-// that matched. The schema is loose, because Grocy returns many more fields
-// than the client reads.
+// that matched. The consume location, the consume unit, and the quick
+// consume amount are the defaults of the Grocy consume form. The schema is
+// loose, because Grocy returns many more fields than the client reads.
 export const grocyProductDetailsSchema = z.looseObject({
   has_childs: z.boolean(),
   product: z.looseObject({
     active: grocyNumber,
     default_best_before_days: grocyNumber,
+    default_consume_location_id: grocyNullableNumber,
     description: z.string().nullable(),
     enable_tare_weight_handling: grocyNumber,
     id: grocyNumber,
@@ -38,8 +40,10 @@ export const grocyProductDetailsSchema = z.looseObject({
     name: z.string(),
     picture_file_name: z.string().nullable(),
     product_group_id: grocyNullableNumber,
+    qu_id_consume: grocyNumber,
     qu_id_purchase: grocyNumber,
     qu_id_stock: grocyNumber,
+    quick_consume_amount: grocyNumber,
     tare_weight: grocyNumber,
   }),
   product_barcodes: z.array(grocyProductBarcodeSchema),
@@ -62,6 +66,8 @@ export function toProductDetails(details: GrocyProductDetails): ProductDetails {
         storeId: row.shopping_location_id,
       };
     }),
+    consumeLocationId: details.product.default_consume_location_id,
+    consumeUnitId: details.product.qu_id_consume,
     defaultDueDays: details.product.default_best_before_days,
     description: details.product.description,
     hasPicture: details.product.picture_file_name !== null,
@@ -74,6 +80,7 @@ export function toProductDetails(details: GrocyProductDetails): ProductDetails {
     productGroupId: details.product.product_group_id,
     purchaseToStockFactor: details.qu_conversion_factor_purchase_to_stock,
     purchaseUnitId: details.product.qu_id_purchase,
+    quickConsumeAmount: details.product.quick_consume_amount,
     stockAmount: details.stock_amount,
     stockUnitId: details.product.qu_id_stock,
     tareWeight:

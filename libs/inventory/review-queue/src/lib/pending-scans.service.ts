@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import type { ConsumeFields } from './pending-scan-to-store.ts';
 import type {
   CreatePendingScan,
   PendingScan,
@@ -13,8 +14,10 @@ import type {
   UpdatePendingScan,
 } from './pending-scan.ts';
 import type { RepeatRule } from './repeat-scan.ts';
+import type { ProductMatch } from './resolve-code.ts';
 import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 
+import { consumeAmountOf } from './consume-amount.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
@@ -49,6 +52,30 @@ export class PendingScansService {
     private readonly lookups: LookupWorker,
     private readonly pictures: ProductPictures,
   ) {}
+
+  // The defaults of a new Consume pending scan that the server reads from
+  // Grocy, as the Grocy consume form sets them. The amount rule is in
+  // `consumeAmountOf`. With no "from" location in the body, the server uses
+  // the default consume location of the product, else its default location.
+  // Grocy requires a default location on every product, so the third step of
+  // the Grocy form, the first location with stock, never applies. A code with
+  // no product has no location.
+  private async consumeFields(
+    body: CreatePendingScan,
+    match: null | ProductMatch,
+    product: null | ProductDetails,
+  ): Promise<ConsumeFields> {
+    const settings = await this.grocy.readConsumeSettings();
+    const barcode = match?.barcode ?? { amount: null, quantityUnitId: null };
+    return {
+      ...consumeAmountOf(body, barcode, product, settings),
+      locationId:
+        body.locationId ??
+        product?.consumeLocationId ??
+        product?.locationId ??
+        null,
+    };
+  }
 
   // The update that sets a product, as the spec decided. The Grocy writes come
   // first, in order, and the update stops on the first failure with the Grocy
@@ -94,17 +121,27 @@ export class PendingScansService {
   // a row that the worker already took. A repeat Inventory scan writes
   // nothing and returns the open row. A lookup result is never in the
   // create response. A product id in the body must name an active product,
-  // else the create is the unknown-id problem.
+  // else the create is the unknown-id problem. A Consume also reads the
+  // defaults of the Grocy consume form.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
   ): Promise<CreateResult> {
-    if (body.productId !== undefined) {
-      await readActiveProduct(this.grocy, body.productId);
-    }
+    const bodyProduct =
+      body.productId === undefined
+        ? null
+        : await readActiveProduct(this.grocy, body.productId);
     const match =
       body.code === undefined ? null : await resolveCode(this.grocy, body.code);
-    const row = pendingScanToStore(body, match, now());
+    const consume =
+      body.bookingType === 'consume'
+        ? await this.consumeFields(
+            body,
+            match,
+            bodyProduct ?? match?.product ?? null,
+          )
+        : null;
+    const row = pendingScanToStore(body, match, now(), consume);
     const result = await this.pendingScans.manager.transaction(
       async (manager) => {
         const target =

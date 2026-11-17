@@ -328,10 +328,10 @@ export type LookupResult = {
   sourceUrl: string;
 };
 export type PendingScan = {
-  /** The amount. Purchase: in the unit quantityUnitId, or the purchase unit of the product. Inventory: the new own stock in the stock unit. */
+  /** The amount. Purchase and Consume: in the unit quantityUnitId, or else the purchase unit or the consume unit of the product. Inventory: the new own stock in the stock unit. */
   amount: number | null;
   /** The booking that the accept makes. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase';
   /** The code as scanned or typed, or null for a row from the assistant. */
   code: string | null;
   /** The time of the create, in UTC. */
@@ -344,7 +344,7 @@ export type PendingScan = {
   id: number;
   /** The time of the last lookup attempt, in UTC, or null. */
   lastLookupAt: string | null;
-  /** The id of the location. */
+  /** The id of the location. Consume: the "from" location. */
   locationId: number | null;
   /** The lookup result, or null. */
   lookupResult: LookupResult | null;
@@ -360,12 +360,18 @@ export type PendingScan = {
   productGroupId: number | null;
   /** The id of the product, or null. */
   productId: number | null;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase and Consume only. */
   quantityUnitId: number | null;
   /** The time of the scan, in UTC. */
   scannedAt: string;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes, or null. */
+  stockEntryId: string | null;
   /** The id of the store. */
   storeId: number | null;
+  /** The id of the "to" location of a Transfer, or null. */
+  toLocationId: number | null;
   /** The time of the last change, in UTC. */
   updatedAt: string;
   /** The product name that the user typed on the scan screen. */
@@ -375,12 +381,12 @@ export type CreatePendingScan = {
   /** The amount. */
   amount?: number;
   /** The booking that the accept makes. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase';
   /** The code as scanned or typed. */
   code?: string;
   /** The due date. */
   dueDate?: string;
-  /** The id of the location. */
+  /** The id of the location. Consume: the "from" location. */
   locationId?: number;
   /** The note. */
   note?: string;
@@ -392,10 +398,16 @@ export type CreatePendingScan = {
   productGroupId?: number;
   /** The id of the product. */
   productId?: number;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase and Consume only. */
   quantityUnitId?: number;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled?: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes. */
+  stockEntryId?: string;
   /** The id of the store. */
   storeId?: number;
+  /** The id of the "to" location of a Transfer. */
+  toLocationId?: number;
   /** The product name that the user typed on the scan screen. */
   writeInName?: string;
 };
@@ -407,12 +419,12 @@ export type UpdatePendingScan = {
   /** The amount. */
   amount?: number | null;
   /** The booking that the accept makes. Set at create. */
-  bookingType?: 'inventory' | 'purchase';
+  bookingType?: 'consume' | 'inventory' | 'purchase';
   /** The code as scanned or typed. */
   code?: string | null;
   /** The due date. */
   dueDate?: string | null;
-  /** The id of the location. */
+  /** The id of the location. Consume: the "from" location. */
   locationId?: number | null;
   /** The note. */
   note?: string | null;
@@ -424,10 +436,16 @@ export type UpdatePendingScan = {
   productGroupId?: number | null;
   /** The id of the product. */
   productId?: number | null;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase and Consume only. */
   quantityUnitId?: number | null;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled?: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes. */
+  stockEntryId?: string | null;
   /** The id of the store. */
   storeId?: number | null;
+  /** The id of the "to" location of a Transfer. */
+  toLocationId?: number | null;
   /** The product name that the user typed on the scan screen. */
   writeInName?: string | null;
 };
@@ -457,7 +475,7 @@ export type Booking = {
   /** The stock log rows of the transaction. */
   bookings: StockLogRow[];
   /** The booking that the accept made. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase';
   /** The id of the accepted pending scan. */
   pendingScanId: number;
   /** The id of the product. */

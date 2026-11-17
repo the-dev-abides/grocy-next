@@ -62,7 +62,10 @@ export function updatedPendingScan(
     productGroupId: patched(row.productGroupId, body.productGroupId),
     productId: patched(row.productId, body.productId),
     quantityUnitId: patched(row.quantityUnitId, body.quantityUnitId),
+    spoiled: patched(row.spoiled, body.spoiled),
+    stockEntryId: patched(row.stockEntryId, body.stockEntryId),
     storeId: patched(row.storeId, body.storeId),
+    toLocationId: patched(row.toLocationId, body.toLocationId),
     updatedAt: now,
     writeInName: patched(row.writeInName, body.writeInName),
   };

@@ -42,7 +42,10 @@ const UNSET_FIELDS = {
   productId: null,
   quantityUnitId: null,
   scannedAt: expect.stringMatching(TIMESTAMP),
+  spoiled: false,
+  stockEntryId: null,
   storeId: null,
+  toLocationId: null,
   updatedAt: expect.stringMatching(TIMESTAMP),
   writeInName: null,
 };

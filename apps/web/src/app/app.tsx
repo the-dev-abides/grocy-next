@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 
 import { ReviewQueuePage } from './review-queue/review-queue-page';
+import { ConsumeTransferScanPage } from './scan/consume-transfer-scan-page';
 import { InventoryScanPage } from './scan/inventory-scan-page';
 import { PurchaseScanPage } from './scan/purchase-scan-page';
 import { Shell } from './shell/shell';
@@ -16,6 +17,10 @@ export function App() {
         <Route path="/" element={<Navigate replace to="/review-queue" />} />
         <Route path="/scan/purchase" element={<PurchaseScanPage />} />
         <Route path="/scan/inventory" element={<InventoryScanPage />} />
+        <Route
+          path="/scan/consume-transfer"
+          element={<ConsumeTransferScanPage />}
+        />
         <Route path="/review-queue" element={<ReviewQueuePage />} />
         <Route path="/stock" element={<ProductsPage />} />
         <Route path="*" element={<Navigate replace to="/review-queue" />} />

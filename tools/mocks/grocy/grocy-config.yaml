@@ -48,6 +48,14 @@ specFile: grocy-openapi.json
 validation:
   request: fail
 resources:
+  # The user settings. The create of a Consume pending scan reads the two
+  # settings of the default consume amount: the default amount 1, and the
+  # quick consume amount setting off. These are the Grocy defaults.
+  - path: /api/user/settings
+    method: GET
+    response:
+      file: responses/user-settings.json
+
   # The master data lists. The Next API filters the active rows with
   # `query[]=active=1`. The locations hold one inactive row, the Garage, and
   # the products hold one inactive row, product 8, so for these two tables

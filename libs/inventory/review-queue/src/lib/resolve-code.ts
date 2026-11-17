@@ -7,9 +7,12 @@ import type {
 import { codeForms } from './code-forms.ts';
 
 // The product that a code resolved to, with the product barcode row that
-// matched the code. A product Grocycode has no product barcode row.
+// matched the code. A product Grocycode has no product barcode row. The
+// details are the Grocy read that the resolution made, so the create of a
+// Consume reads the product defaults with no second read.
 export interface ProductMatch {
   barcode: null | ProductBarcode;
+  product: ProductDetails;
   productId: number;
 }
 
@@ -48,7 +51,9 @@ async function resolveGrocycode(
     return null;
   }
   const product = await grocy.readProductDetails(Number(id));
-  return isActive(product) ? { barcode: null, productId: product.id } : null;
+  return isActive(product)
+    ? { barcode: null, product, productId: product.id }
+    : null;
 }
 
 async function resolveBarcode(
@@ -62,7 +67,7 @@ async function resolveBarcode(
   const code = form.toLowerCase();
   const barcode =
     product.barcodes.find((row) => row.barcode.toLowerCase() === code) ?? null;
-  return { barcode, productId: product.id };
+  return { barcode, product, productId: product.id };
 }
 
 function isActive(product: null | ProductDetails): product is ProductDetails {

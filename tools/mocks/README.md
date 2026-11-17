@@ -70,6 +70,10 @@ another product already has. A product picture upload and a product update
 answer 204. The product details never show the new product barcode or the
 picture, because the mock holds no state.
 
+The user settings hold the two settings of the default consume amount, with
+the Grocy defaults: the default consume amount 1, and the quick consume
+amount setting off. The create of a Consume pending scan reads them.
+
 A product create answers the id 4 for every name except the name of product
 1, which gets the Grocy error of a name that another product already has.
 The create captures the name, the location, the two units, the minimum

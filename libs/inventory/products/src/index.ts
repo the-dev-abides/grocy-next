@@ -1,3 +1,4 @@
+export type { ConsumeSettings } from './lib/consume-settings.ts';
 export { grocyRefused } from './lib/grocy/grocy-answers.ts';
 export { GrocyClient } from './lib/grocy/grocy-client.ts';
 export { GrocyStockClient } from './lib/grocy/grocy-stock-client.ts';

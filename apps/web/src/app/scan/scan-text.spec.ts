@@ -1,4 +1,10 @@
-import { dueDateText, nameOf, priceText, stockText } from './scan-text';
+import {
+  consumeDetailText,
+  dueDateText,
+  nameOf,
+  priceText,
+  stockText,
+} from './scan-text';
 
 describe('the words of a pending scan', () => {
   const locations = [
@@ -37,6 +43,18 @@ describe('the words of a pending scan', () => {
     const quantityUnits = [{ id: 1, name: 'Can' }];
     expect(stockText({ stockAmount: 6, stockUnitId: 1 }, quantityUnits)).toBe(
       'In Grocy: 6 Can',
+    );
+  });
+
+  it('writes the booking type and the "from" location of a Consume row', () => {
+    expect(consumeDetailText({ locationId: 1 }, locations)).toBe(
+      'Consume from Fridge',
+    );
+  });
+
+  it('writes the product default for a Consume row with no location', () => {
+    expect(consumeDetailText({ locationId: null }, locations)).toBe(
+      'Consume from the product default',
     );
   });
 
