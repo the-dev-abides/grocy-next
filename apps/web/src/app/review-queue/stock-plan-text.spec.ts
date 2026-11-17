@@ -136,10 +136,11 @@ describe('the choices of the stock entry select', () => {
   const product = {
     consumeLocationId: 1,
     stockEntries: [sealed, pantry, opened],
+    subProductStockEntries: [],
   };
 
   it('lists the stock entries at the "from" location in the Grocy consume order', () => {
-    expect(stockEntryChoices(product, 1, null)).toEqual([
+    expect(stockEntryChoices(product, 1, null, 'consume')).toEqual([
       { label: 'Next in the Grocy consume order', value: ANY_STOCK_ENTRY },
       {
         label: 'Amount: 1; Due on 2026-11-22; Bought on 2026-10-20; Opened',
@@ -153,11 +154,34 @@ describe('the choices of the stock entry select', () => {
   });
 
   it('keeps the stock entry of the row when the list does not hold it', () => {
-    const choices = stockEntryChoices(product, 2, 'gone');
+    const choices = stockEntryChoices(product, 2, 'gone', 'consume');
     expect(choices.map((choice) => choice.value)).toEqual([
       ANY_STOCK_ENTRY,
       'p',
       'gone',
+    ]);
+  });
+
+  // The Grocy consume form lists the stock entries of the sub-products of a
+  // parent product. The Grocy transfer form lists the own stock entries only.
+  it('lists the stock entries of the sub-products on a Consume only', () => {
+    const child = { ...sealed, canBeOpened: true, productId: 6, stockId: 'c' };
+    const parent = { ...product, subProductStockEntries: [child] };
+    const valuesOf = (bookingType: 'consume' | 'transfer') => {
+      return stockEntryChoices(parent, 1, null, bookingType).map(
+        (choice) => choice.value,
+      );
+    };
+    expect(valuesOf('consume')).toEqual([
+      ANY_STOCK_ENTRY,
+      opened.stockId,
+      sealed.stockId,
+      'c',
+    ]);
+    expect(valuesOf('transfer')).toEqual([
+      ANY_STOCK_ENTRY,
+      opened.stockId,
+      sealed.stockId,
     ]);
   });
 });

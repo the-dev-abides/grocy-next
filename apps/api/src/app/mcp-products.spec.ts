@@ -155,6 +155,7 @@ describe('the product tools and the master data tools of the MCP server', () => 
         },
       ],
       stockUnitId: 2,
+      subProductStockEntries: [],
       tareWeight: null,
     };
     expect(result.isError).not.toBe(true);
@@ -221,6 +222,7 @@ describe('the product tools and the master data tools of the MCP server', () => 
       stockAmount: 0,
       stockEntries: [],
       stockUnitId: 2,
+      subProductStockEntries: [],
       tareWeight: null,
     });
   });

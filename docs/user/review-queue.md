@@ -299,9 +299,15 @@ When a Consume is more than the stock, a red line names the stock that
 Grocy has, for example "Grocy has only 2 Pack for this Consume. The accept
 fails.". The state stays `Ready`. The accept fails with the Grocy message.
 
-The lines use the stock entries of the product only. A Consume of a parent
-product can also take the stock of its child products, but the lines do not
-show that stock. Thus a parent product shows no red line.
+A Consume of a parent product also takes the stock of its child products,
+as the accept does. The lines and the red line include that stock. The
+amount of a child stock entry is in the stock unit of the parent product.
+The stock entry select of a Consume also lists the stock entries of the
+child products, as the Grocy consume form does. A Transfer takes the stock
+entries of the product only, as Grocy does.
+
+After an accept, the review queue loads the product again. The lines of the
+other pending scans and the Inventory preview then show the new stock.
 
 ## The Consume accept
 

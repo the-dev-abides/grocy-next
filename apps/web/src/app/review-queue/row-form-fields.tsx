@@ -205,6 +205,7 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
       <LocationFields {...props} />
       {isConsumeOrTransfer && (
         <StockEntrySelect
+          bookingType={form.bookingType}
           locationId={form.locationId}
           product={props.product}
           stockEntryId={form.stockEntryId}

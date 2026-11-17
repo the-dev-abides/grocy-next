@@ -142,3 +142,75 @@ test('the stock entry lines of two Consume rows of one product chain, and the ne
   });
   await removeRows(request, (row) => row.note?.startsWith(note) === true);
 });
+
+// Product 5, Yoghurt, is a parent product with no own stock. Its child,
+// product 6, has 3 packs at the Fridge, due 25 Nov. A Consume of the parent
+// takes the stock of the child, as the accept does, so the row shows the
+// pack of the child and the warning above that stock. No other test makes a
+// Consume or a Transfer of product 5.
+test('the stock entry lines of a Consume of a parent product show the stock of its sub-product and the warning above it', async ({
+  page,
+  request,
+}, testInfo) => {
+  const note = `review-queue-stock-entry-parent-${testInfo.project.name}`;
+  await removeRows(request, (row) => {
+    return (
+      row.productId === 5 &&
+      (row.bookingType === 'consume' || row.bookingType === 'transfer')
+    );
+  });
+  await createRow(request, {
+    amount: 4,
+    bookingType: 'consume',
+    locationId: 1,
+    note,
+    productId: 5,
+  });
+  await page.goto('/review-queue');
+
+  const row = queueRows(page).filter({ hasText: note });
+  const lines = row.getByRole('list', { name: 'Stock entries' });
+  await expect(lines.getByRole('listitem')).toHaveText([
+    /^3 Pack, all of a sealed pack in Fridge, due (25 Nov|Nov 25)$/,
+    'Grocy has only 3 Pack for this Consume. The accept fails.',
+  ]);
+  await removeRows(request, (item) => item.note === note);
+});
+
+// An accept changes the stock, so the review queue loads the product read of
+// the booked product again. The stock entry lines of the other rows of the
+// product and the Inventory preview then use the new stock. The Grocy mock
+// answers the consume of product 1 and keeps its stock.
+test('an accept loads the product read of the booked product again', async ({
+  page,
+  request,
+}, testInfo) => {
+  const note = `review-queue-stock-entry-refresh-${testInfo.project.name}`;
+  await removeRows(request, (row) => row.note?.startsWith(note) === true);
+  for (const name of ['accepted', 'kept']) {
+    await createRow(request, {
+      amount: 1,
+      bookingType: 'consume',
+      locationId: 1,
+      note: `${note}-${name}`,
+      productId: 1,
+    });
+  }
+  await page.goto('/review-queue');
+  const kept = queueRows(page).filter({ hasText: `${note}-kept` });
+  await expect(kept.getByRole('list', { name: 'Stock entries' })).toBeVisible();
+
+  const productRead = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return (
+      response.request().method() === 'GET' &&
+      url.pathname === '/api/v2/products/1'
+    );
+  });
+  const accepted = queueRows(page).filter({ hasText: `${note}-accepted` });
+  await accepted.getByRole('button', { name: 'Accept' }).click();
+
+  await expect(accepted).toHaveCount(0);
+  await productRead;
+  await removeRows(request, (row) => row.note?.startsWith(note) === true);
+});

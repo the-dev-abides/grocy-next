@@ -47,6 +47,25 @@ const stockEntrySchema = z
   })
   .meta({ id: 'StockEntry' });
 
+// One stock entry of a sub-product of a parent product. A Consume of the
+// parent product takes it, as the Grocy consume form does with the
+// sub-product substitution. The amount is in the stock unit of the parent
+// product, so the stock entry lines add it to the own stock.
+const subProductStockEntrySchema = stockEntrySchema
+  .extend({
+    amount: z.number().meta({
+      description: 'The amount in the stock unit of the parent product.',
+    }),
+    canBeOpened: z.boolean().meta({
+      description:
+        'Whether the open on consume can open the rest of the stock entry. It is false for a sub-product with "cannot be opened" or with tare weight handling.',
+    }),
+    productId: z
+      .int()
+      .meta({ description: 'The id of the sub-product of the stock entry.' }),
+  })
+  .meta({ id: 'SubProductStockEntry' });
+
 // One resolved conversion of a product: the factor from one quantity unit
 // to another. An amount in the from unit times the factor is the amount in
 // the to unit.
@@ -129,6 +148,10 @@ const productSchema = z
     stockUnitId: z
       .int()
       .meta({ description: 'The id of the stock quantity unit.' }),
+    subProductStockEntries: z.array(subProductStockEntrySchema).meta({
+      description:
+        'The stock entries of the sub-products of a parent product, in the Grocy consume order. A Consume of the parent product takes them after the sub-product substitution. The list is empty for a product that is no parent product.',
+    }),
     tareWeight: z.number().nullable().meta({
       description:
         'The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight.',
@@ -214,6 +237,7 @@ export type QuantityUnitConversion = z.infer<
   typeof quantityUnitConversionSchema
 >;
 export type StockEntry = z.infer<typeof stockEntrySchema>;
+export type SubProductStockEntry = z.infer<typeof subProductStockEntrySchema>;
 
 // The DTO classes carry the schemas into the OpenAPI document and the
 // validation pipe. The class name is the schema name in the document. The

@@ -1,4 +1,7 @@
-import type { PendingScan, Product, StockEntry } from '../api/next-api';
+import type { PendingScan, Product } from '../api/next-api';
+import type { PlanEntry } from './stock-entries';
+
+import { consumeOrder, entriesOf, isOfSubProduct } from './stock-entries';
 
 // One stock entry that the accept takes from or changes.
 // "whole": the accept takes the whole entry.
@@ -7,7 +10,7 @@ import type { PendingScan, Product, StockEntry } from '../api/next-api';
 // "split": a Transfer of a part, which Grocy splits.
 export interface PlanLine {
   amount: number;
-  entry: StockEntry;
+  entry: PlanEntry;
   kind: 'opened' | 'part' | 'split' | 'whole';
   opensRest: boolean;
 }
@@ -42,42 +45,13 @@ export type PlanProduct = Pick<
   | 'stockAmount'
   | 'stockEntries'
   | 'stockUnitId'
+  | 'subProductStockEntries'
   | 'tareWeight'
 >;
-
-// Grocy stores the due date 2999-12-31 for a stock entry with no due date.
-const NO_DUE_DATE = '2999-12-31';
 
 // Three decimals, so that a decimal amount shows no float noise.
 function round(value: number): number {
   return Math.round(value * 1000) / 1000;
-}
-
-function dueOf(entry: StockEntry): string {
-  return entry.dueDate ?? NO_DUE_DATE;
-}
-
-function boughtOf(entry: StockEntry): string {
-  return entry.purchasedDate ?? NO_DUE_DATE;
-}
-
-// The Grocy consume order of the view `stock_next_use` (Grocy 4.7.1,
-// migration 0200): the stock entries at the default consume location first,
-// then the opened entries, then the earliest due date, then the earliest
-// purchase date. The sort is stable, so equal entries keep the Grocy order.
-function consumeOrder(
-  consumeLocationId: null | number,
-): (first: StockEntry, second: StockEntry) => number {
-  const home = (entry: StockEntry) =>
-    entry.locationId === consumeLocationId ? 0 : 1;
-  return (first, second) => {
-    return (
-      home(first) - home(second) ||
-      Number(second.open) - Number(first.open) ||
-      dueOf(first).localeCompare(dueOf(second)) ||
-      boughtOf(first).localeCompare(boughtOf(second))
-    );
-  };
 }
 
 // The factor from the unit of the row to the stock unit, or null when the
@@ -107,7 +81,7 @@ function stockFactorOf(row: PlanRow, product: PlanProduct): null | number {
 function takenAmountOf(
   row: PlanRow & { amount: number },
   product: PlanProduct,
-  entries: readonly StockEntry[],
+  entries: readonly PlanEntry[],
 ): null | number {
   const factor = stockFactorOf(row, product);
   if (factor === null) {
@@ -117,25 +91,30 @@ function takenAmountOf(
   if (product.tareWeight === null || row.bookingType !== 'consume') {
     return round(amount);
   }
-  const stock = entries.reduce((sum, entry) => sum + entry.amount, 0);
+  const stock = entries
+    .filter((entry) => !isOfSubProduct(entry))
+    .reduce((sum, entry) => sum + entry.amount, 0);
   return round(Math.abs(amount - stock - product.tareWeight));
 }
 
 // The stock entries that the accept can take, in the Grocy consume order. A
 // row that names a stock entry takes that stock entry only. A Consume with no
 // "from" location takes from every location. A Transfer with no "from"
-// location takes nothing, because Grocy refuses it.
+// location takes nothing, because Grocy refuses it. A Consume also takes the
+// stock entries of the sub-products, as the Grocy consume form does. A
+// Transfer takes the own stock entries only, as Grocy transfers them.
 function candidatesOf(
   row: PlanRow,
   product: PlanProduct,
-  entries: readonly StockEntry[],
-): StockEntry[] {
-  const isAtFrom = (entry: StockEntry) => {
+  entries: readonly PlanEntry[],
+): PlanEntry[] {
+  const isAtFrom = (entry: PlanEntry) => {
     return row.locationId === null
       ? row.bookingType === 'consume'
       : entry.locationId === row.locationId;
   };
   return entries
+    .filter((entry) => row.bookingType === 'consume' || !isOfSubProduct(entry))
     .filter((entry) => isAtFrom(entry))
     .filter(
       (entry) =>
@@ -147,7 +126,7 @@ function candidatesOf(
 function lineOf(
   row: PlanRow,
   product: PlanProduct,
-  entry: StockEntry,
+  entry: PlanEntry,
   amount: number,
 ): PlanLine {
   const isWhole = amount >= entry.amount;
@@ -165,7 +144,9 @@ function lineOf(
   if (entry.open) {
     return { amount, entry, kind: 'opened', opensRest: false };
   }
-  const canOpen = product.canBeOpened && product.tareWeight === null;
+  const canOpen = isOfSubProduct(entry)
+    ? entry.canBeOpened
+    : product.canBeOpened && product.tareWeight === null;
   return { amount, entry, kind: 'part', opensRest: canOpen };
 }
 
@@ -184,7 +165,7 @@ function isPlanned(
 function planOn(
   row: PlanRow,
   product: PlanProduct,
-  entries: readonly StockEntry[],
+  entries: readonly PlanEntry[],
   unit: string,
 ): null | Plan {
   if (!isPlanned(row)) {
@@ -214,12 +195,12 @@ function planOn(
 function entriesAfter(
   row: PlanRow,
   plan: Plan,
-  entries: readonly StockEntry[],
-): StockEntry[] {
+  entries: readonly PlanEntry[],
+): PlanEntry[] {
   if (row.bookingType === 'transfer' && row.toLocationId === null) {
     return [...entries];
   }
-  const after: StockEntry[] = [];
+  const after: PlanEntry[] = [];
   for (const entry of entries) {
     const line = plan.lines.find((item) => item.entry === entry);
     if (line === undefined) {
@@ -245,19 +226,6 @@ function entriesAfter(
   return after;
 }
 
-// The stock entries that the stock entry select lists: the stock entries at
-// the "from" location in the Grocy consume order, as the Grocy consume form
-// and transfer form list them. With no "from" location, the list has every
-// stock entry.
-export function stockEntriesAt(
-  product: Pick<PlanProduct, 'consumeLocationId' | 'stockEntries'>,
-  locationId: null | number,
-): StockEntry[] {
-  return product.stockEntries
-    .filter((entry) => locationId === null || entry.locationId === locationId)
-    .toSorted(consumeOrder(product.consumeLocationId));
-}
-
 // The plan of one Consume or Transfer row on the stock entries of the product
 // read.
 export function planOfRow(
@@ -265,7 +233,7 @@ export function planOfRow(
   product: PlanProduct,
   unit: string,
 ): null | Plan {
-  return planOn(row, product, product.stockEntries, unit);
+  return planOn(row, product, entriesOf(product), unit);
 }
 
 // The plans of the rows of one product, oldest first. Each row sees the stock
@@ -278,7 +246,7 @@ export function plansOf(
   unit: string,
 ): Map<number, Plan> {
   const plans = new Map<number, Plan>();
-  let entries: readonly StockEntry[] = product.stockEntries;
+  let entries: readonly PlanEntry[] = entriesOf(product);
   for (const row of rows) {
     const plan = planOn(row, product, entries, unit);
     if (plan === null) {

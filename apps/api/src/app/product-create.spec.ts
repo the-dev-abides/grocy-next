@@ -109,6 +109,7 @@ describe('the product create of the Next API', () => {
       stockAmount: 0,
       stockEntries: [],
       stockUnitId: 2,
+      subProductStockEntries: [],
       tareWeight: null,
     });
   });
@@ -170,6 +171,7 @@ describe('the product create of the Next API', () => {
       stockAmount: 0,
       stockEntries: [],
       stockUnitId: 2,
+      subProductStockEntries: [],
       tareWeight: null,
     });
   });
