@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 // The tests of the app shell of ADR 0013: the routes, the three sidebar
 // states by screen width, the dark mode, and the install manifest.
