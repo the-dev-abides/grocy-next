@@ -12,11 +12,13 @@ type BodyFields = Pick<
   | 'locationId'
   | 'productGroupId'
   | 'spoiled'
-  | 'stockEntryId'
   | 'toLocationId'
   | 'writeInName'
 >;
-type ProductFields = Pick<PendingScanToStore, 'note' | 'productId'>;
+type ProductFields = Pick<
+  PendingScanToStore,
+  'note' | 'productId' | 'stockEntryId'
+>;
 type PriceFields = Pick<PendingScanToStore, 'price' | 'priceType'>;
 type AmountFields = Pick<
   PendingScanToStore,
@@ -52,14 +54,20 @@ function bodyFields(body: CreatePendingScan): BodyFields {
     locationId: body.locationId ?? null,
     productGroupId: body.productGroupId ?? null,
     spoiled: body.spoiled ?? false,
-    stockEntryId: body.stockEntryId ?? null,
     toLocationId: body.toLocationId ?? null,
     writeInName: body.writeInName ?? null,
   };
 }
 
-// The product and the note come from the match where the body left them
-// unset. Both booking types take them.
+function stockEntryIdOf(
+  body: CreatePendingScan,
+  match: null | ProductMatch,
+): null | string {
+  return body.stockEntryId ?? match?.stockEntryId ?? null;
+}
+
+// The product, the note, and the stock entry come from the match where the
+// body left them unset. Every booking type takes them.
 function productFields(
   body: CreatePendingScan,
   match: null | ProductMatch,
@@ -67,6 +75,7 @@ function productFields(
   return {
     note: body.note ?? match?.barcode?.note ?? null,
     productId: body.productId ?? match?.productId ?? null,
+    stockEntryId: stockEntryIdOf(body, match),
   };
 }
 

@@ -1,12 +1,14 @@
 // One consume to book in Grocy. The amount is in the stock unit. For a tare
 // weight product, the amount is the gross weight, container included. A null
 // location lets Grocy take stock at all locations. Grocy picks the stock
-// entries in its consume order. The client always allows the sub-product
-// substitution, as the Grocy consume form does.
+// entries in its consume order. A stock id names the one stock entry that
+// the consume takes, as the Grocy `stock_id` text. The client always allows
+// the sub-product substitution, as the Grocy consume form does.
 export interface Consume {
   amount: number;
   isSpoiled: boolean;
   locationId: null | number;
+  stockId: null | string;
 }
 
 // One open of the rest of one stock entry. The amount is in the stock unit of

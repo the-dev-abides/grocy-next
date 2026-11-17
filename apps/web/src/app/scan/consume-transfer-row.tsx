@@ -11,6 +11,7 @@ import { useGetProductQuery } from '../api/next-api';
 import { unitOf } from '../review-queue/row-text';
 import { ConsumeTransferForm } from './consume-transfer-form';
 import { FlipButton } from './flip-button';
+import { scanOpenText } from './open-text';
 import { PendingScanRow } from './pending-scan-row';
 import { consumeDetailText, transferDetailText } from './scan-text';
 import { SpoiledButton } from './spoiled-button';
@@ -107,7 +108,8 @@ function RowControls({
 // One row of the Consume and Transfer session list. The row starts with the
 // icon of its booking type. A tap on the icon flips the row between Consume
 // and Transfer. The detail line shows the time, the booking type,
-// the locations, and "Spoiled". A Transfer row with no "to" location shows the
+// the locations, and "Spoiled". A Consume row also says "Opens a new pack" or
+// "From the opened pack". A Transfer row with no "to" location shows the
 // line in red. A tap on the name opens the row form under the row, with the
 // Reject button. The empty unit is the consume unit on a Consume and the stock
 // unit on a Transfer.
@@ -115,11 +117,13 @@ export function ConsumeTransferRow({
   lists,
   onReject,
   onUpdate,
+  rows,
   scan,
 }: Readonly<{
   lists: PendingScanRowLists;
   onReject: () => void;
   onUpdate: (patch: UpdatePendingScan) => void;
+  rows: readonly PendingScan[];
   scan: PendingScan;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -127,6 +131,7 @@ export function ConsumeTransferRow({
     scan.productId === null ? skipToken : { id: scan.productId },
   ).data;
   const isTransfer = scan.bookingType === 'transfer';
+  const open = scanOpenText(scan, rows, product);
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="flex min-h-12 items-center gap-2">
@@ -145,6 +150,7 @@ export function ConsumeTransferRow({
             isTransfer
               ? transferDetailText(scan, lists.locations)
               : consumeDetailText(scan, lists.locations),
+            ...(open === null ? [] : [open]),
           ]}
         >
           <RowControls

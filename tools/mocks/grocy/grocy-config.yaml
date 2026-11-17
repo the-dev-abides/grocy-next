@@ -680,6 +680,20 @@ resources:
     response:
       statusCode: 400
       content: '{"error_message": "No transaction was found by the given transaction id"}'
+  # A consume of product 1 that names the stock entry 69131a2b3c84c answers
+  # the row of that stock entry: stock entry 14, the open can at the Pantry.
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '1'
+    requestBody:
+      jsonPath: $.stock_entry_id
+      value: 69131a2b3c84c
+    response:
+      template: true
+      file: responses/stock-log-consume-product-1-stock-entry-14.json.template
+      headers:
+        Content-Type: application/json
   - path: /api/stock/products/{productId}/consume
     method: POST
     pathParams:
@@ -750,6 +764,18 @@ resources:
   # both for stock entry 11. Grocy does not transfer a tare weight product,
   # so the transfer of product 7 answers that Grocy error. The mock changes
   # nothing.
+  # A transfer of product 1 that names the stock entry 69131a2b3c95d answers
+  # the rows of that stock entry: stock entry 13, 1 sealed can, from the
+  # Pantry to the Fridge.
+  - path: /api/stock/products/{productId}/transfer
+    method: POST
+    pathParams:
+      productId: '1'
+    requestBody:
+      jsonPath: $.stock_entry_id
+      value: 69131a2b3c95d
+    response:
+      file: responses/stock-log-transfer-product-1-stock-entry-13.json
   - path: /api/stock/products/{productId}/transfer
     method: POST
     pathParams:

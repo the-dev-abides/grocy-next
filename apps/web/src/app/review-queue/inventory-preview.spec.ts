@@ -107,6 +107,7 @@ function entry(
     locationId: 2,
     open: false,
     purchasedDate: '2026-10-01',
+    stockId: `stock-${String(id)}`,
     ...facts,
   };
 }

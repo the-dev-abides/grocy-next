@@ -21,6 +21,7 @@ import { ErrorLine, RowMeta, RowName, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
 import { RowSpoiledButton } from './row-spoiled-button';
 import { amountText, bookingTypeLabel, locationText } from './row-text';
+import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
 
 // Every fact of the row on one line, as the card has no columns. The facts are
@@ -245,6 +246,7 @@ export function QueueCard({
         </div>
       </div>
       <InventoryLines lists={lists} product={product} scan={scan} unit={unit} />
+      <StockEntryLines lists={lists} product={product} scan={scan} />
       <ErrorLine error={scan.error} />
       <CardAmount
         actions={actions}

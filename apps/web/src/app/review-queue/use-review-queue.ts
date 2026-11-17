@@ -22,9 +22,12 @@ import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
 // the short product form. The household conversions take part in the stock
-// unit proposal of the short product form.
+// unit proposal of the short product form. The pending scans are every row of
+// the queue, also the rows that the filter hides, because the stock entry
+// lines of a row see the stock after the older rows of its product.
 export interface QueueLists {
   locations: readonly Location[] | undefined;
+  pendingScans?: readonly PendingScan[] | undefined;
   productGroups: readonly ProductGroup[] | undefined;
   products: readonly ProductListItem[] | undefined;
   quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
@@ -55,6 +58,7 @@ export function useReviewQueue(): ReviewQueue {
     isLoading: pendingScans.isLoading,
     lists: {
       locations: useListLocationsQuery(undefined).data?.items,
+      pendingScans: items,
       productGroups: useListProductGroupsQuery(undefined).data?.items,
       products: useListProductsQuery(undefined).data?.items,
       quantityUnitConversions:

@@ -24,6 +24,7 @@ import {
 import {
   aboveStockRefusal,
   consumedAmountOf,
+  entriesOfRow,
   isAboveStock,
   openRest,
   opensAfterConsume,
@@ -145,8 +146,8 @@ export class BookingsService {
 
   // The Consume accept of ADR 0017. The amount goes to the stock unit with the resolved conversions of the product. The empty unit is the consume unit.
   // The read of the stock entries before the consume serves the amount check
-  // and the open on consume. An amount above the stock at the "from" location
-  // is refused with the Grocy message and no Grocy call. After the consume,
+  // and the open on consume. An amount above the stock at the "from" location,
+  // or above the stock entry when the row names one, is refused with the Grocy message and no Grocy call. After the consume,
   // the open of each sealed stock entry that the consume left partly in stock
   // follows. The booking lists the rows of the consume, then the rows of the
   // open. The transaction id is the transaction of the consume.
@@ -172,7 +173,11 @@ export class BookingsService {
     if (
       isAboveStock(
         consumedAmountOf(amount, product),
-        stockAt(entries, row.locationId, products),
+        stockAt(
+          entriesOfRow(entries, row.stockEntryId),
+          row.locationId,
+          products,
+        ),
       )
     ) {
       return this.finish(row, productId, aboveStockRefusal());
@@ -181,6 +186,7 @@ export class BookingsService {
       amount,
       isSpoiled: row.spoiled,
       locationId: row.locationId,
+      stockId: row.stockEntryId,
     });
     if (result.isRefused) {
       return this.finish(row, productId, result);
@@ -217,6 +223,7 @@ export class BookingsService {
     const result = await this.stock.transfer(productId, {
       amount,
       fromLocationId: row.locationId,
+      stockId: row.stockEntryId,
       toLocationId,
     });
     return this.finish(row, productId, result);
