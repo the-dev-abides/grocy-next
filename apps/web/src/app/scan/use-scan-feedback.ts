@@ -7,8 +7,8 @@ import { bannerMs, FLASH_MS, playFeedback } from './feedback';
 export interface ScanBanner {
   detail: string;
   kind: FeedbackKind;
-  // The short pill on the right of the banner, such as `+1` for a merged
-  // Purchase repeat scan.
+  // The short pill on the right of the banner: the amount that a merged
+  // repeat scan added, such as `+1`.
   pill?: string;
   title: string;
 }

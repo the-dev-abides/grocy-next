@@ -213,7 +213,7 @@ export function ScanScreen({
   async function scan(code: string): Promise<void> {
     const added = await session.addCode(code);
     if (added !== null) {
-      feedback.show(bannerOf(added.scan, session.lists, added.wasInSession));
+      feedback.show(bannerOf(added.scan, session.lists, added.previous));
     }
   }
   const addCode = (code: string) => {
