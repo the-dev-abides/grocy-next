@@ -37,6 +37,7 @@ const PRODUCT_1_CONSUME_ROW = {
   locationId: 1,
   price: 0.85,
   purchasedDate: '2026-10-20',
+  spoiled: false,
   stockEntryId: 11,
 };
 
@@ -49,6 +50,7 @@ const PRODUCT_1_OPEN_ROW = {
   note: null,
   price: 0.85,
   purchasedDate: '2026-10-20',
+  spoiled: false,
   stockEntryId: 11,
   storeId: 1,
   transactionType: 'product-opened',
@@ -147,6 +149,7 @@ describe('the accept of a Consume pending scan', () => {
           locationId: 2,
           price: 3.99,
           purchasedDate: '2026-01-10',
+          spoiled: false,
           stockEntryId: 17,
         },
       ],
@@ -166,6 +169,32 @@ describe('the accept of a Consume pending scan', () => {
     expect(booking.bookings).toEqual([
       expect.objectContaining({ stockEntryId: 16, transactionType: 'consume' }),
     ]);
+  });
+
+  // A spoiled consume follows the same steps as any consume. The Grocy mock
+  // echoes the spoiled flag of the request in the consume row. The open row
+  // is not spoiled.
+  it('accepts a spoiled Consume, and the consume booking has the spoiled flag', async () => {
+    const created = await createAndRead({
+      amount: 1,
+      locationId: 1,
+      productId: 1,
+      spoiled: true,
+    });
+
+    const response = await accept(created.id);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      bookingType: 'consume',
+      bookings: [
+        { ...PRODUCT_1_CONSUME_ROW, spoiled: true },
+        PRODUCT_1_OPEN_ROW,
+      ],
+      pendingScanId: created.id,
+      productId: 1,
+      transactionId: CONSUME_TRANSACTION_ID,
+    });
   });
 
   // The Grocy mock refuses the open of product 6. The consume stays booked.

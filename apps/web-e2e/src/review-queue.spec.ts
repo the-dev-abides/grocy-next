@@ -190,6 +190,41 @@ test('a Consume row shows the fork and knife icon, and its accept shows the cons
   expect(stored.filter((item) => item.note === note)).toEqual([]);
 });
 
+// The trash can of a Consume row sets the spoiled flag. The row form shows the
+// flag. A Consume row with no unit shows the consume unit of the product.
+test('the trash can of a Consume row sets the spoiled flag, and the row form shows it', async ({
+  page,
+  request,
+}) => {
+  const note = 'review-queue-consume-spoiled';
+  await removeRows(request, (row) => row.note === note);
+  const created = await createRow(request, {
+    amount: 1,
+    bookingType: 'consume',
+    locationId: 1,
+    note,
+    productId: 1,
+  });
+  await page.goto('/review-queue');
+  const row = queueRows(page).filter({ hasText: note });
+  await expect(row).toContainText('1 Can');
+  const trashCan = row.getByRole('button', { name: 'Spoiled' });
+  await expect(trashCan).toHaveAttribute('aria-pressed', 'false');
+
+  await trashCan.click();
+
+  await expect(trashCan).toHaveAttribute('aria-pressed', 'true');
+  expect(await storedRow(request, created.id)).toMatchObject({
+    spoiled: true,
+  });
+  await row.getByRole('button', { name: 'Edit' }).click();
+  const dialog = page.getByRole('dialog', {
+    name: 'Coca-Cola Original 330 ml',
+  });
+  await expect(dialog.getByRole('checkbox', { name: 'Spoiled' })).toBeChecked();
+  await expect(dialog.getByLabel('Price', { exact: true })).toHaveCount(0);
+});
+
 // The Grocy mock answers the transfer of product 1 with a transfer_from row at
 // the Fridge and a transfer_to row at the Pantry.
 test("a Transfer with no 'to' location needs one, and after the row form sets it, the accept removes the row", async ({

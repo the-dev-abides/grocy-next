@@ -29,6 +29,7 @@ const row: Booking['bookings'][number] = {
   note: null,
   price: 0.85,
   purchasedDate: '2026-11-10',
+  spoiled: false,
   stockEntryId: null,
   storeId: null,
   transactionType: 'purchase',
