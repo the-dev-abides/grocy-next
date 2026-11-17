@@ -26,34 +26,42 @@ function fieldsText(fieldCount: number, rowCount: number): string {
   return `${String(fieldCount)} ${fields} on ${String(rowCount)} ${rows}.`;
 }
 
+// The count of the fields that change on at least one row.
+function fieldCountOf(edit: BulkEdit, rows: readonly PendingScan[]): number {
+  const keys = new Set(
+    rows.flatMap((scan) => Object.keys(bulkEditBody(edit, scan))),
+  );
+  return keys.size;
+}
+
 // The form of the dialog. The dialog mounts it when it opens, so every field
 // starts empty every time.
 function BulkEditForm({
   lists,
   onApply,
   onClose,
-  rowCount,
+  rows,
 }: Readonly<{
   lists: QueueLists;
-  onApply: (body: UpdatePendingScan) => void;
+  onApply: (bodyOf: (scan: PendingScan) => UpdatePendingScan) => void;
   onClose: () => void;
-  rowCount: number;
+  rows: readonly PendingScan[];
 }>) {
   const [edit, setEdit] = useState<BulkEdit>(EMPTY_BULK_EDIT);
-  const body = bulkEditBody(edit);
-  const fieldCount = Object.keys(body).length;
+  const fieldCount = fieldCountOf(edit, rows);
   return (
     <>
       <BulkEditFields
         edit={edit}
         lists={lists}
+        rows={rows}
         patch={(fields) => {
           setEdit((current) => ({ ...current, ...fields }));
         }}
       />
       <DialogFooter className="sm:items-center">
         <span className="mr-auto text-xs text-muted-foreground">
-          {fieldsText(fieldCount, rowCount)}
+          {fieldsText(fieldCount, rows.length)}
         </span>
         <Button variant="outline" onClick={onClose}>
           Cancel
@@ -61,7 +69,7 @@ function BulkEditForm({
         <Button
           disabled={fieldCount === 0}
           onClick={() => {
-            onApply(body);
+            onApply((scan) => bulkEditBody(edit, scan));
             onClose();
           }}
         >
@@ -72,8 +80,8 @@ function BulkEditForm({
   );
 }
 
-// The bulk edit dialog of the spec: one update per checked row with only the
-// fields that the user set. Every field starts empty.
+// The bulk edit dialog of the spec: one update per checked row with only the fields that the user set and that apply to the booking type of the row.
+// Every field starts empty.
 export function BulkEditDialog({
   lists,
   onApply,
@@ -81,7 +89,7 @@ export function BulkEditDialog({
   rows,
 }: Readonly<{
   lists: QueueLists;
-  onApply: (body: UpdatePendingScan) => void;
+  onApply: (bodyOf: (scan: PendingScan) => UpdatePendingScan) => void;
   onClose: () => void;
   rows: null | readonly PendingScan[];
 }>) {
@@ -108,7 +116,7 @@ export function BulkEditDialog({
         {rows !== null && (
           <BulkEditForm
             lists={lists}
-            rowCount={count}
+            rows={rows}
             onApply={onApply}
             onClose={onClose}
           />

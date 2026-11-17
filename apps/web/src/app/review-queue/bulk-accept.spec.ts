@@ -11,6 +11,7 @@ const purchase = {
   error: null,
   id: 1,
   productId: 1,
+  toLocationId: null,
 };
 
 describe('the plan of Accept all', () => {
@@ -43,6 +44,22 @@ describe('the plan of Accept all', () => {
     expect(plan.skipped.map(({ id }) => id)).toEqual([2, 3]);
   });
 
+  it('books a Consume row and a Transfer row with a "to" location, and skips a Transfer with no "to" location', () => {
+    const consume = { ...purchase, bookingType: 'consume' as const, id: 2 };
+    const transfer = {
+      ...purchase,
+      bookingType: 'transfer' as const,
+      id: 3,
+      toLocationId: 2,
+    };
+    const noTo = { ...transfer, id: 4, toLocationId: null };
+
+    const plan = bulkAcceptPlan([consume, transfer, noTo]);
+
+    expect(plan.bookable.map(({ id }) => id)).toEqual([2, 3]);
+    expect(plan.skipped.map(({ id }) => id)).toEqual([4]);
+  });
+
   it('books a failed row with a product again', () => {
     const failed = { ...purchase, error: 'Location does not exist' };
 
@@ -56,10 +73,10 @@ describe('the words of the bulk actions', () => {
       'One booking per row, 3 rows. A booking can be undone in Grocy.',
     );
     expect(acceptConfirmText(1, 2)).toBe(
-      'One booking per row, 1 row. 2 rows have no product or no count and are skipped. A booking can be undone in Grocy.',
+      'One booking per row, 1 row. 2 rows have no product, no count, or no "to" location and are skipped. A booking can be undone in Grocy.',
     );
     expect(acceptConfirmText(2, 1)).toBe(
-      'One booking per row, 2 rows. 1 row has no product or no count and is skipped. A booking can be undone in Grocy.',
+      'One booking per row, 2 rows. 1 row has no product, no count, or no "to" location and is skipped. A booking can be undone in Grocy.',
     );
   });
 
@@ -73,11 +90,20 @@ describe('the words of the bulk actions', () => {
   });
 
   it('says why the accept skipped a row', () => {
-    expect(skippedText({ amount: 1, productId: null })).toBe(
+    const facts = { bookingType: 'inventory' as const, toLocationId: null };
+    expect(skippedText({ ...facts, amount: 1, productId: null })).toBe(
       'Skipped. The row has no product.',
     );
-    expect(skippedText({ amount: null, productId: 1 })).toBe(
+    expect(skippedText({ ...facts, amount: null, productId: 1 })).toBe(
       'Skipped. The row has no count.',
     );
+    expect(
+      skippedText({
+        amount: 1,
+        bookingType: 'transfer',
+        productId: 1,
+        toLocationId: null,
+      }),
+    ).toBe('Skipped. The Transfer has no "to" location.');
   });
 });

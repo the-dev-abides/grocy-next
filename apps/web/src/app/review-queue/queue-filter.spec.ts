@@ -84,13 +84,69 @@ describe('the filter of the review queue', () => {
   it('keeps only the rows that match every set part of the filter', () => {
     expect(
       idsOf(
-        filterRows(rows, { locationId: 1, productGroupId: 2, state: null }),
+        filterRows(rows, {
+          bookingType: null,
+          locationId: 1,
+          productGroupId: 2,
+          state: null,
+        }),
       ),
     ).toEqual([3]);
     expect(
       idsOf(
-        filterRows(rows, { locationId: 1, productGroupId: 2, state: 'ready' }),
+        filterRows(rows, {
+          bookingType: null,
+          locationId: 1,
+          productGroupId: 2,
+          state: 'ready',
+        }),
       ),
+    ).toEqual([]);
+  });
+
+  it('keeps the rows of one booking type', () => {
+    const mixed = [
+      ...rows,
+      row({ bookingType: 'consume', id: 5, locationId: 1 }),
+      row({ bookingType: 'transfer', id: 6, locationId: 1, toLocationId: 2 }),
+    ];
+
+    expect(
+      idsOf(filterRows(mixed, { ...NO_FILTER, bookingType: 'consume' })),
+    ).toEqual([5]);
+    expect(
+      idsOf(filterRows(mixed, { ...NO_FILTER, bookingType: 'transfer' })),
+    ).toEqual([6]);
+    expect(
+      idsOf(filterRows(mixed, { ...NO_FILTER, bookingType: 'inventory' })),
+    ).toEqual([3]);
+  });
+
+  it('keeps a Transfer when its "from" location or its "to" location matches', () => {
+    const transfers = [
+      row({ bookingType: 'transfer', id: 5, locationId: 1, toLocationId: 2 }),
+      row({ bookingType: 'transfer', id: 6, locationId: 3, toLocationId: 1 }),
+      row({ bookingType: 'transfer', id: 7, locationId: 3, toLocationId: 2 }),
+    ];
+
+    expect(
+      idsOf(filterRows(transfers, { ...NO_FILTER, locationId: 1 })),
+    ).toEqual([5, 6]);
+    expect(
+      idsOf(filterRows(transfers, { ...NO_FILTER, locationId: 2 })),
+    ).toEqual([5, 7]);
+  });
+
+  it('does not match the "to" location of a row that is not a Transfer', () => {
+    const consume = row({
+      bookingType: 'consume',
+      id: 5,
+      locationId: 3,
+      toLocationId: 1,
+    });
+
+    expect(
+      idsOf(filterRows([consume], { ...NO_FILTER, locationId: 1 })),
     ).toEqual([]);
   });
 });

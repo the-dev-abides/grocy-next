@@ -66,9 +66,11 @@ A row or a card with `Accept failed` has a different background colour.
 
 ## The filter
 
-The filter is above the list. It has three fields:
+The filter is above the list. It has four fields:
 
-- `Location`: the location of the pending scan.
+- `Booking type`: Purchase, Inventory, Consume, or Transfer.
+- `Location`: the location of the pending scan. A Transfer shows when its
+  "from" location or its "to" location is the location of the filter.
 - `Product group`: the product group of the pending scan. The scan screens
   copy it from the session defaults.
 - `State`: one of the five states.
@@ -150,8 +152,8 @@ changes. The fields depend on the booking type:
 
 - Purchase: the amount, the unit, the location, the due date, the store, the
   price, and the price type.
-- Inventory: the count, the location of added stock, and the due date of
-  added stock.
+- Inventory: the count, the location of added stock, the due date of added
+  stock, the store, and the price. The Inventory accept uses no price type.
 - Consume: the booking type, `Spoiled`, the amount, the unit, and `From`, the
   "from" location.
 - Transfer: the booking type, the amount, the unit, `From`, and `To`, the "to"
@@ -193,6 +195,23 @@ that the filter shows. The checkboxes control only the bulk edit.
    `Keep as is`. A field that you do not set does not change.
 4. Tap `Apply`.
 
+A field shows only when it applies to a checked pending scan:
+
+- `Booking type` applies to a Consume and a Transfer. It changes a Consume
+  to a Transfer, or a Transfer to a Consume.
+- `To` applies to a Transfer. `Spoiled` applies to a Consume. These two
+  fields use the booking type that you set in `Booking type`.
+- `Due date` applies to a Purchase and an Inventory.
+- `Store` and `Price` apply to a Purchase and an Inventory. `Price type`
+  applies to a Purchase.
+- `Amount`, the location, `Product group of a new product`, and `Note`
+  apply to all pending scans. When you check only Consume and Transfer
+  pending scans, the location field is `From`.
+
+When a field applies to only some of the checked pending scans, its label
+shows the number, for example `To (1 of 2 rows)`. The field changes only
+those pending scans.
+
 ### Accept all and Reject all
 
 `Accept all` and `Reject all` act on every pending scan that the filter
@@ -201,8 +220,9 @@ the filter first.
 
 Each button opens a confirm dialog with the number of pending scans.
 
-- `Accept all` books every pending scan that has a product and, for
-  Inventory, a count. It skips the other pending scans. The dialog shows the
+- `Accept all` books every pending scan that has a product, for Inventory a
+  count, and for a Transfer a "to" location. It skips the other pending
+  scans. The dialog shows the
   number that it books and the number that it skips.
 - `Reject all` deletes every pending scan that the filter shows.
 
