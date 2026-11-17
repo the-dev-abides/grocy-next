@@ -120,19 +120,27 @@ export function unitChoices<Unit extends Named>(
   return (units ?? []).filter((unit) => ids.has(unit.id));
 }
 
-// The fields of the full form that depend on the booking type, by the same rule as the bulk edit.
-// A Purchase row and an Inventory row have the due date, the store, and the price.
-// Only a Purchase row has the price type.
+// The fields of the full form that depend on the booking type. The map of
+// the bulk edit holds the rule. A Purchase row and an Inventory row have the
+// due date, the store, and the price. Only a Purchase row has the price
+// type. A Consume row and a Transfer row have the booking type. A Consume
+// row has the spoiled flag, and a Transfer row has the "to" location.
 export function rowFormFieldsOf(bookingType: PendingScan['bookingType']): {
+  hasBookingType: boolean;
   hasDueDate: boolean;
   hasPrice: boolean;
   hasPriceType: boolean;
+  hasSpoiled: boolean;
   hasStore: boolean;
+  hasToLocation: boolean;
 } {
   return {
+    hasBookingType: isFieldOfType('bookingType', bookingType),
     hasDueDate: isFieldOfType('dueDate', bookingType),
     hasPrice: isFieldOfType('price', bookingType),
     hasPriceType: isFieldOfType('priceType', bookingType),
+    hasSpoiled: isFieldOfType('spoiled', bookingType),
     hasStore: isFieldOfType('store', bookingType),
+    hasToLocation: isFieldOfType('toLocation', bookingType),
   };
 }

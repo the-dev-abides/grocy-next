@@ -148,7 +148,7 @@ function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
           patch({ locationId, stockEntryId: null });
         }}
       />
-      {form.bookingType === 'transfer' && (
+      {rowFormFieldsOf(form.bookingType).hasToLocation && (
         <IdSelect
           label="To"
           none="Not set"
@@ -194,7 +194,7 @@ function StockFields(props: Readonly<FieldsProperties>) {
 // new product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
   const { form, lists, patch, scan } = props;
-  const isConsumeOrTransfer = isSwitchBookingType(scan.bookingType);
+  const fields = rowFormFieldsOf(scan.bookingType);
   return (
     <div
       className="
@@ -202,11 +202,13 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
         sm:grid-cols-2
       "
     >
-      {isConsumeOrTransfer && <BookingTypeField {...props} />}
-      {form.bookingType === 'consume' && <SpoiledField {...props} />}
+      {fields.hasBookingType && <BookingTypeField {...props} />}
+      {rowFormFieldsOf(form.bookingType).hasSpoiled && (
+        <SpoiledField {...props} />
+      )}
       <AmountFields {...props} />
       <LocationFields {...props} />
-      {isConsumeOrTransfer && (
+      {isSwitchBookingType(scan.bookingType) && (
         <StockEntrySelect
           bookingType={form.bookingType}
           locationId={form.locationId}
@@ -217,7 +219,7 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
           }}
         />
       )}
-      {!isConsumeOrTransfer && <StockFields {...props} />}
+      {fields.hasDueDate && <StockFields {...props} />}
       {scan.productId === null && (
         <IdSelect
           label="Product group of the new product"

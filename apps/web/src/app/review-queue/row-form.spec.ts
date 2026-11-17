@@ -134,28 +134,41 @@ describe('the unit choices of a Purchase row', () => {
 
 describe('the fields of the full form of each booking type', () => {
   it('shows the store and the price on a Purchase row and an Inventory row, and the price type on a Purchase row only', () => {
-    expect(rowFormFieldsOf('purchase')).toEqual({
+    const stock = {
+      hasBookingType: false,
       hasDueDate: true,
       hasPrice: true,
-      hasPriceType: true,
+      hasSpoiled: false,
       hasStore: true,
+      hasToLocation: false,
+    };
+    expect(rowFormFieldsOf('purchase')).toEqual({
+      ...stock,
+      hasPriceType: true,
     });
     expect(rowFormFieldsOf('inventory')).toEqual({
-      hasDueDate: true,
-      hasPrice: true,
+      ...stock,
       hasPriceType: false,
-      hasStore: true,
     });
   });
 
-  it('shows no due date, store, or price on a Consume row and a Transfer row', () => {
+  it('shows the booking type and no due date, store, or price on a Consume row and a Transfer row', () => {
     const none = {
+      hasBookingType: true,
       hasDueDate: false,
       hasPrice: false,
       hasPriceType: false,
       hasStore: false,
     };
-    expect(rowFormFieldsOf('consume')).toEqual(none);
-    expect(rowFormFieldsOf('transfer')).toEqual(none);
+    expect(rowFormFieldsOf('consume')).toEqual({
+      ...none,
+      hasSpoiled: true,
+      hasToLocation: false,
+    });
+    expect(rowFormFieldsOf('transfer')).toEqual({
+      ...none,
+      hasSpoiled: false,
+      hasToLocation: true,
+    });
   });
 });
