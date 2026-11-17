@@ -9,6 +9,7 @@ const scan = {
   priceType: 'unit' as const,
   productGroupId: null,
   quantityUnitId: 3,
+  stockEntryId: null,
   storeId: 1,
   toLocationId: null,
 };
@@ -24,6 +25,7 @@ describe('the full form of one row', () => {
       priceType: 'unit',
       productGroupId: null,
       quantityUnitId: 3,
+      stockEntryId: null,
       storeId: 1,
       toLocationId: null,
     });
@@ -52,6 +54,7 @@ describe('the full form of one row', () => {
         priceType: 'total',
         productGroupId: 1,
         quantityUnitId: 2,
+        stockEntryId: '69131a2b3c84c',
         storeId: null,
         toLocationId: 3,
       }),
@@ -64,6 +67,7 @@ describe('the full form of one row', () => {
       priceType: 'total',
       productGroupId: 1,
       quantityUnitId: 2,
+      stockEntryId: '69131a2b3c84c',
       storeId: null,
       toLocationId: 3,
     });

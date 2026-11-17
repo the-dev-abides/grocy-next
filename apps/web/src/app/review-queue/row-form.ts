@@ -18,6 +18,7 @@ export interface RowForm {
   priceType: PendingScan['priceType'];
   productGroupId: null | number;
   quantityUnitId: null | number;
+  stockEntryId: null | string;
   storeId: null | number;
   toLocationId: null | number;
 }
@@ -32,6 +33,7 @@ type FormFacts = Pick<
   | 'priceType'
   | 'productGroupId'
   | 'quantityUnitId'
+  | 'stockEntryId'
   | 'storeId'
   | 'toLocationId'
 >;
@@ -51,6 +53,7 @@ export function rowFormOf(scan: FormFacts): RowForm {
     priceType: scan.priceType,
     productGroupId: scan.productGroupId,
     quantityUnitId: scan.quantityUnitId,
+    stockEntryId: scan.stockEntryId,
     storeId: scan.storeId,
     toLocationId: scan.toLocationId,
   };
@@ -73,6 +76,7 @@ export function rowFormBody(form: RowForm): UpdatePendingScan {
     priceType: form.priceType,
     productGroupId: form.productGroupId,
     quantityUnitId: form.quantityUnitId,
+    stockEntryId: form.stockEntryId,
     storeId: form.storeId,
     toLocationId: form.toLocationId,
   };

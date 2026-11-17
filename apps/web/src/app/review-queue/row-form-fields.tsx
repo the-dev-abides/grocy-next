@@ -6,6 +6,7 @@ import { nameOf } from '../scan/scan-text';
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { keepIdOf, keepValueOf, NONE } from './keep-choices';
 import { unitChoices } from './row-form';
+import { StockEntrySelect } from './stock-entry-select';
 import { TextField } from './text-field';
 
 type Patch = (fields: Partial<RowForm>) => void;
@@ -147,7 +148,8 @@ function locationLabel(bookingType: PendingScan['bookingType']): string {
   return bookingType === 'transfer' ? 'From' : 'Location';
 }
 
-// The location, and on a Transfer row the "to" location.
+// The location, and on a Transfer row the "to" location. A new location
+// clears the stock entry, as in the Grocy consume form and transfer form.
 function LocationFields({
   form,
   lists,
@@ -162,7 +164,7 @@ function LocationFields({
         rows={lists.locations}
         value={form.locationId}
         onChange={(locationId) => {
-          patch({ locationId });
+          patch({ locationId, stockEntryId: null });
         }}
       />
       {scan.bookingType === 'transfer' && (
@@ -183,6 +185,7 @@ function LocationFields({
 // Every field of one row, in the two-column grid of ADR 0013, as in the
 // prototype. The fields are the amount and the unit, the location, and the due
 // date. A Transfer row has the "from" location and the "to" location. A
+// Consume row and a Transfer row have the stock entry select. A
 // Purchase row also has the store and the price. A row with no product
 // has the product group of a new product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
@@ -197,6 +200,16 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
     >
       <AmountFields {...props} />
       <LocationFields {...props} />
+      {(scan.bookingType === 'consume' || scan.bookingType === 'transfer') && (
+        <StockEntrySelect
+          locationId={form.locationId}
+          product={props.product}
+          stockEntryId={form.stockEntryId}
+          onChange={(stockEntryId) => {
+            patch({ stockEntryId });
+          }}
+        />
+      )}
       <TextField
         label={isInventory ? 'Due date of added stock' : 'Due date'}
         type="date"

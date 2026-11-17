@@ -2,9 +2,11 @@ import type { StockEntry } from '../api/next-api';
 import type { Plan, PlanLine } from './stock-plan';
 
 import {
+  ANY_STOCK_ENTRY,
   lineText,
   missingText,
   openText,
+  stockEntryChoices,
   stockEntryText,
 } from './stock-plan-text';
 
@@ -23,7 +25,12 @@ const sealed: StockEntry = {
   stockId: '69131a2b3c619',
 };
 
-const opened: StockEntry = { ...sealed, id: 12, open: true };
+const opened: StockEntry = {
+  ...sealed,
+  id: 12,
+  open: true,
+  stockId: '69131a2b3c73b',
+};
 
 function lineOf(fields: Partial<PlanLine>): PlanLine {
   return {
@@ -121,5 +128,36 @@ describe('the words of a stock entry in the stock entry select', () => {
     expect(stockEntryText(opened)).toBe(
       'Amount: 1; Due on 2026-11-22; Bought on 2026-10-20; Opened',
     );
+  });
+});
+
+describe('the choices of the stock entry select', () => {
+  const pantry: StockEntry = { ...sealed, id: 13, locationId: 2, stockId: 'p' };
+  const product = {
+    consumeLocationId: 1,
+    stockEntries: [sealed, pantry, opened],
+  };
+
+  it('lists the stock entries at the "from" location in the Grocy consume order', () => {
+    expect(stockEntryChoices(product, 1, null)).toEqual([
+      { label: 'Next in the Grocy consume order', value: ANY_STOCK_ENTRY },
+      {
+        label: 'Amount: 1; Due on 2026-11-22; Bought on 2026-10-20; Opened',
+        value: opened.stockId,
+      },
+      {
+        label: 'Amount: 1; Due on 2026-11-22; Bought on 2026-10-20; Not opened',
+        value: sealed.stockId,
+      },
+    ]);
+  });
+
+  it('keeps the stock entry of the row when the list does not hold it', () => {
+    const choices = stockEntryChoices(product, 2, 'gone');
+    expect(choices.map((choice) => choice.value)).toEqual([
+      ANY_STOCK_ENTRY,
+      'p',
+      'gone',
+    ]);
   });
 });

@@ -1,7 +1,9 @@
 import type { StockEntry } from '../api/next-api';
-import type { Plan, PlanLine } from './stock-plan';
+import type { Choice } from './choice-select';
+import type { Plan, PlanLine, PlanProduct } from './stock-plan';
 
 import { nameOf } from '../scan/scan-text';
+import { stockEntriesAt } from './stock-plan';
 
 interface Named {
   id: number;
@@ -98,4 +100,36 @@ export function stockEntryText(entry: StockEntry): string {
   const bought = entry.purchasedDate ?? 'none';
   const open = entry.open ? 'Opened' : 'Not opened';
   return `Amount: ${String(entry.amount)}; Due on ${due}; Bought on ${bought}; ${open}`;
+}
+
+// The value of the first choice of the stock entry select: no stock entry,
+// so Grocy takes the stock entries in its consume order.
+export const ANY_STOCK_ENTRY = 'any';
+
+function choiceOf(entry: StockEntry): Choice {
+  return { label: stockEntryText(entry), value: entry.stockId };
+}
+
+// The choices of the stock entry select: no stock entry first, then the stock
+// entries at the "from" location in the Grocy consume order. A stock entry
+// of the row that the list does not hold, such as a stock entry that is used
+// up, stays as a choice with its stock id, so the select shows it.
+export function stockEntryChoices(
+  product: Pick<PlanProduct, 'consumeLocationId' | 'stockEntries'> | undefined,
+  locationId: null | number,
+  stockEntryId: null | string,
+): Choice[] {
+  const entries =
+    product === undefined ? [] : stockEntriesAt(product, locationId);
+  const choices = [
+    { label: 'Next in the Grocy consume order', value: ANY_STOCK_ENTRY },
+    ...entries.map((entry) => choiceOf(entry)),
+  ];
+  return stockEntryId === null ||
+    choices.some((choice) => choice.value === stockEntryId)
+    ? choices
+    : [
+        ...choices,
+        { label: `Stock entry ${stockEntryId}`, value: stockEntryId },
+      ];
 }
