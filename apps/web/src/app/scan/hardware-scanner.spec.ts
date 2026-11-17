@@ -223,4 +223,3 @@ describe('the focus rule of the hardware scanner', () => {
     expect(isField(element('input', { type: 'submit' }))).toBe(false);
   });
 });
-
