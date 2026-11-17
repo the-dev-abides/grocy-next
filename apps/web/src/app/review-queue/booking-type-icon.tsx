@@ -7,8 +7,9 @@ import {
   Utensils,
 } from 'lucide-react';
 
-import type { PendingScan } from '../api/next-api';
+import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
+import { FlipButton } from '../scan/flip-button';
 import { bookingTypeLabel } from './row-text';
 
 // The icon of each booking type. The icons are the icons of the scan screens:
@@ -24,14 +25,22 @@ const bookingTypeIcon: Readonly<
 };
 
 // The booking type icon at the start of a row. The icon has the name of the
-// booking type for a screen reader. A tap on it does nothing.
+// booking type for a screen reader. On a Consume row and a Transfer row, the
+// icon is a button, and a tap flips the row to the other booking type. On a
+// Purchase row and an Inventory row, a tap does nothing. The flip is one
+// update call with the new booking type.
 export function BookingTypeIcon({
-  bookingType,
+  onSave,
+  scan: { bookingType },
   size = 'icon',
 }: Readonly<{
-  bookingType: PendingScan['bookingType'];
+  onSave: (body: UpdatePendingScan) => void;
+  scan: Pick<PendingScan, 'bookingType'>;
   size?: 'icon' | 'icon-lg';
 }>) {
+  if (bookingType === 'consume' || bookingType === 'transfer') {
+    return <FlipButton scan={{ bookingType }} size={size} onUpdate={onSave} />;
+  }
   const meta = bookingTypeIcon[bookingType];
   return (
     <span
