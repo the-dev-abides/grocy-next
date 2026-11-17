@@ -7,8 +7,8 @@ import type { PendingScan, Product, UpdatePendingScan } from '../api/next-api';
 import type { PendingScanRowLists } from './pending-scan-row';
 
 import { numberOf } from '../review-queue/bulk-edit';
+import { IdSelect } from '../review-queue/id-select';
 import { unitChoices } from '../review-queue/row-form';
-import { IdSelect } from '../review-queue/row-form-fields';
 import { defaultUnitLabel } from '../review-queue/row-text';
 import { TextField } from '../review-queue/text-field';
 

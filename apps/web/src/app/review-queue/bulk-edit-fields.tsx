@@ -59,8 +59,13 @@ function DueDateFields({ edit, labelOf, patch }: Readonly<FieldsProperties>) {
   );
 }
 
-// The price and its price type.
-function PriceFields({ edit, labelOf, patch }: Readonly<FieldsProperties>) {
+// The price, and the price type of a Purchase row.
+function PriceFields({
+  edit,
+  hasPriceType,
+  labelOf,
+  patch,
+}: Readonly<FieldsProperties & { hasPriceType: boolean }>) {
   return (
     <>
       <TextField
@@ -72,14 +77,16 @@ function PriceFields({ edit, labelOf, patch }: Readonly<FieldsProperties>) {
           patch({ price: event.target.value });
         }}
       />
-      <ChoiceSelect
-        choices={PRICE_TYPE_CHOICES}
-        label={labelOf('price', 'Price type')}
-        value={edit.priceType ?? KEEP}
-        onChange={(value) => {
-          patch({ priceType: priceTypeOf(value) });
-        }}
-      />
+      {hasPriceType && (
+        <ChoiceSelect
+          choices={PRICE_TYPE_CHOICES}
+          label={labelOf('priceType', 'Price type')}
+          value={edit.priceType ?? KEEP}
+          onChange={(value) => {
+            patch({ priceType: priceTypeOf(value) });
+          }}
+        />
+      )}
     </>
   );
 }
@@ -132,7 +139,7 @@ function MoveFields({
   );
 }
 
-// The store of a Purchase row.
+// The store of a Purchase row and of an Inventory row.
 function StoreField({
   edit,
   labelOf,
@@ -154,7 +161,7 @@ function StoreField({
   );
 }
 
-// The master data selects: the location, the store of a Purchase row, and
+// The master data selects: the location, the store of a Purchase row and of an Inventory row, and
 // the product group of a new product.
 function RowSelects({
   hasStore,
@@ -244,7 +251,9 @@ export function BulkEditFields({
         locationLabel={locationLabelOf(rows)}
       />
       {counts.dueDate > 0 && <DueDateFields {...props} />}
-      {counts.price > 0 && <PriceFields {...props} />}
+      {counts.price > 0 && (
+        <PriceFields {...props} hasPriceType={counts.priceType > 0} />
+      )}
       <TextField
         label="Note"
         placeholder={KEEP_TEXT}

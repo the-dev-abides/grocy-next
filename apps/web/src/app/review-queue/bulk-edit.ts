@@ -33,8 +33,7 @@ export const EMPTY_BULK_EDIT: BulkEdit = {
   toLocationId: undefined,
 };
 
-// The fields of the bulk edit dialog, as the user sees them. The price field
-// holds the price and its price type.
+// The fields of the bulk edit dialog, as the user sees them.
 export type BulkField =
   | 'amount'
   | 'bookingType'
@@ -42,6 +41,7 @@ export type BulkField =
   | 'location'
   | 'note'
   | 'price'
+  | 'priceType'
   | 'productGroup'
   | 'spoiled'
   | 'store'
@@ -56,7 +56,9 @@ const ALL_TYPES: readonly BookingType[] = [
   'transfer',
 ];
 
-// The booking types that each field applies to, as the row form shows them.
+// The booking types that each field applies to. The row form uses the same rule.
+// The Inventory accept sends the store and the price to Grocy, as the Grocy inventory form has them.
+// Only the Purchase accept uses the price type.
 // The booking type, the "to" location, and spoiled use the booking type
 // after the change of the bulk edit.
 const FIELD_TYPES: Readonly<Record<BulkField, readonly BookingType[]>> = {
@@ -65,10 +67,11 @@ const FIELD_TYPES: Readonly<Record<BulkField, readonly BookingType[]>> = {
   dueDate: ['purchase', 'inventory'],
   location: ALL_TYPES,
   note: ALL_TYPES,
-  price: ['purchase'],
+  price: ['purchase', 'inventory'],
+  priceType: ['purchase'],
   productGroup: ALL_TYPES,
   spoiled: ['consume'],
-  store: ['purchase'],
+  store: ['purchase', 'inventory'],
   toLocation: ['transfer'],
 };
 
@@ -81,8 +84,16 @@ function typeAfter(edit: BulkEdit, scan: RowFacts): BookingType {
     : scan.bookingType;
 }
 
+// True when the field applies to a row of the booking type.
+export function isFieldOfType(
+  field: BulkField,
+  bookingType: BookingType,
+): boolean {
+  return FIELD_TYPES[field].includes(bookingType);
+}
+
 function isFieldOf(field: BulkField, edit: BulkEdit, scan: RowFacts): boolean {
-  return FIELD_TYPES[field].includes(typeAfter(edit, scan));
+  return isFieldOfType(field, typeAfter(edit, scan));
 }
 
 // The count of the checked rows that each field changes.
@@ -99,6 +110,7 @@ export function bulkFieldCounts(
     location: countOf('location'),
     note: countOf('note'),
     price: countOf('price'),
+    priceType: countOf('priceType'),
     productGroup: countOf('productGroup'),
     spoiled: countOf('spoiled'),
     store: countOf('store'),
@@ -149,7 +161,7 @@ export function bulkEditBody(
     ...setOf('locationId', edit.locationId),
     ...setOf('note', note === '' ? undefined : note),
     ...(hasField('price') && setOf('price', numberOf(edit.price))),
-    ...(hasField('price') && setOf('priceType', edit.priceType)),
+    ...(hasField('priceType') && setOf('priceType', edit.priceType)),
     ...setOf('productGroupId', edit.productGroupId),
     ...(hasField('spoiled') && setOf('spoiled', edit.spoiled)),
     ...(hasField('store') && setOf('storeId', edit.storeId)),

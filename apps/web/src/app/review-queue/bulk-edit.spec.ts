@@ -85,6 +85,7 @@ describe('the bulk edit of rows of different booking types', () => {
     bookingType: undefined,
     dueDate: '2027-03-01',
     price: '1.25',
+    priceType: 'total' as const,
     spoiled: true,
     storeId: 1,
     toLocationId: 4,
@@ -95,11 +96,14 @@ describe('the bulk edit of rows of different booking types', () => {
       amount: 2,
       dueDate: '2027-03-01',
       price: 1.25,
+      priceType: 'total',
       storeId: 1,
     });
     expect(bulkEditBody(edit, inventory)).toEqual({
       amount: 2,
       dueDate: '2027-03-01',
+      price: 1.25,
+      storeId: 1,
     });
     expect(bulkEditBody(edit, consume)).toEqual({ amount: 2, spoiled: true });
     expect(bulkEditBody(edit, transfer)).toEqual({
@@ -130,10 +134,11 @@ describe('the bulk edit of rows of different booking types', () => {
       dueDate: 2,
       location: 4,
       note: 4,
-      price: 1,
+      price: 2,
+      priceType: 1,
       productGroup: 4,
       spoiled: 1,
-      store: 1,
+      store: 2,
       toLocation: 1,
     });
   });

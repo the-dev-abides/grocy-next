@@ -152,8 +152,8 @@ changes. The fields depend on the booking type:
 
 - Purchase: the amount, the unit, the location, the due date, the store, the
   price, and the price type.
-- Inventory: the count, the location of added stock, and the due date of
-  added stock.
+- Inventory: the count, the location of added stock, the due date of added
+  stock, the store, and the price. The Inventory accept uses no price type.
 - Consume: the booking type, `Spoiled`, the amount, the unit, and `From`, the
   "from" location.
 - Transfer: the booking type, the amount, the unit, `From`, and `To`, the "to"
@@ -202,7 +202,8 @@ A field shows only when it applies to a checked pending scan:
 - `To` applies to a Transfer. `Spoiled` applies to a Consume. These two
   fields use the booking type that you set in `Booking type`.
 - `Due date` applies to a Purchase and an Inventory.
-- `Store`, `Price`, and `Price type` apply to a Purchase.
+- `Store` and `Price` apply to a Purchase and an Inventory. `Price type`
+  applies to a Purchase.
 - `Amount`, the location, `Product group of a new product`, and `Note`
   apply to all pending scans. When you check only Consume and Transfer
   pending scans, the location field is `From`.
