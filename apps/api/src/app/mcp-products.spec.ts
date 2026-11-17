@@ -122,6 +122,7 @@ describe('the product tools and the master data tools of the MCP server', () => 
     });
 
     const product = {
+      consumeUnitId: 2,
       conversions: [
         { factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 },
         { factor: 6, fromQuantityUnitId: 3, toQuantityUnitId: 2 },
@@ -199,6 +200,7 @@ describe('the product tools and the master data tools of the MCP server', () => 
 
     expect(result.isError).not.toBe(true);
     expect(result.structuredContent).toEqual({
+      consumeUnitId: 2,
       conversions: [{ factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 }],
       defaultDueDays: 0,
       description: null,

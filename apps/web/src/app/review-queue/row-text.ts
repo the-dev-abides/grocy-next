@@ -9,7 +9,7 @@ interface Named {
 
 type ProductUnits = Pick<
   Product,
-  'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
+  'consumeUnitId' | 'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
 >;
 
 export const bookingTypeLabel: Readonly<
@@ -21,35 +21,42 @@ export const bookingTypeLabel: Readonly<
   transfer: 'Transfer',
 };
 
-// The unit of the amount of a row, as ADR 0010 decided. A Purchase amount is in
-// the scanned unit. When the row has no scanned unit, the amount is in the
-// purchase unit of the product. An Inventory amount is in the stock unit of the
-// product. A Consume amount with no scanned unit is in the consume unit, which
-// the product read does not give, so it has no words. A Transfer amount with no
-// scanned unit is in the stock unit. No words while the product read has not
+// The unit of a row with no scanned unit, as ADR 0010 decided: the purchase
+// unit on a Purchase, the consume unit on a Consume, and the stock unit on an
+// Inventory and a Transfer.
+export function defaultUnitIdOf(
+  bookingType: PendingScan['bookingType'],
+  product: Omit<ProductUnits, 'stockAmount'>,
+): number {
+  switch (bookingType) {
+    case 'consume': {
+      return product.consumeUnitId;
+    }
+    case 'purchase': {
+      return product.purchaseUnitId;
+    }
+    default: {
+      return product.stockUnitId;
+    }
+  }
+}
+
+// The unit of the amount of a row, as ADR 0010 decided. An Inventory amount
+// is in the stock unit of the product. Every other amount is in the scanned
+// unit. When the row has no scanned unit, the amount is in the default unit of
+// the booking type, as Grocy shows it. No words while the product read has not
 // answered.
 export function unitOf(
   scan: Pick<PendingScan, 'bookingType' | 'quantityUnitId'>,
   product: ProductUnits | undefined,
   quantityUnits: readonly Named[] | undefined,
 ): string {
-  if (
-    scan.bookingType === 'inventory' ||
-    (scan.bookingType === 'transfer' && scan.quantityUnitId === null)
-  ) {
-    return product === undefined
-      ? ''
-      : nameOf(quantityUnits, product.stockUnitId, '');
-  }
-  if (scan.quantityUnitId !== null) {
+  if (scan.bookingType !== 'inventory' && scan.quantityUnitId !== null) {
     return nameOf(quantityUnits, scan.quantityUnitId, '');
-  }
-  if (scan.bookingType === 'consume') {
-    return '';
   }
   return product === undefined
     ? ''
-    : nameOf(quantityUnits, product.purchaseUnitId, '');
+    : nameOf(quantityUnits, defaultUnitIdOf(scan.bookingType, product), '');
 }
 
 // The location column of a row: the location, or "From → To" on a Transfer.

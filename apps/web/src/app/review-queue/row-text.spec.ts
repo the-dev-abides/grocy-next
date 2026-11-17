@@ -16,7 +16,12 @@ const quantityUnits = [
   { id: 2, name: 'Pack' },
   { id: 3, name: 'Box' },
 ];
-const product = { purchaseUnitId: 2, stockAmount: 1, stockUnitId: 2 };
+const product = {
+  consumeUnitId: 1,
+  purchaseUnitId: 2,
+  stockAmount: 1,
+  stockUnitId: 2,
+};
 
 describe('the words of a review queue row', () => {
   it('names the unit of a Purchase row by its quantity unit', () => {
@@ -39,16 +44,15 @@ describe('the words of a review queue row', () => {
     ).toBe('Pack');
   });
 
-  // The empty unit of a Consume is the consume unit. The product read does
-  // not give it, so the row names no unit.
-  it('names no unit for a Consume row with no unit', () => {
+  // The empty unit of a Consume is the consume unit, as Grocy shows it.
+  it('names the consume unit of the product when the Consume row has no unit', () => {
     expect(
       unitOf(
         { bookingType: 'consume', quantityUnitId: null },
         product,
         quantityUnits,
       ),
-    ).toBe('');
+    ).toBe('Can');
   });
 
   it('names the stock unit of the product when the Transfer row has no unit', () => {

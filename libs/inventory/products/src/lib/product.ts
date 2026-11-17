@@ -64,12 +64,16 @@ export const quantityUnitConversionSchema = z
 // product create. It carries the fields that the short product form sets. It
 // also carries the facts that the scan screens and the review queue need at
 // display time. These facts are the own stock, the stock entries in the Grocy
-// consume order, the resolved conversions, the parent flag, and the tare
-// weight. The schema is strict, so a response carries these fields and nothing
+// consume order, the consume unit, the resolved conversions, the parent flag,
+// and the tare weight. The schema is strict, so a response carries these fields and nothing
 // else.
 const productSchema = z
   .strictObject({
     ...productFields,
+    consumeUnitId: z.int().meta({
+      description:
+        'The id of the consume quantity unit. The empty unit of a Consume is this unit.',
+    }),
     conversions: z.array(quantityUnitConversionSchema).meta({
       description: 'The resolved conversions of the product.',
     }),

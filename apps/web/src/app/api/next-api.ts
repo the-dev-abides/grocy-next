@@ -176,6 +176,8 @@ export type Product = {
   id: number;
   /** The name of the product. */
   name: string;
+  /** The id of the consume quantity unit. The empty unit of a Consume is this unit. */
+  consumeUnitId: number;
   /** The resolved conversions of the product. */
   conversions: QuantityUnitConversion[];
   /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */

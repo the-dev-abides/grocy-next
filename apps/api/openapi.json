@@ -1594,6 +1594,12 @@
             "type": "string",
             "description": "The name of the product."
           },
+          "consumeUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the consume quantity unit. The empty unit of a Consume is this unit."
+          },
           "conversions": {
             "type": "array",
             "items": {
@@ -1670,6 +1676,7 @@
           "description",
           "id",
           "name",
+          "consumeUnitId",
           "conversions",
           "defaultDueDays",
           "hasPicture",
