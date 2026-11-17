@@ -6,8 +6,10 @@ import { planOfScan } from './plan-of-scan';
 import { lineText, missingText } from './stock-plan-text';
 
 // The stock entry lines of a Consume row and a Transfer row, under the name:
-// one line for each stock entry that the accept takes. The rows of the same
-// product chain, so each row sees the stock after the older rows. A Consume
+// one line for each stock entry that the accept takes. The rows that share a
+// stock entry chain, so each row sees the stock after the older rows. A Consume
+// of a parent product and a Consume of its sub-product share the stock entries
+// of the sub-product. A Consume
 // above the stock shows a red warning with the stock that Grocy has. The
 // state of the row stays "Ready", and the server refuses the accept. A
 // Consume of a parent product also takes the stock of the sub-products, as
@@ -25,7 +27,9 @@ export function StockEntryLines({
     return null;
   }
   const unit = nameOf(lists.quantityUnits, product.stockUnitId, '');
-  const plan = planOfScan(scan, lists.pendingScans ?? [], product, unit);
+  const products = new Map(lists.productReads);
+  products.set(product.id, product);
+  const plan = planOfScan(scan, lists.pendingScans ?? [], products, unit);
   if (plan === null) {
     return null;
   }

@@ -8,6 +8,7 @@ import type { PendingScan, Product, UpdatePendingScan } from '../api/next-api';
 import type { PendingScanRowLists } from './pending-scan-row';
 
 import { useGetProductQuery } from '../api/next-api';
+import { useProductReads } from '../api/use-product-reads';
 import { unitOf } from '../review-queue/row-text';
 import { ConsumeTransferForm } from './consume-transfer-form';
 import { FlipButton } from './flip-button';
@@ -39,7 +40,7 @@ function AmountStepper({
         variant="outline"
         size="icon"
         aria-label="Less"
-        disabled={current - STEP <= 0}
+        disabled={current <= STEP}
         onClick={() => {
           onAmount(current - STEP);
         }}
@@ -135,7 +136,7 @@ export function ConsumeTransferRow({
     scan.productId === null ? skipToken : { id: scan.productId },
   ).data;
   const isTransfer = scan.bookingType === 'transfer';
-  const open = scanOpenText(scan, rows, product);
+  const open = scanOpenText(scan, rows, product, useProductReads(rows));
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="flex min-h-12 items-center gap-2">
