@@ -1,4 +1,9 @@
-import type { ConsumeStockEntry } from '@grocy-next/inventory-products';
+import type {
+  ConsumeStockEntry,
+  ProductDetails,
+} from '@grocy-next/inventory-products';
+
+import type { BookingType } from './pending-scan.ts';
 
 type LocatedStock = Pick<ConsumeStockEntry, 'amount' | 'locationId'>;
 
@@ -30,4 +35,18 @@ export function fromLocationOf(
     (entry) => entry.locationId !== null && entry.amount > 0,
   );
   return first?.locationId ?? locations[0] ?? null;
+}
+
+// The one default of the Grocy form of the booking type. The Grocy consume
+// form uses the default consume location when the product has one, else the
+// default location. It never tries the default location after the default
+// consume location (Grocy 4.7.1, consume.js, lines 381 to 434). The Grocy
+// transfer form uses the default location.
+export function formDefaultOf(
+  bookingType: BookingType,
+  product: Pick<ProductDetails, 'consumeLocationId' | 'locationId'>,
+): null | number {
+  return bookingType === 'consume'
+    ? (product.consumeLocationId ?? product.locationId)
+    : product.locationId;
 }

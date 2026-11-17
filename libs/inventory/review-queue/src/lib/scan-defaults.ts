@@ -8,7 +8,7 @@ import type { CreatePendingScan } from './pending-scan.ts';
 import type { ProductMatch } from './resolve-code.ts';
 
 import { consumeAmountOf } from './consume-amount.ts';
-import { fromLocationOf } from './from-location.ts';
+import { formDefaultOf, fromLocationOf } from './from-location.ts';
 import { readActiveProduct } from './read-product.ts';
 import { resolveCode } from './resolve-code.ts';
 
@@ -36,8 +36,8 @@ export class ScanDefaults {
   ) {}
 
   // The "from" location of the Grocy form. A location in the body wins. Else
-  // the first default with stock applies, then the first location with
-  // stock, as `fromLocationOf` decides. The read includes the stock entries
+  // the one default of the Grocy form applies when it has stock, else the
+  // first location with stock, as `fromLocationOf` decides. The read includes the stock entries
   // of the sub-products, because a Consume can take them. A Transfer counts
   // the stock entries of the product only. A code with no product has no
   // location.
@@ -52,12 +52,8 @@ export class ScanDefaults {
       return null;
     }
     const entries = await this.stock.readConsumeStockEntries(product.id);
-    return body.bookingType === 'consume'
-      ? fromLocationOf([product.consumeLocationId, product.locationId], entries)
-      : fromLocationOf(
-          [product.locationId],
-          entries.filter((entry) => entry.productId === product.id),
-        );
+    const defaults = [formDefaultOf(body.bookingType, product)];
+    return fromLocationOf(defaults, body.bookingType === 'consume' ? entries : entries.filter((entry) => entry.productId === product.id));
   }
 
   // The amount and the unit of a new Consume pending scan, as the Grocy
