@@ -38,6 +38,7 @@ export class BookingsController {
     PROBLEM_TYPES.notJson,
     PROBLEM_TYPES.unknownId,
     PROBLEM_TYPES.noConversion,
+    PROBLEM_TYPES.aboveStock,
     PROBLEM_TYPES.grocyRefused,
     PROBLEM_TYPES.grocyUnavailable,
   )

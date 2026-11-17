@@ -11,6 +11,7 @@ import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
 
+import { bookingTypeLabel } from '../booking-types';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { nextAmount } from '../scan/swipe';
 import { SwipeRow } from '../scan/swipe-row';
@@ -22,7 +23,7 @@ import { ProductLines } from './product-lines';
 import { RowEditButton } from './row-edit-button';
 import { isSameRowProperties } from './row-properties';
 import { RowSpoiledButton } from './row-spoiled-button';
-import { amountText, bookingTypeLabel, locationText } from './row-text';
+import { amountText, locationText } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
 // Every fact of the row on one line, as the card has no columns. The facts are
@@ -202,8 +203,10 @@ function cardClass(state: RowState, isChecked: boolean, isBusy: boolean) {
   );
 }
 
-// One card of the review queue, with the facts and the actions of a table row in big controls. The checkbox feeds the same checked set as the table. The booking type icon comes after the checkbox.
-// A swipe to the left rejects the row.
+// One card of the review queue. It has the facts and the actions of a table row
+// in big controls. The checkbox feeds the same checked set as the table. The
+// booking type icon comes after the checkbox. A swipe to the left rejects the
+// row.
 function QueueCardView({
   chainRows,
   isChecked,

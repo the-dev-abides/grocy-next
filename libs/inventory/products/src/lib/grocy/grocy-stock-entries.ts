@@ -69,9 +69,13 @@ export function toStockEntries(
 }
 
 // The stock entries of a read with the sub-products, with the product of each
-// stock entry, in the order of the rows, which is the Grocy consume order.
+// stock entry. They come in the order of the rows, which is the Grocy consume
+// order.
 export function toStockEntriesWithProduct(
   rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
 ): (StockEntry & { productId: number })[] {
-  return rows.map((row) => ({ ...toStockEntry(row), productId: row.product_id }));
+  return rows.map((row) => {
+    const entry = toStockEntry(row);
+    return { ...entry, productId: row.product_id };
+  });
 }

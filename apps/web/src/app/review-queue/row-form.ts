@@ -70,10 +70,10 @@ function textOrNull(text: string): null | string {
   return trimmed === '' ? null : trimmed;
 }
 
-// The update of the full form: every field of the form. An empty text, and a
-// text that is not a number in a number field, saves null. The booking type
-// changes only between Consume and Transfer, so the form of a Purchase row
-// and of an Inventory row sends the booking type of the row.
+// The update of the full form: every field of the form. An empty text saves
+// null. A text that is not a number in a number field also saves null. The
+// booking type changes only between Consume and Transfer. Thus the form of a
+// Purchase row and of an Inventory row sends the booking type of the row.
 export function rowFormBody(form: RowForm): UpdatePendingScan {
   return {
     amount: numberOf(form.amount) ?? null,
@@ -120,19 +120,27 @@ export function unitChoices<Unit extends Named>(
   return (units ?? []).filter((unit) => ids.has(unit.id));
 }
 
-// The fields of the full form that depend on the booking type, by the same rule as the bulk edit.
-// A Purchase row and an Inventory row have the due date, the store, and the price.
-// Only a Purchase row has the price type.
+// The fields of the full form that depend on the booking type. The map of
+// the bulk edit holds the rule. A Purchase row and an Inventory row have the
+// due date, the store, and the price. Only a Purchase row has the price
+// type. A Consume row and a Transfer row have the booking type. A Consume
+// row has the spoiled flag, and a Transfer row has the "to" location.
 export function rowFormFieldsOf(bookingType: PendingScan['bookingType']): {
+  hasBookingType: boolean;
   hasDueDate: boolean;
   hasPrice: boolean;
   hasPriceType: boolean;
+  hasSpoiled: boolean;
   hasStore: boolean;
+  hasToLocation: boolean;
 } {
   return {
+    hasBookingType: isFieldOfType('bookingType', bookingType),
     hasDueDate: isFieldOfType('dueDate', bookingType),
     hasPrice: isFieldOfType('price', bookingType),
     hasPriceType: isFieldOfType('priceType', bookingType),
+    hasSpoiled: isFieldOfType('spoiled', bookingType),
     hasStore: isFieldOfType('store', bookingType),
+    hasToLocation: isFieldOfType('toLocation', bookingType),
   };
 }

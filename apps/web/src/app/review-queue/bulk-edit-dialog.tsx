@@ -80,8 +80,9 @@ function BulkEditForm({
   );
 }
 
-// The bulk edit dialog of the spec: one update per checked row with only the fields that the user set and that apply to the booking type of the row.
-// Every field starts empty.
+// The bulk edit dialog of the spec. It sends one update for each checked
+// row. The update has only the fields that the user set and that apply to the
+// booking type of the row. Every field starts empty.
 export function BulkEditDialog({
   lists,
   onApply,

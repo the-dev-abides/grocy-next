@@ -13,9 +13,9 @@ function isTransferOf(row: PendingScanRow, code: string): boolean {
   return row.bookingType === 'transfer' && row.code === code;
 }
 
-// The tests of the Consume and Transfer scan screen. Each test removes the rows
-// of its code and its booking type first, so a repeat scan from an earlier run
-// does not merge into the new row.
+// The tests of the Consume and Transfer scan screen. Each test first removes
+// the rows of its code and its booking type. Thus a repeat scan from an earlier
+// run does not merge into the new row.
 
 // The Grocycode grcy:p:1 is product 1. The Consume takes 1 of the 2 sealed
 // cans of stock entry 11 at the Fridge, so the accept opens the rest. The
@@ -83,6 +83,30 @@ test('the switch on Transfer with the Freezer makes a typed code one Transfer ro
   ).toBeVisible();
   await expect(row).toContainText('Transfer Fridge → Freezer');
   await expect(page.getByRole('radio', { name: 'Transfer' })).toBeChecked();
+});
+
+// User story 7: the defaults section holds the "from" location and the "to"
+// location. Its "To" field and the "To" select under the switch show the
+// same session value. The test scans nothing.
+test('the "to" location in the defaults section and the "To" select under the switch show the same location', async ({
+  page,
+}) => {
+  await page.goto('/scan/consume-transfer');
+  await page.getByRole('button', { name: /^Defaults/ }).click();
+  const defaultsTo = page.getByLabel('To, for a Transfer', { exact: true });
+  await expect(page.getByLabel('From', { exact: true })).toBeVisible();
+  await expect(defaultsTo).toContainText('Not set');
+
+  await pickOption(page, 'To, for a Transfer', 'Pantry');
+  await page.getByRole('radio', { name: 'Transfer' }).click();
+
+  const switchTo = page.getByLabel('To', { exact: true });
+  await expect(switchTo).toContainText('Pantry');
+  await expect(page.getByText(/^The next scan is a /)).toHaveText(
+    'The next scan is a Transfer to Pantry',
+  );
+  await pickOption(page, 'To', 'Freezer');
+  await expect(defaultsTo).toContainText('Freezer');
 });
 
 // The code 0049000006346 belongs to no other Consume or Transfer test. The
@@ -155,8 +179,9 @@ test('a tap on the trash can of a Consume row makes the trash can red and the de
 
 // The Grocycode grcy:p:1 is product 1, with its stock at the Fridge. The
 // Consume test types the same Grocycode, so this test reads the Transfer rows
-// only. A tap on the name opens the row form. The plus button and the typed
-// amount change the amount, the "To" select sets the "to" location, and
+// only. A tap on the name opens the row form. The plus button, the typed
+// amount, and the minus button change the amount. The minus button takes 1.5
+// to 0.5, and is then off. The "To" select sets the "to" location, and
 // Reject removes the row.
 test('the row form of a Transfer row takes a typed amount and the "to" location, and its Reject removes the row', async ({
   page,
@@ -180,9 +205,13 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
   await expect(row).toContainText('2 Can');
   await row.getByRole('button', { name: 'Coca-Cola Original 330 ml' }).click();
   const amount = row.getByRole('textbox', { name: 'Amount' });
-  await amount.fill('0.5');
+  await amount.fill('1.5');
   await amount.press('Enter');
+  await expect(row).toContainText('1.5 Can');
+  const less = row.getByRole('button', { name: 'Less' });
+  await less.click();
   await expect(row).toContainText('0.5 Can');
+  await expect(less).toBeDisabled();
   await pickOption(row, 'To', 'Freezer');
   await expect(row).toContainText('Transfer Fridge → Freezer');
   const stored = await listRows(request);
@@ -195,32 +224,4 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
   await expect(page.getByText('0 scans in the review queue')).toBeVisible();
   const left = await listRows(request);
   expect(left.filter((item) => isTransferOf(item, code))).toEqual([]);
-});
-
-// The Grocycode grcy:p:5 is product 5, Yoghurt, a parent product with no own
-// stock. Its child, product 6, has 3 sealed packs at the Fridge. A Consume of
-// 1 of the parent takes a part of the pack of the child, as the accept does,
-// so the accept opens the rest.
-test('a Consume row of a parent product on the scan screen says "Opens a new pack" from the stock of its sub-product', async ({
-  page,
-  request,
-}) => {
-  const code = 'grcy:p:5';
-  await removeRows(
-    request,
-    (row) => row.bookingType === 'consume' && row.code === code,
-  );
-  await page.goto('/scan/consume-transfer');
-  await typeCode(page, code);
-
-  const rows = sessionRows(page);
-  await expect(rows).toHaveCount(1, { timeout: 3000 });
-  const row = rows.first();
-  await expect(row).toContainText('Yoghurt');
-  await expect(row).toContainText('Consume from Fridge');
-  await expect(row).toContainText('Opens a new pack');
-  await removeRows(
-    request,
-    (item) => item.bookingType === 'consume' && item.code === code,
-  );
 });

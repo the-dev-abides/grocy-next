@@ -289,9 +289,10 @@ purchase date. The amounts are in the stock unit.
 - On a Transfer, "Grocy splits the pack": the accept moves a part of a stock
   entry.
 
-The pending scans of one product see the stock after the older pending
-scans of that product. Thus two pending scans do not show the same pack two
-times. A pending scan with an error does not change the stock that the
+A pending scan sees the stock after the older pending scans that take from
+the same stock entries. These are the pending scans of the same product, and
+a Consume of a parent product together with the pending scans of its child
+products. Thus two pending scans do not show the same pack two times. A pending scan with an error does not change the stock that the
 newer pending scans see. A pending scan that names a stock entry shows that
 stock entry only.
 

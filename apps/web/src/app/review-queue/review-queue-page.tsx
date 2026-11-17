@@ -5,6 +5,7 @@ import type { QueueView } from './queue-view';
 import type { ResultLine } from './result-panel';
 import type { ReviewQueue } from './use-review-queue';
 
+import { useProductReads } from '../api/use-product-reads';
 import { Page } from '../shell/page';
 import { Attribution } from './attribution';
 import { BulkEditDialog } from './bulk-edit-dialog';
@@ -51,6 +52,14 @@ function ViewBody({
   );
 }
 
+// The chain rows of each row of the queue. The hook loads the product read of
+// each Consume row and Transfer row, so that the chain can see the stock
+// entries that a parent product shares with its sub-products.
+function useChainRows(rows: readonly PendingScan[]) {
+  const productReads = useProductReads(rows);
+  return useMemo(() => chainRowsOf(rows, productReads), [rows, productReads]);
+}
+
 // The view switch, the filter, the bulk actions, the result panel, and the
 // table or the cards of the rows that the filter shows. Both views share the
 // filter, the checked rows, and the bulk actions.
@@ -62,7 +71,7 @@ function QueueBody({
   const [filter, setFilter] = useState(NO_FILTER);
   const [editRows, setEditRows] = useState<null | PendingScan[]>(null);
   const results = useResultLines();
-  const chains = useMemo(() => chainRowsOf(rows), [rows]);
+  const chains = useChainRows(rows);
   const shown = filterRows(rows, filter);
   const selection = useSelection(shown.map(({ id }) => id));
   const actions = useBulkActions({

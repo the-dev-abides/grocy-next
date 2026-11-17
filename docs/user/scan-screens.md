@@ -154,6 +154,7 @@ list. You can change a pending scan in the review queue.
 | --------------------------------------- | -------------------------------------------------- | -------------------- |
 | `Location`                              | `Product default`, or a Grocy location             | Purchase, Inventory  |
 | `From`                                  | `Product default`, or a Grocy location             | Consume and Transfer |
+| `To, for a Transfer`                    | `Not set`, or a Grocy location                     | Consume and Transfer |
 | `Store`                                 | `No store`, or a Grocy store                       | Purchase             |
 | `Product group`                         | `Product default`, or a Grocy product group        | Purchase, Inventory  |
 | `Due date` or `Due date of added stock` | `Product default`, `Days from today`, `Fixed date` | Purchase, Inventory  |
@@ -166,8 +167,9 @@ list. You can change a pending scan in the review queue.
 - The product group applies to a new product that you make from a pending
   scan. The filter of the review queue also uses it.
 - On the Consume and Transfer screen, `From` is the "from" location of the
-  next scans. The "to" location of a Transfer is under the camera, not in
-  this section.
+  next scans. `To, for a Transfer` is the "to" location of the next Transfer
+  scans. The `To` select under the switch shows the same value. A change in
+  one of the two fields also changes the other field.
 
 Tap `Reset` to set every default back to its first value. On the Consume and
 Transfer screen, `Reset` also clears the "to" location. It does not move the
@@ -266,8 +268,9 @@ see it before you scan:
 ### The "To" location
 
 When the switch is on `Transfer`, the `To` select shows under the switch.
-Pick the "to" location of the next scans. The "to" location stays for the
-scan session, as the defaults do. A Consume does not use it.
+Pick the "to" location of the next scans. It is the same value as
+`To, for a Transfer` in the defaults section. The "to" location stays for
+the scan session, as the defaults do. A Consume does not use it.
 
 A Transfer with no "to" location shows its detail line in red. The review
 queue gives it the state `Needs a 'to' location`. Set the "to" location in
@@ -313,12 +316,17 @@ The detail line shows the time of the scan and the locations:
   opened packs. The text uses the Grocy stock and the older rows of the scan
   session.
 
-A repeat scan of a code with the same booking type adds to the amount of its
-row: the amount of the product barcode, else 1. A Consume row and a Transfer
-row of the same code are two rows.
+A repeat scan of a code adds to the amount of its row when the row has the
+same booking type, the same "from" location, the same "to" location, and the
+same stock entry. A spoiled row gets no repeat scan, and a spoiled scan makes
+a new row. The scan adds the amount that a new row of the scan gets: the
+amount of the product barcode, the amount of the stock entry of a stock entry
+Grocycode, or the default amount. A Consume row and a Transfer row of the
+same code are two rows.
 
 Tap the minus button or the plus button to change the amount by 1. The
-amount does not go below 1.
+minus button is off when the amount minus 1 is 0 or less. Thus 1.5 goes to
+0.5, and 1 stays 1.
 
 A Consume row has the trash can button `Spoiled`. Tap it to mark the Consume
 as spoiled. The trash can is red while the flag is on. Tap it again to turn

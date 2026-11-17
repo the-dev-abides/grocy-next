@@ -23,8 +23,8 @@ export type ConsumeAmountProduct = Pick<
   StockUnit;
 
 // Grocy stores the quick consume amount in the stock unit. The Grocy consume
-// form shows it in the unit of the row, the consume unit when the row has the
-// empty unit, as `quick_consume_amount * qu_factor`. With no resolved
+// form shows it in the unit of the row, as `quick_consume_amount *
+// qu_factor`. A row with the empty unit has the consume unit. With no resolved
 // conversion to that unit, the row takes the amount in the stock unit.
 function quickConsumeAmountOf(
   product: ConsumeAmountProduct,
@@ -42,14 +42,13 @@ function quickConsumeAmountOf(
     : { amount: product.quickConsumeAmount / factor, quantityUnitId };
 }
 
-// This function returns the amount and the unit of a new Consume pending
-// scan, as the Grocy consume form sets them. The body wins. Then the product
-// barcode amount and unit apply. With no amount from either, the Grocy user
-// setting for the default consume amount applies, in the unit of the body or
-// the product barcode, else in the consume unit (the empty unit). When the
-// Grocy user setting for the quick consume amount is on, the quick consume
-// amount of the product replaces the default, converted to the unit of the
-// row.
+// This function returns the amount and the unit of a new Consume pending scan,
+// as the Grocy consume form sets them. The body wins. Then the product barcode
+// amount and unit apply. With no amount from either, the Grocy user setting for
+// the default consume amount applies. Its unit is the unit of the body or of
+// the product barcode, else the consume unit (the empty unit). The Grocy user
+// setting for the quick consume amount can be on. Then the quick consume amount
+// of the product replaces the default, converted to the unit of the row.
 export function consumeAmountOf(
   body: Pick<CreatePendingScan, 'amount' | 'quantityUnitId'>,
   barcode: Pick<ProductBarcode, 'amount' | 'quantityUnitId'>,

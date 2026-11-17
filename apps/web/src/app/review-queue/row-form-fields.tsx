@@ -6,6 +6,11 @@ import type { PendingScan, Product } from '../api/next-api';
 import type { RowForm } from './row-form';
 import type { QueueLists } from './use-review-queue';
 
+import {
+  bookingTypeChoices,
+  isSwitchBookingType,
+  SWITCH_BOOKING_TYPES,
+} from '../booking-types';
 import { nameOf } from '../scan/scan-text';
 import { ChoiceSelect } from './choice-select';
 import { IdSelect } from './id-select';
@@ -25,10 +30,7 @@ interface FieldsProperties {
   scan: PendingScan;
 }
 
-const BOOKING_TYPE_CHOICES = [
-  { label: 'Consume', value: 'consume' },
-  { label: 'Transfer', value: 'transfer' },
-];
+const BOOKING_TYPE_CHOICES = bookingTypeChoices(SWITCH_BOOKING_TYPES);
 
 // The booking type of a Consume row and of a Transfer row. The user can
 // change it between Consume and Transfer only.
@@ -39,7 +41,9 @@ function BookingTypeField({ form, patch }: Readonly<FieldsProperties>) {
       label="Booking type"
       value={form.bookingType}
       onChange={(value) => {
-        patch({ bookingType: value === 'transfer' ? 'transfer' : 'consume' });
+        if (isSwitchBookingType(value)) {
+          patch({ bookingType: value });
+        }
       }}
     />
   );
@@ -144,7 +148,7 @@ function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
           patch({ locationId, stockEntryId: null });
         }}
       />
-      {form.bookingType === 'transfer' && (
+      {rowFormFieldsOf(form.bookingType).hasToLocation && (
         <IdSelect
           label="To"
           none="Not set"
@@ -159,8 +163,8 @@ function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
   );
 }
 
-// The fields of a Purchase row and of an Inventory row after the locations:
-// the due date, the store, and the price. Only a Purchase row has the price type.
+// The fields of a Purchase row and of an Inventory row after the locations: the
+// due date, the store, and the price. Only a Purchase row has the price type.
 function StockFields(props: Readonly<FieldsProperties>) {
   const { form, patch, scan } = props;
   const isInventory = scan.bookingType === 'inventory';
@@ -184,14 +188,13 @@ function StockFields(props: Readonly<FieldsProperties>) {
 
 // Every field of one row, in the two-column grid of ADR 0013, as in the
 // prototype. The price, the store, and the due date do not apply to a Consume
-// or a Transfer, so only a Purchase row and an Inventory row show them. A
-// Consume row and a Transfer row show the booking type, and a Consume row
-// shows the spoiled flag. A row with no product has the product group of a
-// new product. The note comes last.
+// or a Transfer. Thus only a Purchase row and an Inventory row show them. A
+// Consume row and a Transfer row show the booking type. A Consume row shows the
+// spoiled flag. A row with no product has the product group of a new
+// product. The note comes last.
 export function RowFormFields(props: Readonly<FieldsProperties>) {
   const { form, lists, patch, scan } = props;
-  const isConsumeOrTransfer =
-    scan.bookingType === 'consume' || scan.bookingType === 'transfer';
+  const fields = rowFormFieldsOf(scan.bookingType);
   return (
     <div
       className="
@@ -199,11 +202,13 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
         sm:grid-cols-2
       "
     >
-      {isConsumeOrTransfer && <BookingTypeField {...props} />}
-      {form.bookingType === 'consume' && <SpoiledField {...props} />}
+      {fields.hasBookingType && <BookingTypeField {...props} />}
+      {rowFormFieldsOf(form.bookingType).hasSpoiled && (
+        <SpoiledField {...props} />
+      )}
       <AmountFields {...props} />
       <LocationFields {...props} />
-      {isConsumeOrTransfer && (
+      {isSwitchBookingType(scan.bookingType) && (
         <StockEntrySelect
           bookingType={form.bookingType}
           locationId={form.locationId}
@@ -214,7 +219,7 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
           }}
         />
       )}
-      {!isConsumeOrTransfer && <StockFields {...props} />}
+      {fields.hasDueDate && <StockFields {...props} />}
       {scan.productId === null && (
         <IdSelect
           label="Product group of the new product"

@@ -8,6 +8,8 @@ import type {
   StockLogRow,
 } from '@grocy-next/inventory-products';
 
+import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
+
 // The Grocy message of the Grocy consume form for an amount above the stock.
 // The Grocy API books less with no error, so the accept refuses the amount
 // with this message before any Grocy call.
@@ -74,12 +76,11 @@ export function isAboveStock(amount: number, stock: number): boolean {
   return roundOf(amount) > roundOf(stock);
 }
 
-// The refusal of an amount above the stock, as Grocy refuses it.
-export function aboveStockRefusal(): BookingResult {
-  return {
-    grocy: { message: ABOVE_STOCK, status: 400 },
-    isRefused: true,
-  };
+// The refusal of an amount above the stock. It is a server rule, so the
+// problem has no `grocy` field. The detail is the message of the Grocy
+// consume form.
+export function aboveStockProblem(): ProblemException {
+  return new ProblemException(PROBLEM_TYPES.aboveStock, ABOVE_STOCK);
 }
 
 // The open on consume of ADR 0017. Each stock log row of the consume names

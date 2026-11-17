@@ -184,9 +184,9 @@ describe('the product read of the Next API', () => {
 
   // A Consume of a parent product takes the stock of its sub-products, as the
   // Grocy consume form does. The read gives the stock entries of the
-  // sub-products in the stock unit of the parent, with the product of each
-  // stock entry and its open rule. The child product 6 has three packs in
-  // one stock entry, and the Pack is the stock unit of both products.
+  // sub-products in the stock unit of the parent. Each stock entry has its
+  // product and its open rule. The child product 6 has three packs in one stock
+  // entry. The Pack is the stock unit of both products.
   it('reads the stock entries of the sub-products of a parent product', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/5`);
 
@@ -222,9 +222,8 @@ describe('the product read of the Next API', () => {
     });
   });
 
-  // Product 3 is in the Pantry, location 2, in the product group Snacks, 2,
-  // with the Pack, unit 2, as the purchase unit, the stock unit, and the
-  // consume unit.
+  // Product 3 is in the Pantry, location 2, in the product group Snacks, 2. The
+  // Pack, unit 2, is its purchase unit, its stock unit, and its consume unit.
   it('reads the product group and the units of a product', async () => {
     const response = await fetch(`${baseUrl}/api/v2/products/3`);
 

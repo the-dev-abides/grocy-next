@@ -1,4 +1,7 @@
-import type { QuantityUnitConversion } from '@grocy-next/inventory-products';
+import type {
+  ProductDetails,
+  QuantityUnitConversion,
+} from '@grocy-next/inventory-products';
 
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 
@@ -61,6 +64,18 @@ function factorOf(unitId: number, product: StockUnit): number {
     );
   }
   return factor;
+}
+
+// The unit of a Consume row or a Transfer row with no unit, as ADR 0010
+// decided. It is the consume unit on a Consume and the stock unit on a
+// Transfer.
+export function emptyUnitIdOf(
+  bookingType: 'consume' | 'transfer',
+  product: Pick<ProductDetails, 'consumeUnitId' | 'stockUnitId'>,
+): number {
+  return bookingType === 'consume'
+    ? product.consumeUnitId
+    : product.stockUnitId;
 }
 
 // This function converts an amount in one unit to the stock unit. A Consume

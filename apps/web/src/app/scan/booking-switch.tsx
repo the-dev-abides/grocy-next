@@ -1,21 +1,21 @@
 import { cn } from 'cn';
-import { ArrowRightLeft, type LucideIcon, Utensils } from 'lucide-react';
 
 import type { DefaultsLists } from './session-defaults';
-import type { ScanDefaults, SwitchBookingType } from './use-scan-defaults';
+import type { ScanDefaults } from './use-scan-defaults';
 
+import {
+  bookingTypeChoices,
+  bookingTypeIcon,
+  SWITCH_BOOKING_TYPES,
+} from '../booking-types';
 import { RowSelect } from './defaults-section';
 import { nextScanText } from './scan-text';
 
 // The two halves of the switch, with the icon of each booking type.
-const HALVES: readonly {
-  icon: LucideIcon;
-  label: string;
-  value: SwitchBookingType;
-}[] = [
-  { icon: Utensils, label: 'Consume', value: 'consume' },
-  { icon: ArrowRightLeft, label: 'Transfer', value: 'transfer' },
-];
+const HALVES = bookingTypeChoices(SWITCH_BOOKING_TYPES).map((choice) => {
+  const icon = bookingTypeIcon[choice.value];
+  return { ...choice, icon };
+});
 
 // The switch with two halves under the camera. It sets the booking type of
 // the next scan and stays where the user puts it.
@@ -55,9 +55,9 @@ function Switch({ scanDefaults }: Readonly<{ scanDefaults: ScanDefaults }>) {
   );
 }
 
-// The controls under the camera of the Consume and Transfer scan screen: the
-// strip that names the next booking type, the switch, and on Transfer the
-// "To" location select. The "to" location is a session default.
+// The controls under the camera of the Consume and Transfer scan screen. These
+// are the strip that names the next booking type, the switch, and on Transfer
+// the "To" location select. The "to" location is a session default.
 export function BookingSwitch({
   lists,
   scanDefaults,

@@ -5,7 +5,7 @@ import type { ResultLine } from './result-panel';
 import type { QueueLists } from './use-review-queue';
 import type { Selection } from './use-selection';
 
-import { NO_ROWS } from './chain-rows';
+import { type ChainRow, NO_ROWS } from './chain-rows';
 import { queueCard as QueueCard } from './queue-card';
 
 // The cards view of the review queue. It shows one card per row that the filter
@@ -20,7 +20,7 @@ export function QueueCards({
   rows,
   selection,
 }: Readonly<{
-  chains: ReadonlyMap<number, readonly PendingScan[]>;
+  chains: ReadonlyMap<number, readonly ChainRow[]>;
   lists: QueueLists;
   onChanged: () => void;
   onResult: (line: Omit<ResultLine, 'key'>) => void;

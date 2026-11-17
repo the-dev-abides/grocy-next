@@ -1,14 +1,16 @@
 import type { PendingScan } from '../api/next-api';
+import type { ChainRow } from './chain-rows';
 import type { ResultLine } from './result-panel';
 import type { QueueLists } from './use-review-queue';
 
 import { isSameRows } from './chain-rows';
 
 // The props of one row of the table and of one card. The chain rows are the
-// older rows of the same product, which the stock entry lines read. The
+// older rows that share a stock entry with the row, which the stock entry
+// lines read. The
 // toggle takes the id, so all rows share one toggle.
 export interface RowProperties {
-  chainRows: readonly PendingScan[];
+  chainRows: readonly ChainRow[];
   isChecked: boolean;
   lists: QueueLists;
   onChanged: () => void;

@@ -1,28 +1,13 @@
 import { cn } from 'cn';
-import {
-  ArrowRightLeft,
-  ClipboardList,
-  type LucideIcon,
-  ScanBarcode,
-  Utensils,
-} from 'lucide-react';
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
+import {
+  bookingTypeIcon,
+  bookingTypeLabel,
+  isSwitchBookingType,
+} from '../booking-types';
 import { FlipButton } from '../scan/flip-button';
-import { bookingTypeLabel } from './row-text';
-
-// The icon of each booking type. The icons are the icons of the scan screens:
-// the barcode of Purchase, the clipboard of Inventory, the fork and knife of
-// Consume, and the two arrows of Transfer.
-const bookingTypeIcon: Readonly<
-  Record<PendingScan['bookingType'], { icon: LucideIcon }>
-> = {
-  consume: { icon: Utensils },
-  inventory: { icon: ClipboardList },
-  purchase: { icon: ScanBarcode },
-  transfer: { icon: ArrowRightLeft },
-};
 
 // The booking type icon at the start of a row. The icon has the name of the
 // booking type for a screen reader. On a Consume row and a Transfer row, the
@@ -38,10 +23,10 @@ export function BookingTypeIcon({
   scan: Pick<PendingScan, 'bookingType'>;
   size?: 'icon' | 'icon-lg';
 }>) {
-  if (bookingType === 'consume' || bookingType === 'transfer') {
+  if (isSwitchBookingType(bookingType)) {
     return <FlipButton scan={{ bookingType }} size={size} onUpdate={onSave} />;
   }
-  const meta = bookingTypeIcon[bookingType];
+  const meta = { icon: bookingTypeIcon[bookingType] };
   return (
     <span
       className={cn(

@@ -1,5 +1,6 @@
 import type {
   BookingResult,
+  ProductDetails,
   StockLogRow,
 } from '@grocy-next/inventory-products';
 import type { Repository } from 'typeorm';
@@ -23,7 +24,7 @@ import {
   toLocationIdOf,
 } from './accept-checks.ts';
 import {
-  aboveStockRefusal,
+  aboveStockProblem,
   consumedAmountOf,
   entriesOfRow,
   isAboveStock,
@@ -33,7 +34,11 @@ import {
 } from './consume-accept.ts';
 import { isNoChange } from './inventory-change.ts';
 import { PendingScansService } from './pending-scans.service.ts';
-import { toStockAmount, toStockUnit } from './purchase-conversion.ts';
+import {
+  emptyUnitIdOf,
+  toStockAmount,
+  toStockUnit,
+} from './purchase-conversion.ts';
 import { readActiveProduct } from './read-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
@@ -144,25 +149,26 @@ export class BookingsService {
     return this.finish(row, productId, result);
   }
 
-  // The Consume accept of ADR 0017. The amount goes to the stock unit with the resolved conversions of the product. The empty unit is the consume unit.
-  // The read of the stock entries before the consume serves the amount check
-  // and the open on consume. An amount above the stock at the "from" location,
-  // or above the stock entry when the row names one, is refused with the Grocy message and no Grocy call. After the consume,
-  // the open of each sealed stock entry that the consume left partly in stock
-  // follows. The booking lists the rows of the consume, then the rows of the
-  // open. The transaction id is the transaction of the consume.
+  // The Consume accept of ADR 0017. `stockAmountOf` converts the amount to the
+  // stock unit. The empty unit is the consume unit. The read of the stock
+  // entries before the consume serves the amount check and the open on
+  // consume. The accept refuses an amount above the stock at the "from"
+  // location. When the row names a stock entry, it refuses an amount above that
+  // stock entry. The refusal is the above-stock problem, and Grocy gets no
+  // call. After the consume, each sealed stock entry that the consume left
+  // partly in stock gets an open. The booking lists the rows of the consume,
+  // then the rows of the open. The transaction id is the transaction of the
+  // consume.
   private async acceptConsume(
     row: StoredPendingScan,
     productId: number,
   ): Promise<Booking> {
     const product = await readActiveProduct(this.grocy, productId);
-    const amount = toStockAmount(
+    const amount = await this.stockAmountOf(
+      row,
+      product,
       positiveAmountOf(row, 'A Consume'),
-      row.quantityUnitId ?? product.consumeUnitId,
-      {
-        conversions: await this.stock.readResolvedConversions(productId),
-        stockUnitId: product.stockUnitId,
-      },
+      'consume',
     );
     const entries = await this.stock.readConsumeStockEntries(productId);
     const products = await readConsumeProducts(
@@ -180,7 +186,12 @@ export class BookingsService {
         ),
       )
     ) {
-      return this.finish(row, productId, aboveStockRefusal());
+      const problem = aboveStockProblem();
+      await this.rows.update(
+        { id: row.id },
+        { error: problem.problem.detail, updatedAt: now() },
+      );
+      throw problem;
     }
     const result = await this.stock.consume(productId, {
       amount,
@@ -201,10 +212,10 @@ export class BookingsService {
     });
   }
 
-  // The Transfer accept converts the amount to the stock unit with the resolved conversions of the product. The empty unit is the stock unit.
-  // Then it books the transfer in Grocy with both locations. Grocy applies
-  // the freezer rules and refuses a tare weight product. Grocy Next adds no
-  // rule.
+  // The Transfer accept. `stockAmountOf` converts the amount to the stock
+  // unit. The empty unit is the stock unit. Then the accept books the transfer
+  // in Grocy with both locations. Grocy applies the freezer rules and refuses a
+  // tare weight product. Grocy Next adds no rule.
   private async acceptTransfer(
     row: StoredPendingScan,
     productId: number,
@@ -212,14 +223,7 @@ export class BookingsService {
     const toLocationId = toLocationIdOf(row);
     const entered = positiveAmountOf(row, 'A Transfer');
     const product = await readActiveProduct(this.grocy, productId);
-    const amount = toStockAmount(
-      entered,
-      row.quantityUnitId ?? product.stockUnitId,
-      {
-        conversions: await this.stock.readResolvedConversions(productId),
-        stockUnitId: product.stockUnitId,
-      },
-    );
+    const amount = await this.stockAmountOf(row, product, entered, 'transfer');
     const result = await this.stock.transfer(productId, {
       amount,
       fromLocationId: row.locationId,
@@ -227,6 +231,22 @@ export class BookingsService {
       toLocationId,
     });
     return this.finish(row, productId, result);
+  }
+
+  // The amount of a Consume or a Transfer in the stock unit. The conversion
+  // uses the resolved conversions of the product. A row with no unit has the
+  // amount in the unit that `emptyUnitIdOf` gives.
+  private async stockAmountOf(
+    row: StoredPendingScan,
+    product: ProductDetails,
+    amount: number,
+    bookingType: 'consume' | 'transfer',
+  ): Promise<number> {
+    const unitId = row.quantityUnitId ?? emptyUnitIdOf(bookingType, product);
+    return toStockAmount(amount, unitId, {
+      conversions: await this.stock.readResolvedConversions(product.id),
+      stockUnitId: product.stockUnitId,
+    });
   }
 
   // The end of an accept after the Grocy call. On success the row goes and

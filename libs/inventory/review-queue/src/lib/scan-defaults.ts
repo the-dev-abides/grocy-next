@@ -91,10 +91,9 @@ export class ScanDefaults {
   }
 
   // The defaults of a new Consume or Transfer pending scan that the server
-  // reads from Grocy, as the Grocy form of the booking type sets them. A code
-  // with no product has no location. A row that names
-  // a stock entry takes the defaults of the stock entry, as
-  // `stockEntryDefaultsOf` decides.
+  // reads from Grocy. The Grocy form of the booking type sets them. A code with
+  // no product has no location. A row that names a stock entry takes the
+  // defaults of the stock entry, as `stockEntryDefaultsOf` decides.
   private async formDefaults(
     body: CreatePendingScan,
     match: null | ProductMatch,

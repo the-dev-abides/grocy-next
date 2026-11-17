@@ -57,9 +57,9 @@ export class ProductsService {
       });
   }
 
-  // The product of the Next API: the details plus the stock entries, the
-  // resolved conversions, and the stock entries of the sub-products, which
-  // Grocy answers in reads of their own.
+  // The product of the Next API: the details, the stock entries, the resolved
+  // conversions, and the stock entries of the sub-products. Grocy answers each
+  // of the last three in a read of its own.
   private async toProduct(details: ProductDetails): Promise<Product> {
     const [conversions, stockEntries, subProductStockEntries] =
       await Promise.all([

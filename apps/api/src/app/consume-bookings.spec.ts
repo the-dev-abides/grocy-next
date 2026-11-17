@@ -56,12 +56,13 @@ const PRODUCT_1_OPEN_ROW = {
   transactionType: 'product-opened',
 };
 
-// The accept of a Consume pending scan, with the open on consume of ADR 0017.
-// The fixture household has 3 cans of product 1 at the Fridge in two sealed
-// stock entries, 2 packs of product 2 in one sealed stock entry, 1 pack of
-// product 3 in one sealed stock entry, 3 packs of product 6 (the child of the
-// parent product 5) in one sealed stock entry, and 500 grams of the tare
-// weight product 7. Product 2 has the Grocy setting "cannot be opened".
+// The accept of a Consume pending scan, with the open on consume of ADR
+// 0017. The fixture household has this stock. Product 1 has 3 cans at the
+// Fridge in two sealed stock entries. Product 2 has 2 packs in one sealed stock
+// entry. Product 3 has 1 pack in one sealed stock entry. Product 6, the child
+// of the parent product 5, has 3 packs in one sealed stock entry. The tare
+// weight product 7 has 500 grams. Product 2 has the Grocy setting "cannot be
+// opened".
 describe('the accept of a Consume pending scan', () => {
   let app: INestApplication;
   let baseUrl: string;
@@ -244,7 +245,8 @@ describe('the accept of a Consume pending scan', () => {
   });
 
   // The Grocy API books less with no error, so the accept checks the stock at
-  // the "from" location first and makes no Grocy call.
+  // the "from" location first and makes no Grocy call. The refusal is a
+  // server rule, so the problem has no `grocy` field.
   it('refuses a Consume of 4 of product 1 at the Fridge, where the stock is 3, with the Grocy message', async () => {
     const message =
       'Amount to be consumed cannot be > current stock amount (if supplied, at the desired location)';
@@ -259,11 +261,10 @@ describe('the accept of a Consume pending scan', () => {
     expect(response.status).toBe(422);
     expect(await response.json()).toEqual({
       detail: message,
-      grocy: { message, status: 400 },
       instance: '/api/v2/bookings',
       status: 422,
-      title: 'Grocy refused the change',
-      type: '/problems/grocy-refused',
+      title: 'The amount is above the stock',
+      type: '/problems/above-stock',
     });
     const row = await readRow(created.id);
     expect(row.error).toBe(message);

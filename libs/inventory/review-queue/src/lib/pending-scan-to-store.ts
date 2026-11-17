@@ -26,15 +26,15 @@ type AmountFields = Pick<
 >;
 
 // The defaults of a Consume or a Transfer pending scan that the server reads
-// from Grocy, as the Grocy form of the booking type sets them: the amount and
-// its unit, and the "from" location.
+// from Grocy. The Grocy form of the booking type sets them. They are the
+// amount, its unit, and the "from" location.
 export type FormDefaults = Pick<
   PendingScanToStore,
   'amount' | 'locationId' | 'quantityUnitId'
 >;
 
 const DEFAULT_PRICE_TYPE: PriceType = 'unit';
-export const DEFAULT_PURCHASE_AMOUNT = 1;
+const DEFAULT_PURCHASE_AMOUNT = 1;
 
 // The defaults of a code that no product barcode matched.
 const NO_BARCODE: Omit<ProductBarcode, 'barcode' | 'id'> = {
@@ -155,9 +155,9 @@ function amountFields(
 
 // This function builds the row of a pending scan from the create body and the
 // product that the code resolved to. A Consume and a Transfer also take the
-// defaults that the server read from Grocy. The function also uses the time of the create,
-// as RFC 3339 text in UTC. The row stores the code as scanned. A value from
-// the body wins over a product barcode default.
+// defaults that the server read from Grocy. The function also uses the time of
+// the create, as RFC 3339 text in UTC. The row stores the code as scanned. A
+// value from the body wins over a product barcode default.
 export function pendingScanToStore(
   body: CreatePendingScan,
   match: null | ProductMatch,

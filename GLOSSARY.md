@@ -126,6 +126,21 @@ The field of a pending scan that says which booking the accept makes: a
 purchase, an inventory, a consume, or a transfer. The scan screen sets it.
 _Avoid_: workflow (as a field name), transaction type (the Grocy field), mode
 
+**Flip**:
+The change of a pending scan from Consume to Transfer, or from Transfer to
+Consume. The pending scan keeps all its other fields. A Purchase and an
+Inventory have no flip.
+_Avoid_: toggle, switch (the switch sets the booking type of the next scan),
+convert
+
+**Stock entry lines**:
+The preview under a Consume or Transfer pending scan in the review queue. It
+shows the stock entries that the accept takes, with the stock after the
+older pending scans that share these stock entries. The stock plan is the
+calculation behind the lines. It is a display only. The accept does not use
+it.
+_Avoid_: allocation, reservation, pick list
+
 **Write-in name**:
 A product name that the user types on a scan screen for a pending scan that
 no product barcode and no lookup result matched. The short product form

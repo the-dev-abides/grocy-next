@@ -1,5 +1,6 @@
 import type { PendingScan, Product } from '../api/next-api';
 
+import { isSwitchBookingType, type SwitchBookingType } from '../booking-types';
 import { nameOf, transferLocationsText } from '../scan/scan-text';
 
 interface Named {
@@ -12,33 +13,31 @@ type ProductUnits = Pick<
   'consumeUnitId' | 'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
 >;
 
-export const bookingTypeLabel: Readonly<
-  Record<PendingScan['bookingType'], string>
-> = {
-  consume: 'Consume',
-  inventory: 'Inventory',
-  purchase: 'Purchase',
-  transfer: 'Transfer',
-};
+// The unit of a Consume row or a Transfer row with no unit, as ADR 0010
+// decided. It is the consume unit on a Consume and the stock unit on a
+// Transfer.
+export function emptyUnitIdOf(
+  bookingType: SwitchBookingType,
+  product: Pick<Product, 'consumeUnitId' | 'stockUnitId'>,
+): number {
+  return bookingType === 'consume'
+    ? product.consumeUnitId
+    : product.stockUnitId;
+}
 
-// The unit of a row with no scanned unit, as ADR 0010 decided: the purchase
-// unit on a Purchase, the consume unit on a Consume, and the stock unit on an
-// Inventory and a Transfer.
+// The unit of a row with no scanned unit, as ADR 0010 decided. It is the
+// purchase unit on a Purchase and the stock unit on an Inventory. On a Consume
+// and a Transfer, `emptyUnitIdOf` gives it.
 function defaultUnitIdOf(
   bookingType: PendingScan['bookingType'],
   product: Omit<ProductUnits, 'stockAmount'>,
 ): number {
-  switch (bookingType) {
-    case 'consume': {
-      return product.consumeUnitId;
-    }
-    case 'purchase': {
-      return product.purchaseUnitId;
-    }
-    default: {
-      return product.stockUnitId;
-    }
+  if (isSwitchBookingType(bookingType)) {
+    return emptyUnitIdOf(bookingType, product);
   }
+  return bookingType === 'purchase'
+    ? product.purchaseUnitId
+    : product.stockUnitId;
 }
 
 const defaultUnitWords: Readonly<Record<PendingScan['bookingType'], string>> = {
@@ -48,8 +47,8 @@ const defaultUnitWords: Readonly<Record<PendingScan['bookingType'], string>> = {
   transfer: 'Stock unit',
 };
 
-// The words of the empty unit in the unit select of a row form: the default
-// unit of the booking type, with the name of the unit of the product.
+// The words of the empty unit in the unit select of a row form. They name the
+// default unit of the booking type and the name of the unit of the product.
 export function defaultUnitLabel(
   bookingType: PendingScan['bookingType'],
   product: Omit<ProductUnits, 'stockAmount'> | undefined,

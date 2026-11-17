@@ -7,9 +7,10 @@ import {
   storedRow,
 } from './pending-scans.js';
 
-// The tests of the booking type filter and of the bulk edit of a Consume row and a Transfer row.
-// Each test creates its own rows through the API with a note of its own and removes them at the end.
-// Each test finds its rows by its note, so the rows of other tests do not change the counts.
+// The tests of the booking type filter, and of the bulk edit of a Consume row
+// and a Transfer row. Each test creates its own rows through the API with a
+// note of its own. It removes them at the end. Each test finds its rows by its
+// note, so the rows of other tests do not change the counts.
 
 // The fixture household of the Grocy mock.
 const FRIDGE = 1;

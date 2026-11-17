@@ -5,10 +5,10 @@ import { nextApi } from './next-api';
 type StockTag =
   { id: number; type: 'Product' } | { id: number; type: 'StockEntry' };
 
-// The tags of one product read: the product, and each stock entry that the
-// read shows. The stock entries of the sub-products of a parent product are
-// in the read too, so a booking of a sub-product marks the read of the
-// parent as old.
+// The tags of one product read: the product, and each stock entry that the read
+// shows. The read of a parent product also shows the stock entries of its
+// sub-products. Thus a booking of a sub-product marks the read of the parent as
+// old.
 export function productTagsOf(product: Product): StockTag[] {
   return [
     { id: product.id, type: 'Product' },
@@ -37,17 +37,18 @@ export function bookingTagsOf(booking: Booking): StockTag[] {
   ];
 }
 
-// The cache tags of the API slice. The code generator writes no tags, so this file adds them to the generated endpoints.
+// The cache tags of the API slice.
+// The code generator writes no tags, so this file adds them to the endpoints.
 //
 // The pending scan list carries the tag `PendingScan`. Each call that changes a
-// pending scan marks the tag as old, and RTK Query then loads the list again.
-// An accept changes the list too: it removes the row or stores its error. When
-// a poll of the list is on the way, RTK Query waits for its answer and then
-// loads the list again. A plain `refetch` in that moment does nothing, so the
-// old answer of the poll would show the change only at the next poll.
+// pending scan marks the tag as old. RTK Query then loads the list again. An
+// accept changes the list too: it removes the row or stores its error. When a
+// poll of the list is on the way, RTK Query waits for its answer and then loads
+// the list again. A plain `refetch` in that moment does nothing. The old answer
+// of the poll would then show the change only at the next poll.
 //
-// An accept also changes the stock. It marks the reads of the products that
-// it booked as old, so the stock entry lines and the Inventory preview of the
+// An accept also changes the stock. It marks the reads of the products that it
+// booked as old. Thus the stock entry lines and the Inventory preview of the
 // other rows use the new stock.
 export const cachedApi = nextApi.enhanceEndpoints({
   addTagTypes: ['PendingScan', 'Product', 'StockEntry'],

@@ -1,6 +1,7 @@
+import { bookingTypeLabel } from '../booking-types';
 import {
+  emptyUnitIdOf,
   amountText,
-  bookingTypeLabel,
   defaultUnitLabel,
   locationText,
   rowName,
@@ -77,7 +78,8 @@ describe('the words of a review queue row', () => {
   });
 
   // The unit select of the row form names the default unit of the booking
-  // type, with the unit of the product when the product read has answered.
+  // type. When the product read has answered, it also names the unit of the
+  // product.
   it('names the default unit of each booking type in the unit select', () => {
     expect(defaultUnitLabel('purchase', product, quantityUnits)).toBe(
       'Purchase unit (Pack)',
@@ -226,5 +228,14 @@ describe('the name of a review queue row', () => {
         products,
       ),
     ).toBe('4011');
+  });
+});
+
+describe('the unit of a Consume row or a Transfer row with no unit', () => {
+  const product = { consumeUnitId: 4, stockUnitId: 1 };
+
+  it('is the consume unit on a Consume and the stock unit on a Transfer', () => {
+    expect(emptyUnitIdOf('consume', product)).toBe(4);
+    expect(emptyUnitIdOf('transfer', product)).toBe(1);
   });
 });

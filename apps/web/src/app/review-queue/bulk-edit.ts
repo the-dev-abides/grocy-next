@@ -1,5 +1,7 @@
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
+import { BOOKING_TYPES, type SwitchBookingType } from '../booking-types';
+
 type BookingType = PendingScan['bookingType'];
 
 // The fields of the bulk edit dialog. Every field starts empty: an empty
@@ -7,7 +9,7 @@ type BookingType = PendingScan['bookingType'];
 // value sets the field to none on the rows.
 export interface BulkEdit {
   amount: string;
-  bookingType: 'consume' | 'transfer' | undefined;
+  bookingType: SwitchBookingType | undefined;
   dueDate: null | string | undefined;
   locationId: null | number | undefined;
   note: string;
@@ -49,17 +51,12 @@ export type BulkField =
 
 type RowFacts = Pick<PendingScan, 'bookingType'>;
 
-const ALL_TYPES: readonly BookingType[] = [
-  'purchase',
-  'inventory',
-  'consume',
-  'transfer',
-];
+const ALL_TYPES = BOOKING_TYPES;
 
-// The booking types that each field applies to. The row form uses the same rule.
-// The Inventory accept sends the store and the price to Grocy, as the Grocy inventory form has them.
-// Only the Purchase accept uses the price type.
-// The booking type, the "to" location, and spoiled use the booking type
+// The booking types that each field applies to. The row form uses the same
+// rule. The Inventory accept sends the store and the price to Grocy, as the
+// Grocy inventory form has them. Only the Purchase accept uses the price
+// type. The booking type, the "to" location, and spoiled use the booking type
 // after the change of the bulk edit.
 const FIELD_TYPES: Readonly<Record<BulkField, readonly BookingType[]>> = {
   amount: ALL_TYPES,
@@ -144,9 +141,9 @@ function setOf<Key extends keyof UpdatePendingScan>(
   return value === undefined ? {} : { [key]: value };
 }
 
-// The merge patch of the bulk edit for one row: only the fields that the user
-// set, and only the fields that apply to the booking type of the row, as the
-// spec decided.
+// The merge patch of the bulk edit for one row. It has only the fields that the
+// user set. Of these, it has only the fields that apply to the booking type of
+// the row, as the spec decided.
 export function bulkEditBody(
   edit: BulkEdit,
   scan: RowFacts,

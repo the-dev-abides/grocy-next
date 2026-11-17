@@ -2,6 +2,7 @@ import type { PendingScan } from '../api/next-api';
 import type { BulkEdit, BulkField } from './bulk-edit';
 import type { QueueLists } from './use-review-queue';
 
+import { isSwitchBookingType } from '../booking-types';
 import { bulkFieldCounts, bulkFieldLabel } from './bulk-edit';
 import {
   BOOKING_TYPE_CHOICES,
@@ -161,8 +162,8 @@ function StoreField({
   );
 }
 
-// The master data selects: the location, the store of a Purchase row and of an Inventory row, and
-// the product group of a new product.
+// The master data selects: the location, the store of a Purchase row and of an
+// Inventory row, and the product group of a new product.
 function RowSelects({
   hasStore,
   locationLabel,
@@ -201,15 +202,15 @@ function RowSelects({
 // A Consume and a Transfer take the stock from the "from" location. When
 // every checked row is a Consume or a Transfer, the location is "From".
 function locationLabelOf(rows: readonly Pick<PendingScan, 'bookingType'>[]) {
-  return rows.every(
-    (scan) => scan.bookingType === 'consume' || scan.bookingType === 'transfer',
-  )
+  return rows.every((scan) => isSwitchBookingType(scan.bookingType))
     ? 'From'
     : 'Location';
 }
 
-// The fields of the bulk edit, in the two-column grid of ADR 0013. A field shows only when it changes at least one checked row, as the spec decided.
-// A field that changes only a part of the checked rows names the count in its label.
+// The fields of the bulk edit, in the two-column grid of ADR 0013. A field
+// shows only when it changes at least one checked row, as the spec decided. A
+// field that changes only a part of the checked rows names the count in its
+// label.
 export function BulkEditFields({
   edit,
   lists,

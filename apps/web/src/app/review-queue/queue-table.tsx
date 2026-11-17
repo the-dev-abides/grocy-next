@@ -15,7 +15,7 @@ import type { ResultLine } from './result-panel';
 import type { QueueLists } from './use-review-queue';
 import type { Selection } from './use-selection';
 
-import { NO_ROWS } from './chain-rows';
+import { type ChainRow, NO_ROWS } from './chain-rows';
 import { queueRow as QueueRow } from './queue-row';
 
 const COLUMN_COUNT = 11;
@@ -26,7 +26,8 @@ const FROM_XL = 'hidden xl:table-cell';
 const FROM_2XL = 'hidden 2xl:table-cell';
 
 // The header row on the muted colour. The booking type column comes after the
-// checkbox. The columns of the prototype table appear by breakpoint. The checkbox of the header checks every shown row.
+// checkbox. The columns of the prototype table appear by breakpoint. The
+// checkbox of the header checks every shown row.
 function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
   return (
     <TableHeader>
@@ -66,8 +67,8 @@ function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
 
 // The table of the review queue, in the density of ADR 0013: a header row on
 // the muted colour and a border around the table. Each row gets only its own
-// data and the older rows of its product, so a poll draws only the rows that
-// changed.
+// data and the older rows that share a stock entry with it. Thus a poll draws
+// only the rows that changed.
 export function QueueTable({
   chains,
   lists,
@@ -76,7 +77,7 @@ export function QueueTable({
   rows,
   selection,
 }: Readonly<{
-  chains: ReadonlyMap<number, readonly PendingScan[]>;
+  chains: ReadonlyMap<number, readonly ChainRow[]>;
   lists: QueueLists;
   onChanged: () => void;
   onResult: (line: Omit<ResultLine, 'key'>) => void;

@@ -18,24 +18,22 @@ function hasStockAt(
 }
 
 // This function returns the "from" location of a new Consume or Transfer
-// pending scan, as the Grocy forms set it. The defaults come in order. The
-// first default that has stock wins. When no default has stock, the location
-// of the first stock entry with stock wins. The stock entries are in the
-// Grocy consume order. When the product has no stock, the first default
-// applies, so the row still shows a location.
+// pending scan, as the Grocy forms set it. The form has one default. When the
+// default has stock, it wins. Else the location of the first stock entry with
+// stock wins. The stock entries are in the Grocy consume order. When the
+// product has no stock, the default applies, so the row still shows a
+// location.
 export function fromLocationOf(
-  defaults: readonly (null | number)[],
+  formDefault: null | number,
   entries: readonly LocatedStock[],
 ): null | number {
-  const locations = defaults.filter((id) => id !== null);
-  const withStock = locations.find((id) => hasStockAt(entries, id));
-  if (withStock !== undefined) {
-    return withStock;
+  if (formDefault !== null && hasStockAt(entries, formDefault)) {
+    return formDefault;
   }
   const first = entries.find(
     (entry) => entry.locationId !== null && entry.amount > 0,
   );
-  return first?.locationId ?? locations[0] ?? null;
+  return first?.locationId ?? formDefault;
 }
 
 // The one default of the Grocy form of the booking type. The Grocy consume
@@ -52,12 +50,12 @@ export function formDefaultOf(
     : product.locationId;
 }
 
-// The defaults of a row that names one stock entry, as the Grocy consume form
-// and the Grocy transfer form set them after a scan of a stock entry
-// Grocycode. The "from" location is the location of the stock entry, because
-// the accept can take the stock entry at its location only. A Consume also
-// takes the amount of the stock entry, when the body has no amount. Grocy
-// stores that amount in the stock unit, so the row takes the stock unit.
+// The defaults of a row that names one stock entry. The Grocy consume form and
+// the Grocy transfer form set them after a scan of a stock entry Grocycode. The
+// "from" location is the location of the stock entry. The accept can take the
+// stock entry at its location only. A Consume with no body amount also takes
+// the amount of the stock entry. Grocy stores that amount in the stock unit, so
+// the row takes the stock unit.
 export function stockEntryDefaultsOf(
   body: Pick<CreatePendingScan, 'amount' | 'bookingType'>,
   defaults: FormDefaults,
@@ -89,7 +87,7 @@ export function formLocationOf(
     return body.locationId;
   }
   return fromLocationOf(
-    [formDefaultOf(body.bookingType, product)],
+    formDefaultOf(body.bookingType, product),
     body.bookingType === 'consume'
       ? entries
       : entries.filter((entry) => entry.productId === product.id),

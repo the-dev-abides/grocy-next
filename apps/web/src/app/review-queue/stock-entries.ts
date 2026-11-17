@@ -5,8 +5,8 @@ import type {
 } from '../api/next-api';
 import type { PlanProduct } from './stock-plan';
 
-// A stock entry that a row can take: an own stock entry of the product, or a
-// stock entry of a sub-product of a parent product.
+// A stock entry that a row can take. It is an own stock entry of the product,
+// or a stock entry of a sub-product of a parent product.
 export type PlanEntry = StockEntry | SubProductStockEntry;
 
 // Whether the stock entry belongs to a sub-product of a parent product.
@@ -27,9 +27,9 @@ function boughtOf(entry: StockEntry): string {
   return entry.purchasedDate ?? NO_DUE_DATE;
 }
 
-// The Grocy consume order of the view `stock_next_use` (Grocy 4.7.1,
-// migration 0200): the stock entries at the default consume location first,
-// then the opened entries, then the earliest due date, then the earliest
+// The Grocy consume order of the view `stock_next_use` (Grocy 4.7.1, migration
+// 0200). The stock entries at the default consume location come first. Then
+// come the opened entries, then the earliest due date, then the earliest
 // purchase date. The sort is stable, so equal entries keep the Grocy order.
 export function consumeOrder(
   consumeLocationId: null | number,
@@ -54,11 +54,11 @@ export function entriesOf(
   return [...product.stockEntries, ...product.subProductStockEntries];
 }
 
-// The stock entries that the stock entry select lists: the stock entries at
-// the "from" location in the Grocy consume order, as the Grocy consume form
-// and transfer form list them. The Consume form also lists the stock entries
-// of the sub-products. With no "from" location, the list has every stock
-// entry.
+// The stock entries that the stock entry select lists. These are the stock
+// entries at the "from" location in the Grocy consume order. The Grocy consume
+// form and transfer form list them in the same way. The Consume form also lists
+// the stock entries of the sub-products. With no "from" location, the list has
+// every stock entry.
 export function stockEntriesAt(
   product: Pick<
     PlanProduct,

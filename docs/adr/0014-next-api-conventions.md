@@ -26,25 +26,27 @@ and a poll for the changes that the lookup worker makes.
 - Problem type: one stable relative URI per cause, such as
   `/problems/validation`, `/problems/not-found`, `/problems/no-product`,
   `/problems/no-amount`, `/problems/no-to-location`,
-  `/problems/grocy-refused`, and
+  `/problems/above-stock`, `/problems/grocy-refused`, and
   `/problems/grocy-unavailable`. `title` is a fixed short text per type. The
   URIs do not need to resolve. The build adds a cause when an operation needs
   one.
 - Error statuses:
 
-  | Status | Cause                                                                                                                                                               |
-  | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | 400    | The body, the query, or a path id fails the Zod schema. An unknown field is one entry in `errors` with its path and the message "unknown field".                    |
-  | 401    | The MCP bearer token is missing or wrong. The type is `/problems/unauthorized`.                                                                                     |
-  | 404    | The id in the path names nothing.                                                                                                                                   |
-  | 409    | A fact of the resource itself blocks the change: an accept of a pending scan with no product, an accept with no amount, or a Transfer accept with no "to" location. |
-  | 415    | The body is not JSON.                                                                                                                                               |
-  | 422    | A fact outside the resource blocks the change: Grocy refused it with a `400`, the product has no conversion, or an id in the body names nothing.                    |
-  | 500    | In an MCP tool call, an error that is not an `HttpException`. The type is `/problems/internal`, with no `detail`.                                                   |
-  | 502    | Grocy answered `500`, or Grocy did not answer.                                                                                                                      |
+  | Status | Cause                                                                                                                                                                           |
+  | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | 400    | The body, the query, or a path id fails the Zod schema. An unknown field is one entry in `errors` with its path and the message "unknown field".                                |
+  | 401    | The MCP bearer token is missing or wrong. The type is `/problems/unauthorized`.                                                                                                 |
+  | 404    | The id in the path names nothing.                                                                                                                                               |
+  | 409    | A fact of the resource itself blocks the change: an accept of a pending scan with no product, an accept with no amount, or a Transfer accept with no "to" location.             |
+  | 415    | The body is not JSON.                                                                                                                                                           |
+  | 422    | A fact outside the resource blocks the change: Grocy refused it with a `400`, the product has no conversion, the amount is above the stock, or an id in the body names nothing. |
+  | 500    | In an MCP tool call, an error that is not an `HttpException`. The type is `/problems/internal`, with no `detail`.                                                               |
+  | 502    | Grocy answered `500`, or Grocy did not answer.                                                                                                                                  |
 
   A `422` from Grocy carries the Grocy message as `detail` and the `grocy`
-  field. A `422` from a server rule has no `grocy` field.
+  field. A `422` from a server rule has no `grocy` field. The Consume accept
+  refuses an amount above the stock with `/problems/above-stock`. That rule
+  is a server rule: its `detail` is the message of the Grocy consume form.
   Note of 2026-11-11: spec #89 added the `401` row and the `500` row for the
   MCP server. The Next API HTTP surface keeps its own `500` body.
 

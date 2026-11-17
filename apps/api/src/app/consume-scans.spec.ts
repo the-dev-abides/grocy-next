@@ -117,11 +117,12 @@ describe('the Consume pending scans of the Next API', () => {
   });
 
   // The stock entry Grocycode names stock entry 14 of product 1: 1 can, open,
-  // at the Pantry. The Grocy consume form then sets the "from" location to
-  // the location of the stock entry and the amount to its amount. Grocy
-  // stores that amount in the stock unit, so the row takes the stock unit,
-  // the Can. The location of the stock entry wins over the "from" location of the scan
-  // screen, because the accept can take the stock entry at its location only.
+  // at the Pantry. The Grocy consume form then sets the "from" location to the
+  // location of the stock entry. It also sets the amount to the amount of the
+  // stock entry. Grocy stores that amount in the stock unit, so the row takes
+  // the stock unit, the Can. The location of the stock entry wins over the
+  // "from" location of the scan screen. The accept can take the stock entry at
+  // its location only.
   it('creates a Consume of a stock entry Grocycode with the product, the stock entry, and its location and amount', async () => {
     const response = await create({
       bookingType: 'consume',
@@ -193,6 +194,63 @@ describe('the Consume pending scans of the Next API', () => {
     expect(second.status).toBe(200);
     expect(await second.json()).toMatchObject({ amount: 2, id: first.id });
     expect(await list()).toHaveLength(1);
+  });
+
+  // Stock entry 69131a2b3c619 of product 1 holds 2 cans at the Fridge. A
+  // new Consume row of its Grocycode gets the amount 2, so the merge adds 2,
+  // not the Purchase default of 1.
+  it('adds the amount of a new Consume row of the stock entry Grocycode to the open row', async () => {
+    const code = 'grcy:p:1:69131a2b3c619';
+    const first = await createAndRead({ bookingType: 'consume', code });
+    expect(first.amount).toBe(2);
+
+    const second = await createAndRead({ bookingType: 'consume', code });
+
+    expect(second).toMatchObject({ amount: 4, id: first.id });
+  });
+
+  it('makes a new Consume row when the "from" location of the scan is not the location of the open row', async () => {
+    const code = '5449000000996';
+    await create({ bookingType: 'consume', code, locationId: 1 });
+
+    const second = await create({
+      bookingType: 'consume',
+      code,
+      locationId: 2,
+    });
+
+    expect(second.status).toBe(201);
+    expect(await list()).toHaveLength(2);
+  });
+
+  it('makes a new Consume row when the stock entry of the scan is not the stock entry of the open row', async () => {
+    const code = '5449000000996';
+    await create({ bookingType: 'consume', code });
+
+    const second = await create({
+      bookingType: 'consume',
+      code,
+      stockEntryId: '69131a2b3c619',
+    });
+
+    expect(second.status).toBe(201);
+    expect(await list()).toHaveLength(2);
+  });
+
+  it('does not merge a Consume scan into a spoiled row, and does not merge a spoiled scan', async () => {
+    const code = '5449000000996';
+    await create({ bookingType: 'consume', code, spoiled: true });
+
+    const plain = await create({ bookingType: 'consume', code });
+    const spoiled = await create({
+      bookingType: 'consume',
+      code,
+      spoiled: true,
+    });
+
+    expect(plain.status).toBe(201);
+    expect(spoiled.status).toBe(201);
+    expect(await list()).toHaveLength(3);
   });
 
   it('does not merge a Consume scan into a Purchase row of the same code', async () => {

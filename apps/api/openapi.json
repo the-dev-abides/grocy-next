@@ -1340,7 +1340,7 @@
                 }
               }
             },
-            "description": "An id names nothing in Grocy\n\nThe product has no conversion to the stock unit\n\nGrocy refused the change"
+            "description": "An id names nothing in Grocy\n\nThe product has no conversion to the stock unit\n\nThe amount is above the stock\n\nGrocy refused the change"
           },
           "502": {
             "content": {

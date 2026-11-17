@@ -167,11 +167,11 @@ const pendingScanBodySchema = z
     path: ['code'],
   });
 
-// The update body: a JSON merge patch (RFC 7396) on the writable fields, as
-// ADR 0014 decided. An absent field stays as it is. A field set to null
-// clears it. The booking type is in the body so that a client can send the
-// row back, and so that a client can flip a row between Consume and Transfer.
-// The update refuses any other change of it.
+// The update body: a JSON merge patch (RFC 7396) on the writable fields, as ADR
+// 0014 decided. An absent field stays as it is. A field set to null clears
+// it. The booking type is in the body for two reasons. A client can send the
+// row back, and a client can flip a row between Consume and Transfer. The
+// update refuses any other change of it.
 const pendingScanUpdateSchema = z.strictObject({
   amount: z.number().nullable().optional().meta({ description: 'The amount.' }),
   bookingType: z.enum(BOOKING_TYPES).optional().meta({

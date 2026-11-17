@@ -43,7 +43,9 @@ of its own for the choice of the stock entries.
   page, and the rule made a choice for the user that Grocy does not make.
 - A calculation in Grocy Next of the stock entries that the consume takes,
   with one Grocy call for each. Rejected: it copies the Grocy consume order
-  into Grocy Next and solves cases that Grocy does not solve.
+  into Grocy Next and solves cases that Grocy does not solve. Amended by the
+  milestone 3 code review: this decision covers the accept, and the stock
+  entry lines of the review queue are a display only.
 - An open amount that the user sets on the review queue row. Rejected: it
   keeps two decisions for one event.
 

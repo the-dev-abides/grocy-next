@@ -3,11 +3,11 @@ import type { GrocyClient } from './grocy/grocy-client.ts';
 import type { GrocyStockClient } from './grocy/grocy-stock-client.ts';
 import type { ProductDetails } from './product-details.ts';
 
-// The facts of one product of the consume: the product that the row names,
-// or a sub-product of it. The factor converts an amount in the stock unit of
-// the row product to the stock unit of this product, as Grocy converts it for
-// the sub-product substitution. A product with "cannot be opened" and a tare
-// weight product get no open.
+// The facts of one product of the consume: the product that the row names, or a
+// sub-product of it. The factor converts an amount from the stock unit of the
+// row product to the stock unit of this product. Grocy converts it in the same
+// way for the sub-product substitution. A product with "cannot be opened" and a
+// tare weight product get no open.
 export interface ConsumeProduct {
   canOpen: boolean;
   factor: number;

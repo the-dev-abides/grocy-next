@@ -31,7 +31,7 @@ const TRANSFER_ROW = {
 
 // The Transfer pending scans and their accept. The create follows the Grocy
 // transfer form, as ADR 0010 decided. The fixture household has 3 cans of
-// product 1 at the Fridge and 500 grams of the tare weight product 7 at the
+// product 1 at the Fridge. It has 500 grams of the tare weight product 7 at the
 // Pantry, its default location. The Fridge is 1, the Pantry is 2, and the
 // Freezer is 3.
 describe('the Transfer pending scans of the Next API', () => {
@@ -121,7 +121,7 @@ describe('the Transfer pending scans of the Next API', () => {
     });
   });
 
-  // The repeat rule of ADR 0010 matches the booking type, so a Transfer scan
+  // The repeat rule of ADR 0010 matches the booking type. Thus a Transfer scan
   // does not add to an open Consume row of the same code.
   it('makes a new row for a Transfer scan of 5449000000996 while a Consume row of that code is open', async () => {
     const consume = await createAndRead({
@@ -142,6 +142,23 @@ describe('the Transfer pending scans of the Next API', () => {
     const second = await createAndRead({ code: '5449000000996' });
 
     expect(second).toMatchObject({ amount: 2, id: first.id });
+  });
+
+  it('makes a new Transfer row when the "to" location of the scan is not the "to" location of the open row', async () => {
+    await create({ code: '5449000000996', toLocationId: 2 });
+
+    const second = await create({ code: '5449000000996', toLocationId: 3 });
+
+    expect(second.status).toBe(201);
+    expect(await list()).toHaveLength(2);
+  });
+
+  it('adds the product barcode amount 2 of 8000500310427 on a second Transfer scan', async () => {
+    const first = await createAndRead({ code: '8000500310427' });
+
+    const second = await createAndRead({ code: '8000500310427' });
+
+    expect(second).toMatchObject({ amount: 4, id: first.id });
   });
 
   it('accepts a Transfer of product 1 from the Fridge to the Pantry and returns the transfer bookings', async () => {

@@ -1,8 +1,8 @@
 import type { StockEntry, SubProductStockEntry } from '../api/next-api';
 import type { PlanProduct, PlanRow } from './stock-plan';
 
-import { planOfScan } from './plan-of-scan';
-import { planOfRow, plansOf } from './stock-plan';
+import { planOfScan, plansOf } from './plan-of-scan';
+import { planOfRow } from './stock-plan';
 
 // The Fridge is 1, the Pantry is 2, and the Freezer is 3.
 const FRIDGE = 1;
@@ -49,6 +49,14 @@ function subEntryOf(
   fields: Partial<SubProductStockEntry> & { id: number },
 ): SubProductStockEntry {
   return { ...entryOf(fields), canBeOpened: true, productId: 6, ...fields };
+}
+
+// The rows of one product, as the chain takes them.
+function ofProduct(
+  rows: readonly PlanRow[],
+  product: PlanProduct,
+): { product: PlanProduct; row: PlanRow }[] {
+  return rows.map((row) => ({ product, row }));
 }
 
 function rowOf(fields: Partial<PlanRow> = {}): PlanRow {
@@ -259,8 +267,10 @@ describe('the stock entry lines of the rows of one product', () => {
     const sealed = entryOf({ id: 2 });
     const product = productOf([sealed, opened]);
     const plans = plansOf(
-      [rowOf({ amount: 0.2, id: 7 }), rowOf({ amount: 0.2, id: 8 })],
-      product,
+      ofProduct(
+        [rowOf({ amount: 0.2, id: 7 }), rowOf({ amount: 0.2, id: 8 })],
+        product,
+      ),
       'l',
     );
     expect(plans.get(7)?.lines).toEqual([
@@ -274,8 +284,10 @@ describe('the stock entry lines of the rows of one product', () => {
   it('sees the opened rest after an older row opened a pack', () => {
     const sealed = entryOf({ id: 1 });
     const plans = plansOf(
-      [rowOf({ amount: 0.3, id: 7 }), rowOf({ amount: 0.3, id: 8 })],
-      productOf([sealed]),
+      ofProduct(
+        [rowOf({ amount: 0.3, id: 7 }), rowOf({ amount: 0.3, id: 8 })],
+        productOf([sealed]),
+      ),
       'l',
     );
     expect(plans.get(8)?.lines).toEqual([
@@ -291,16 +303,18 @@ describe('the stock entry lines of the rows of one product', () => {
   it('sees the stock that an older Transfer row moved away', () => {
     const sealed = entryOf({ amount: 2, id: 1 });
     const plans = plansOf(
-      [
-        rowOf({
-          amount: 1,
-          bookingType: 'transfer',
-          id: 7,
-          toLocationId: FREEZER,
-        }),
-        rowOf({ amount: 2, id: 8 }),
-      ],
-      productOf([sealed]),
+      ofProduct(
+        [
+          rowOf({
+            amount: 1,
+            bookingType: 'transfer',
+            id: 7,
+            toLocationId: FREEZER,
+          }),
+          rowOf({ amount: 2, id: 8 }),
+        ],
+        productOf([sealed]),
+      ),
       'l',
     );
     expect(plans.get(8)).toEqual({
@@ -320,18 +334,92 @@ describe('the stock entry lines of the rows of one product', () => {
   it('does not take the stock of an older row with an error', () => {
     const sealed = entryOf({ id: 1 });
     const plans = plansOf(
-      [
-        rowOf({ amount: 1, error: 'Grocy refused', id: 7 }),
-        rowOf({ amount: 1, id: 8 }),
-      ],
-      productOf([sealed]),
+      ofProduct(
+        [
+          rowOf({ amount: 1, error: 'Grocy refused', id: 7 }),
+          rowOf({ amount: 1, id: 8 }),
+        ],
+        productOf([sealed]),
+      ),
       'l',
     );
     expect(plans.get(8)?.missing).toBe(0);
   });
 });
 
+// Product 5 is a parent product with no own stock. Its sub-product, product
+// 6, has one sealed pack of 1 l. Both reads show the same stock entry.
+function parentAndChild(): Map<number, PlanProduct> {
+  const pack = entryOf({ id: 2 });
+  return new Map([
+    [5, productOf([], { subProductStockEntries: [subEntryOf({ id: 2 })] })],
+    [6, productOf([pack])],
+  ]);
+}
+
 describe('the stock entry lines of one row of the review queue', () => {
+  it('chains a Consume of a parent product and a Consume of its sub-product, so the queue does not show one pack two times', () => {
+    const older = {
+      ...rowOf({ amount: 0.4, id: 9 }),
+      productId: 5,
+      scannedAt: '2026-11-17T08:00:00Z',
+    };
+    const newer = {
+      ...rowOf({ amount: 0.4, id: 3 }),
+      productId: 6,
+      scannedAt: '2026-11-17T09:00:00Z',
+    };
+    const plan = planOfScan(newer, [newer, older], parentAndChild(), 'l');
+    expect(plan?.lines).toEqual([
+      {
+        amount: 0.4,
+        entry: { ...entryOf({ id: 2 }), amount: 0.6, open: true },
+        kind: 'opened',
+        opensRest: false,
+      },
+    ]);
+  });
+
+  it('chains a Consume of a sub-product before a Consume of its parent product', () => {
+    const older = {
+      ...rowOf({ amount: 1, id: 9 }),
+      productId: 6,
+      scannedAt: '2026-11-17T08:00:00Z',
+    };
+    const newer = {
+      ...rowOf({ amount: 0.5, id: 3 }),
+      productId: 5,
+      scannedAt: '2026-11-17T09:00:00Z',
+    };
+    const plan = planOfScan(newer, [older, newer], parentAndChild(), 'l');
+    expect(plan).toEqual({ lines: [], missing: 0.5, unit: 'l' });
+  });
+
+  // The read of the parent shows the pack in the stock unit of the parent:
+  // 2 units of 0.5 l. The parent row takes 1 unit, the half of the pack.
+  it('chains the rows in the stock unit of each read', () => {
+    const products = parentAndChild();
+    products.set(
+      5,
+      productOf([], {
+        subProductStockEntries: [subEntryOf({ amount: 2, id: 2 })],
+      }),
+    );
+    const older = {
+      ...rowOf({ amount: 1, id: 9 }),
+      productId: 5,
+      scannedAt: '2026-11-17T08:00:00Z',
+    };
+    const newer = {
+      ...rowOf({ amount: 1, id: 3 }),
+      productId: 6,
+      scannedAt: '2026-11-17T09:00:00Z',
+    };
+    const plan = planOfScan(newer, [newer, older], products, 'l');
+    expect(plan?.missing).toBe(0.5);
+    expect(plan?.lines[0]?.amount).toBe(0.5);
+  });
+
   it('chains the rows of the same product by scan time, and skips other products', () => {
     const opened = entryOf({ amount: 0.2, id: 1, open: true });
     const sealed = entryOf({ id: 2 });
@@ -350,10 +438,14 @@ describe('the stock entry lines of one row of the review queue', () => {
       productId: 2,
       scannedAt: '2026-11-17T07:00:00Z',
     };
+    const otherProduct = productOf([entryOf({ id: 5 })]);
     const plan = planOfScan(
       newer,
       [newer, older, other],
-      productOf([sealed, opened]),
+      new Map([
+        [1, productOf([sealed, opened])],
+        [2, otherProduct],
+      ]),
       'l',
     );
     expect(plan?.lines).toEqual([
