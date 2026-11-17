@@ -12,10 +12,10 @@ function patched<T>(current: T, value: T | undefined = current): T {
 
 // The two booking types that a row can flip between, as the spec of
 // milestone 3 decided.
-const FLIP_TYPES: readonly string[] = ['consume', 'transfer'];
+const FLIP_TYPES: ReadonlySet<string> = new Set(['consume', 'transfer']);
 
 function isFlip(from: string, to: string): boolean {
-  return FLIP_TYPES.includes(from) && FLIP_TYPES.includes(to);
+  return FLIP_TYPES.has(from) && FLIP_TYPES.has(to);
 }
 
 // The booking type is set at create. An update can flip it between Consume
