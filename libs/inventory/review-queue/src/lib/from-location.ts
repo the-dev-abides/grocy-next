@@ -3,7 +3,8 @@ import type {
   ProductDetails,
 } from '@grocy-next/inventory-products';
 
-import type { BookingType } from './pending-scan.ts';
+import type { FormDefaults } from './pending-scan-to-store.ts';
+import type { BookingType, CreatePendingScan } from './pending-scan.ts';
 
 type LocatedStock = Pick<ConsumeStockEntry, 'amount' | 'locationId'>;
 
@@ -49,4 +50,48 @@ export function formDefaultOf(
   return bookingType === 'consume'
     ? (product.consumeLocationId ?? product.locationId)
     : product.locationId;
+}
+
+// The defaults of a row that names one stock entry, as the Grocy consume form
+// and the Grocy transfer form set them after a scan of a stock entry
+// Grocycode. The "from" location is the location of the stock entry, because
+// the accept can take the stock entry at its location only. A Consume also
+// takes the amount of the stock entry, when the body has no amount. Grocy
+// stores that amount in the stock unit, so the row takes the stock unit.
+export function stockEntryDefaultsOf(
+  body: Pick<CreatePendingScan, 'amount' | 'bookingType'>,
+  defaults: FormDefaults,
+  entry: Pick<ConsumeStockEntry, 'amount' | 'locationId'>,
+  product: Pick<ProductDetails, 'stockUnitId'>,
+): FormDefaults {
+  const located = { ...defaults, locationId: entry.locationId };
+  return body.bookingType === 'consume' && body.amount === undefined
+    ? {
+        ...located,
+        amount: entry.amount,
+        quantityUnitId: product.stockUnitId,
+      }
+    : located;
+}
+
+// The "from" location of the Grocy form of a new Consume or Transfer. A
+// location in the body wins. Else the one default of the Grocy form applies
+// when it has stock, else the first location with stock, as `fromLocationOf`
+// decides. The stock entries include the stock entries of the sub-products,
+// because a Consume can take them. A Transfer counts the stock entries of the
+// product only.
+export function formLocationOf(
+  body: Pick<CreatePendingScan, 'bookingType' | 'locationId'>,
+  product: Pick<ProductDetails, 'consumeLocationId' | 'id' | 'locationId'>,
+  entries: readonly ConsumeStockEntry[],
+): null | number {
+  if (body.locationId !== undefined) {
+    return body.locationId;
+  }
+  return fromLocationOf(
+    [formDefaultOf(body.bookingType, product)],
+    body.bookingType === 'consume'
+      ? entries
+      : entries.filter((entry) => entry.productId === product.id),
+  );
 }

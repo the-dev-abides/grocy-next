@@ -121,6 +121,18 @@ export function stockAt(
   return stock;
 }
 
+// The stock entries that the consume can take. A row that names one stock
+// entry can take that stock entry only, as the Grocy consume form limits the
+// amount to it.
+export function entriesOfRow(
+  entries: readonly ConsumeStockEntry[],
+  stockId: null | string,
+): readonly ConsumeStockEntry[] {
+  return stockId === null
+    ? entries
+    : entries.filter((entry) => entry.stockId === stockId);
+}
+
 function roundOf(amount: number): number {
   return Math.round(amount * 100) / 100;
 }

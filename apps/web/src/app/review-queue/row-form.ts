@@ -20,6 +20,7 @@ export interface RowForm {
   productGroupId: null | number;
   quantityUnitId: null | number;
   spoiled: boolean;
+  stockEntryId: null | string;
   storeId: null | number;
   toLocationId: null | number;
 }
@@ -36,6 +37,7 @@ type FormFacts = Pick<
   | 'productGroupId'
   | 'quantityUnitId'
   | 'spoiled'
+  | 'stockEntryId'
   | 'storeId'
   | 'toLocationId'
 >;
@@ -57,6 +59,7 @@ export function rowFormOf(scan: FormFacts): RowForm {
     productGroupId: scan.productGroupId,
     quantityUnitId: scan.quantityUnitId,
     spoiled: scan.spoiled,
+    stockEntryId: scan.stockEntryId,
     storeId: scan.storeId,
     toLocationId: scan.toLocationId,
   };
@@ -83,6 +86,7 @@ export function rowFormBody(form: RowForm): UpdatePendingScan {
     productGroupId: form.productGroupId,
     quantityUnitId: form.quantityUnitId,
     spoiled: form.spoiled,
+    stockEntryId: form.stockEntryId,
     storeId: form.storeId,
     toLocationId: form.toLocationId,
   };

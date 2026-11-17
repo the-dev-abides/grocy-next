@@ -12,7 +12,9 @@ import {
 // of its code and its booking type first, so a repeat scan from an earlier run
 // does not merge into the new row.
 
-test('a typed code on the Consume and Transfer scan screen shows one Consume row with the fork and knife icon', async ({
+// The Consume takes 1 of the 2 sealed cans of stock entry 11 at the Fridge,
+// so the accept opens the rest.
+test('a typed code on the Consume and Transfer scan screen shows one Consume row with the fork and knife icon and "Opens a new pack"', async ({
   page,
   request,
 }) => {
@@ -40,6 +42,7 @@ test('a typed code on the Consume and Transfer scan screen shows one Consume row
     row.getByRole('button', { name: 'Consume. Change to Transfer.' }),
   ).toBeVisible();
   await expect(row).toContainText('Consume from Fridge');
+  await expect(row).toContainText('Opens a new pack');
 });
 
 // The code 7622300441937 is product 2, with its stock at its default location,

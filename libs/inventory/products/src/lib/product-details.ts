@@ -22,13 +22,10 @@ export interface ProductStock {
 }
 
 // The details of one product as one Grocy read answers them. They hold every field of the product of the Next API except the stock facts above. They also hold the product barcodes that the code resolution of the review queue reads, and the active flag. The stock amount is the own stock in the stock unit.
-// The consume location and the quick consume amount are defaults of the Grocy consume form. The Next API product does not show them. The quick consume amount is in the stock unit.
-// The open flag is false for a product with the Grocy setting "cannot be
-// opened". The open on consume reads it.
+// The quick consume amount is a default of the Grocy consume form. The Next
+// API product does not show it. It is in the stock unit.
 export interface ProductDetails extends Omit<Product, keyof ProductStock> {
   barcodes: ProductBarcode[];
-  canBeOpened: boolean;
-  consumeLocationId: null | number;
   isActive: boolean;
   quickConsumeAmount: number;
 }
@@ -41,6 +38,8 @@ export function toProduct(
   stock: ProductStock,
 ): Product {
   return {
+    canBeOpened: details.canBeOpened,
+    consumeLocationId: details.consumeLocationId,
     consumeUnitId: details.consumeUnitId,
     conversions: stock.conversions,
     defaultDueDays: details.defaultDueDays,

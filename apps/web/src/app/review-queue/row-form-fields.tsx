@@ -11,6 +11,7 @@ import { ChoiceSelect, choicesOf } from './choice-select';
 import { keepIdOf, keepValueOf, NONE } from './keep-choices';
 import { unitChoices } from './row-form';
 import { defaultUnitLabel } from './row-text';
+import { StockEntrySelect } from './stock-entry-select';
 import { TextField } from './text-field';
 
 type Patch = (fields: Partial<RowForm>) => void;
@@ -193,7 +194,8 @@ function locationLabel(bookingType: PendingScan['bookingType']): string {
 }
 
 // The location, and on a Transfer row the "to" location. A Consume and a
-// Transfer take the stock from the "from" location.
+// Transfer take the stock from the "from" location. A new location clears the
+// stock entry, as in the Grocy consume form and transfer form.
 function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
   return (
     <>
@@ -203,7 +205,7 @@ function LocationFields({ form, lists, patch }: Readonly<FieldsProperties>) {
         rows={lists.locations}
         value={form.locationId}
         onChange={(locationId) => {
-          patch({ locationId });
+          patch({ locationId, stockEntryId: null });
         }}
       />
       {form.bookingType === 'transfer' && (
@@ -262,6 +264,16 @@ export function RowFormFields(props: Readonly<FieldsProperties>) {
       {form.bookingType === 'consume' && <SpoiledField {...props} />}
       <AmountFields {...props} />
       <LocationFields {...props} />
+      {isConsumeOrTransfer && (
+        <StockEntrySelect
+          locationId={form.locationId}
+          product={props.product}
+          stockEntryId={form.stockEntryId}
+          onChange={(stockEntryId) => {
+            patch({ stockEntryId });
+          }}
+        />
+      )}
       {!isConsumeOrTransfer && <StockFields {...props} />}
       {scan.productId === null && (
         <IdSelect

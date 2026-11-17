@@ -122,6 +122,8 @@ describe('the product tools and the master data tools of the MCP server', () => 
     });
 
     const product = {
+      canBeOpened: true,
+      consumeLocationId: null,
       consumeUnitId: 2,
       conversions: [
         { factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 },
@@ -149,6 +151,7 @@ describe('the product tools and the master data tools of the MCP server', () => 
           locationId: 2,
           open: false,
           purchasedDate: '2026-01-10',
+          stockId: '69131a2b3cc80',
         },
       ],
       stockUnitId: 2,
@@ -200,6 +203,8 @@ describe('the product tools and the master data tools of the MCP server', () => 
 
     expect(result.isError).not.toBe(true);
     expect(result.structuredContent).toEqual({
+      canBeOpened: true,
+      consumeLocationId: null,
       consumeUnitId: 2,
       conversions: [{ factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 }],
       defaultDueDays: 0,

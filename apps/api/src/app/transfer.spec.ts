@@ -181,6 +181,35 @@ describe('the Transfer pending scans of the Next API', () => {
     expect(read.status).toBe(404);
   });
 
+  // The row names stock entry 13, 1 sealed can at the Pantry. The transfer
+  // takes that stock entry only.
+  it('accepts a Transfer of a stock entry and names the stock entry in the Grocy transfer', async () => {
+    const created = await createAndRead({
+      amount: 1,
+      locationId: 2,
+      productId: 1,
+      stockEntryId: '69131a2b3c95d',
+      toLocationId: 1,
+    });
+
+    const response = await accept(created.id);
+
+    expect(response.status).toBe(200);
+    const stockEntryRow = {
+      ...TRANSFER_ROW,
+      dueDate: '2026-12-01',
+      purchasedDate: '2026-10-01',
+      stockEntryId: 13,
+    };
+    expect(await response.json()).toMatchObject({
+      bookings: [
+        { ...stockEntryRow, amount: -1, id: 110, locationId: 2 },
+        { ...stockEntryRow, amount: 1, id: 111, locationId: 1 },
+      ],
+      transactionId: '69131a2b3cf45',
+    });
+  });
+
   it('refuses a Transfer with no "to" location with the no-to-location problem', async () => {
     const created = await createAndRead({ amount: 1, productId: 1 });
 

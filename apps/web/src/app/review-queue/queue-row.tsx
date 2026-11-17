@@ -20,6 +20,7 @@ import { ProductCell, StateBadge } from './product-cell';
 import { RowEditButton } from './row-edit-button';
 import { RowSpoiledButton } from './row-spoiled-button';
 import { amountText, locationText, unitOf } from './row-text';
+import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
 
 // The accept button on a ready row, and the Accept again button on a failed
@@ -241,6 +242,7 @@ export function QueueRow({
           scan={scan}
           unit={unit}
         />
+        <StockEntryLines lists={lists} product={product} scan={scan} />
       </ProductCell>
       <FactCells
         lists={lists}
