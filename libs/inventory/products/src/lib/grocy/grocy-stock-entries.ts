@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { ConsumeStockEntry } from '../consume.ts';
 import type { StockEntry } from '../product.ts';
 
 import { grocyNumber } from './grocy-answers.ts';
@@ -22,6 +23,31 @@ const grocyStockEntrySchema = z.looseObject({
 });
 
 export const grocyStockEntriesSchema = z.array(grocyStockEntrySchema);
+
+// The same rows with the product id and the `stock_id` text, for the accept of
+// a Consume.
+export const grocyConsumeStockEntriesSchema = z.array(
+  grocyStockEntrySchema.extend({
+    product_id: grocyNumber,
+    stock_id: z.string(),
+  }),
+);
+
+// The stock entries of a consume read in the order of the rows, which is the
+// Grocy consume order.
+export function toConsumeStockEntries(
+  rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
+): ConsumeStockEntry[] {
+  return rows.map((row) => {
+    return {
+      amount: row.amount,
+      isOpen: row.open !== 0,
+      locationId: row.location_id,
+      productId: row.product_id,
+      stockId: row.stock_id,
+    };
+  });
+}
 
 // The stock entries in the order of the rows, which is the Grocy consume
 // order.

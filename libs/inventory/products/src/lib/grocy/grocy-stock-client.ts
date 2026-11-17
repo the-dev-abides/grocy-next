@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import type { Consume, ConsumeStockEntry, Open } from '../consume.ts';
 import type { Inventory } from '../inventory.ts';
 import type { QuantityUnitConversion, StockEntry } from '../product.ts';
 import type { Purchase } from '../purchase.ts';
@@ -7,11 +8,14 @@ import type { BookingResult } from '../stock-log-row.ts';
 
 import { resultOf } from './grocy-answers.ts';
 import { GrocyClient } from './grocy-client.ts';
+import { toGrocyConsumeBody, toGrocyOpenBody } from './grocy-consume.ts';
 import { grocyConversionsSchema, toConversions } from './grocy-conversions.ts';
 import { toGrocyInventoryBody } from './grocy-inventory.ts';
 import { toGrocyPurchaseBody } from './grocy-purchase.ts';
 import {
+  grocyConsumeStockEntriesSchema,
   grocyStockEntriesSchema,
+  toConsumeStockEntries,
   toStockEntries,
 } from './grocy-stock-entries.ts';
 import { stockLogRowsOf } from './grocy-stock-log.ts';
@@ -25,6 +29,43 @@ import { stockLogRowsOf } from './grocy-stock-log.ts';
 @Injectable()
 export class GrocyStockClient {
   constructor(private readonly grocy: GrocyClient) {}
+
+  // This method books a consume of one product. Grocy takes the stock entries
+  // in its consume order, with the stock entries of the sub-products of a
+  // parent product. Grocy books less than the amount with no error when the
+  // location has less stock, so the caller checks the amount first.
+  async consume(productId: number, consume: Consume): Promise<BookingResult> {
+    const answer = await this.grocy.post(
+      `/api/stock/products/${String(productId)}/consume`,
+      toGrocyConsumeBody(consume),
+    );
+    return resultOf(answer, stockLogRowsOf);
+  }
+
+  // This method opens the amount of one stock entry of one product. Grocy
+  // refuses the open of a product with "cannot be opened" and of a tare
+  // weight product.
+  async open(productId: number, open: Open): Promise<BookingResult> {
+    const answer = await this.grocy.post(
+      `/api/stock/products/${String(productId)}/open`,
+      toGrocyOpenBody(open),
+    );
+    return resultOf(answer, stockLogRowsOf);
+  }
+
+  // The stock entries of one product and of its sub-products in the Grocy
+  // consume order, with the product and the `stock_id` of each stock entry.
+  // The accept of a Consume reads them before the consume. Grocy answers an
+  // empty list for an unknown product.
+  async readConsumeStockEntries(
+    productId: number,
+  ): Promise<ConsumeStockEntry[]> {
+    const data = await this.grocy.get(
+      `/api/stock/products/${String(productId)}/entries`,
+      { include_sub_products: 'true' },
+    );
+    return toConsumeStockEntries(grocyConsumeStockEntriesSchema.parse(data));
+  }
 
   // This method books an inventory of one product: the new own stock. Grocy
   // books the difference as added stock or as a consume in the Grocy

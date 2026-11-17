@@ -24,7 +24,8 @@ const grocyProductBarcodeSchema = z.looseObject({
 // to the stock unit is 1 when the product has no conversion between them.
 // The response holds every product barcode of the product, not only the one
 // that matched. The consume location, the consume unit, and the quick
-// consume amount are the defaults of the Grocy consume form. The schema is
+// consume amount are the defaults of the Grocy consume form. `disable_open` is
+// 1 for a product with the Grocy setting "cannot be opened". The schema is
 // loose, because Grocy returns many more fields than the client reads.
 export const grocyProductDetailsSchema = z.looseObject({
   has_childs: z.boolean(),
@@ -33,6 +34,7 @@ export const grocyProductDetailsSchema = z.looseObject({
     default_best_before_days: grocyNumber,
     default_consume_location_id: grocyNullableNumber,
     description: z.string().nullable(),
+    disable_open: grocyNumber,
     enable_tare_weight_handling: grocyNumber,
     id: grocyNumber,
     location_id: grocyNullableNumber,
@@ -66,6 +68,7 @@ export function toProductDetails(details: GrocyProductDetails): ProductDetails {
         storeId: row.shopping_location_id,
       };
     }),
+    canBeOpened: details.product.disable_open === 0,
     consumeLocationId: details.product.default_consume_location_id,
     consumeUnitId: details.product.qu_id_consume,
     defaultDueDays: details.product.default_best_before_days,
