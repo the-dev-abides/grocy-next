@@ -17,8 +17,12 @@ import { consumeDetailText, transferDetailText } from './scan-text';
 import { SpoiledButton } from './spoiled-button';
 import { WriteInNameField } from './write-in-name-field';
 
-// The amount in its unit between minus and plus. One tap changes the amount
-// by one. Minus stops at one, so the amount stays above zero.
+// One tap on minus or plus changes the amount by this step.
+const STEP = 1;
+
+// The amount in its unit between minus and plus. Minus is off when the
+// amount minus one step is 0 or less, so the amount stays above zero. Thus
+// 1.5 goes to 0.5.
 function AmountStepper({
   amount,
   onAmount,
@@ -35,9 +39,9 @@ function AmountStepper({
         variant="outline"
         size="icon"
         aria-label="Less"
-        disabled={current <= 1}
+        disabled={current - STEP <= 0}
         onClick={() => {
-          onAmount(current - 1);
+          onAmount(current - STEP);
         }}
       >
         <Minus />
@@ -50,7 +54,7 @@ function AmountStepper({
         size="icon"
         aria-label="More"
         onClick={() => {
-          onAmount(current + 1);
+          onAmount(current + STEP);
         }}
       >
         <Plus />

@@ -179,8 +179,9 @@ test('a tap on the trash can of a Consume row makes the trash can red and the de
 
 // The Grocycode grcy:p:1 is product 1, with its stock at the Fridge. The
 // Consume test types the same Grocycode, so this test reads the Transfer rows
-// only. A tap on the name opens the row form. The plus button and the typed
-// amount change the amount, the "To" select sets the "to" location, and
+// only. A tap on the name opens the row form. The plus button, the typed
+// amount, and the minus button change the amount. The minus button takes 1.5
+// to 0.5, and is then off. The "To" select sets the "to" location, and
 // Reject removes the row.
 test('the row form of a Transfer row takes a typed amount and the "to" location, and its Reject removes the row', async ({
   page,
@@ -204,9 +205,13 @@ test('the row form of a Transfer row takes a typed amount and the "to" location,
   await expect(row).toContainText('2 Can');
   await row.getByRole('button', { name: 'Coca-Cola Original 330 ml' }).click();
   const amount = row.getByRole('textbox', { name: 'Amount' });
-  await amount.fill('0.5');
+  await amount.fill('1.5');
   await amount.press('Enter');
+  await expect(row).toContainText('1.5 Can');
+  const less = row.getByRole('button', { name: 'Less' });
+  await less.click();
   await expect(row).toContainText('0.5 Can');
+  await expect(less).toBeDisabled();
   await pickOption(row, 'To', 'Freezer');
   await expect(row).toContainText('Transfer Fridge → Freezer');
   const stored = await listRows(request);

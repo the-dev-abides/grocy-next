@@ -325,7 +325,8 @@ Grocycode, or the default amount. A Consume row and a Transfer row of the
 same code are two rows.
 
 Tap the minus button or the plus button to change the amount by 1. The
-amount does not go below 1.
+minus button is off when the amount minus 1 is 0 or less. Thus 1.5 goes to
+0.5, and 1 stays 1.
 
 A Consume row has the trash can button `Spoiled`. Tap it to mark the Consume
 as spoiled. The trash can is red while the flag is on. Tap it again to turn
