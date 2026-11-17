@@ -17,15 +17,15 @@ import type { Selection } from './use-selection';
 
 import { QueueRow } from './queue-row';
 
-const COLUMN_COUNT = 10;
+const COLUMN_COUNT = 11;
 
 // The columns that hide below a breakpoint, as in the row.
 const FROM_MD = 'hidden md:table-cell';
 const FROM_XL = 'hidden xl:table-cell';
 const FROM_2XL = 'hidden 2xl:table-cell';
 
-// The header row on the muted colour. The columns of the prototype table
-// appear by breakpoint. The checkbox of the header checks every shown row.
+// The header row on the muted colour. The booking type column comes after the
+// checkbox. The columns of the prototype table appear by breakpoint. The checkbox of the header checks every shown row.
 function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
   return (
     <TableHeader>
@@ -36,6 +36,9 @@ function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
             checked={selection.isAllChecked}
             onCheckedChange={selection.toggleAll}
           />
+        </TableHead>
+        <TableHead className="w-10">
+          <span className="sr-only">Booking type</span>
         </TableHead>
         <TableHead>Product</TableHead>
         <TableHead

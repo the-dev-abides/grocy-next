@@ -4,7 +4,9 @@ import type { GrocyRefusal } from '@grocy-next/shared-next-api';
 // recorded. The amount is in the stock unit. The stock entry id is the row id
 // of the stock entry when Grocy wrote it. Grocy writes it on a stock edit and
 // not on a purchase. The transaction id is the text id that every booking of
-// one stock action shares.
+// one stock action shares. The product id and the stock id name the stock
+// entry that the booking changed. The stock id is the Grocy `stock_id` text.
+// The open on consume reads them. The Next API does not show them.
 export interface StockLogRow {
   amount: number;
   dueDate: null | string;
@@ -12,8 +14,10 @@ export interface StockLogRow {
   locationId: null | number;
   note: null | string;
   price: null | number;
+  productId: number;
   purchasedDate: null | string;
   stockEntryId: null | number;
+  stockId: string;
   storeId: null | number;
   transactionId: string;
   transactionType: string;

@@ -21,6 +21,9 @@ export interface ProductUnits {
   stockUnitId: number;
 }
 
+// The stock unit of the product and the resolved conversions of the product.
+export type StockUnit = Pick<ProductUnits, 'conversions' | 'stockUnitId'>;
+
 // The amount in the stock unit and the price per stock unit, as the Grocy
 // purchase takes them.
 export interface StockUnitPurchase {
@@ -31,7 +34,7 @@ export interface StockUnitPurchase {
 // The factor from the scanned unit to the stock unit. The stock unit
 // converts to itself with factor 1. Any other unit needs a resolved
 // conversion to the stock unit. None is the no-conversion problem.
-function factorOf(unitId: number, product: ProductUnits): number {
+function factorOf(unitId: number, product: StockUnit): number {
   if (unitId === product.stockUnitId) {
     return 1;
   }
@@ -48,6 +51,16 @@ function factorOf(unitId: number, product: ProductUnits): number {
     );
   }
   return conversion.factor;
+}
+
+// This function converts an amount in one unit to the stock unit. A Consume
+// uses it, as the Grocy consume form converts the amount before the call.
+export function toStockAmount(
+  amount: number,
+  unitId: number,
+  product: StockUnit,
+): number {
+  return amount * factorOf(unitId, product);
 }
 
 // This function converts the entered amount and price of a Purchase pending

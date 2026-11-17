@@ -472,7 +472,7 @@ export type StockLogRow = {
   transactionType: string;
 };
 export type Booking = {
-  /** The stock log rows of the transaction. */
+  /** The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. */
   bookings: StockLogRow[];
   /** The booking that the accept made. */
   bookingType: 'consume' | 'inventory' | 'purchase';
@@ -480,7 +480,7 @@ export type Booking = {
   pendingScanId: number;
   /** The id of the product. */
   productId: number;
-  /** The id of the Grocy transaction, or null on no change. */
+  /** The id of the Grocy transaction, or null on no change. On a Consume, it is the transaction of the consume, not of the open. */
   transactionId: string | null;
 };
 export type CreateBooking = {

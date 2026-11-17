@@ -5,7 +5,7 @@ pending scan is one scanned or typed code from a scan screen. Open the review
 queue from the sidebar, or tap `Done` on a scan screen. The address `/` of
 Grocy Next also opens the review queue.
 
-The review queue shows the pending scans of both scan screens, with the most
+The review queue shows the pending scans of every scan screen, with the most
 recent scan at the top. It gets the new pending scans every three seconds.
 
 When you accept a pending scan, Grocy Next makes the booking in Grocy and
@@ -26,6 +26,18 @@ right change the view.
 On a screen that is 1024 pixels wide or more, the review queue opens in the
 table view. On a smaller screen, it opens in the cards view. When you change
 the view, the browser keeps your choice for the next visit.
+
+## The booking type
+
+Each row and each card starts with the icon of its booking type:
+
+| Icon           | Booking type |
+| -------------- | ------------ |
+| Barcode        | Purchase     |
+| Clipboard      | Inventory    |
+| Fork and knife | Consume      |
+
+A tap on the icon does nothing.
 
 ## The state of a pending scan
 
@@ -196,6 +208,25 @@ Two types of product have a note on the stock line:
 - A product with a tare weight needs the gross weight, with the container.
   A count below the tare weight shows a red warning, and Grocy refuses the
   accept.
+
+## The Consume accept
+
+The accept of a Consume pending scan takes the amount out of stock at the
+"from" location. Grocy picks the stock entries in its consume order.
+
+- When the amount is more than the stock at the "from" location, the accept
+  fails with the Grocy message. Grocy does not change.
+- When the consume takes a part of a sealed stock entry, the accept also
+  opens the rest of that stock entry. You do not open it in a second step.
+  Grocy applies the "move on open" setting and the due date after the open.
+- A product with the Grocy setting "cannot be opened" and a product with a
+  tare weight get no open.
+- When the open fails, the consume stays booked, and the accept succeeds.
+- A Consume of a parent product can take the stock of its child products,
+  as the Grocy consume form does.
+- A product with a tare weight needs the gross weight, with the container.
+
+The result panel shows the consume and the open.
 
 ## The attribution
 

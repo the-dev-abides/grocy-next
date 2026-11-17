@@ -3,8 +3,8 @@
 # fixture household: three active locations and one inactive location, one
 # store, two product groups, seven quantity units, and six products: three
 # plain products with one product barcode and some stock each, a parent
-# product with one child, and a tare weight product. The mock holds no
-# state. A booking returns a fixed stock log row and changes nothing.
+# product with one child, and a tare weight product. Product 2 has the Grocy
+# setting "cannot be opened". The mock holds no state. A booking returns a fixed stock log row and changes nothing.
 #
 # The specification is the Grocy OpenAPI file from the reference folder, with
 # the five entity enums and the server path `/api` that Grocy writes into the
@@ -485,6 +485,17 @@ resources:
       productId: '3'
     response:
       file: responses/stock-product-3-entries.json
+  # The accept of a Consume reads the stock entries with the stock entries of
+  # the sub-products. The parent product 5 then has the stock entry of its
+  # child, product 6.
+  - path: /api/stock/products/{productId}/entries
+    method: GET
+    pathParams:
+      productId: '5'
+    queryParams:
+      include_sub_products: 'true'
+    response:
+      file: responses/stock-product-6-entries.json
   - path: /api/stock/products/{productId}/entries
     method: GET
     pathParams:
@@ -641,6 +652,97 @@ resources:
       file: responses/stock-log-inventory-increase-defaults.json.template
       headers:
         Content-Type: application/json
+
+  # The consume. Each fixture product answers one stock log row with the
+  # amount and the spoiled flag of the request. Grocy writes the amount as a
+  # negative number. The row names the `stock_id` and the row id of the first
+  # stock entry of the product in the consume order. The parent product 5 has
+  # no own stock. Its consume answers the row of the stock entry of its child,
+  # product 6, only when the request allows the sub-product substitution. Else
+  # it answers the Grocy error of a consume that found no stock entry. The
+  # mock changes nothing.
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '5'
+    requestBody:
+      jsonPath: $.allow_subproduct_substitution
+      value: 'true'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-5.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '5'
+    response:
+      statusCode: 400
+      content: '{"error_message": "No transaction was found by the given transaction id"}'
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '1'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-1.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '2'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-2.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '3'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-3.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '6'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-6.json.template
+      headers:
+        Content-Type: application/json
+  - path: /api/stock/products/{productId}/consume
+    method: POST
+    pathParams:
+      productId: '7'
+    response:
+      template: true
+      file: responses/stock-log-consume-product-7.json.template
+      headers:
+        Content-Type: application/json
+
+  # The open. The open of the rest of the first stock entry of product 1
+  # answers one stock log row of the type `product-opened`, with the amount 1
+  # and its own transaction. The open of product 6 answers a Grocy error, so a
+  # test sees a failed open after a booked consume.
+  - path: /api/stock/products/{productId}/open
+    method: POST
+    pathParams:
+      productId: '1'
+    response:
+      file: responses/stock-log-open-product-1.json
+  - path: /api/stock/products/{productId}/open
+    method: POST
+    pathParams:
+      productId: '6'
+    response:
+      statusCode: 400
+      content: '{"error_message": "Amount to be opened cannot be > current unopened stock amount"}'
 
   # The product picture. An update of a pending scan that sets a product with
   # no picture uploads the lookup image as a product picture, then sets the

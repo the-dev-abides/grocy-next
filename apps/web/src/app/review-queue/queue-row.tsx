@@ -13,6 +13,7 @@ import type { RowActions } from './use-row-actions';
 
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { AmountCell } from './amount-cell';
+import { BookingTypeIcon } from './booking-type-icon';
 import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
@@ -184,7 +185,7 @@ function CheckCell({
 }
 
 // One row of the review queue table. The columns of the prototype are the
-// checkbox, the product with its facts, and the amount. Then come the location
+// checkbox, the booking type icon, the product with its facts, and the amount. Then come the location
 // from `md`, the due date and the price from `xl`, and the store and the time
 // from `2xl`. Then come the state from `md` and the buttons. A failed row has
 // the expired row colour of ADR 0013.
@@ -215,6 +216,9 @@ export function QueueRow({
       data-state={isChecked ? 'selected' : undefined}
     >
       <CheckCell isChecked={isChecked} name={name} onToggle={onToggle} />
+      <TableCell className="w-10">
+        <BookingTypeIcon bookingType={scan.bookingType} />
+      </TableCell>
       <ProductCell lists={lists} name={name} scan={scan} state={state}>
         <InventoryLines
           lists={lists}

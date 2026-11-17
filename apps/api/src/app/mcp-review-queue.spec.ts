@@ -328,6 +328,36 @@ describe('the review queue tools of the MCP server', () => {
     });
   });
 
+  // The consume takes 1 of the 2 cans of the sealed stock entry 11 at the
+  // Fridge, so the accept also opens the rest of it, as ADR 0017 decided. The
+  // result lists the consume row, then the open row. The transaction id is
+  // the transaction of the consume.
+  it('accepts a Consume pending scan and returns the consume and open bookings', async () => {
+    const created = await createWithApi({
+      amount: 1,
+      bookingType: 'consume',
+      locationId: 1,
+      productId: 1,
+    });
+
+    const result = await client.callTool({
+      arguments: { pendingScanId: created.id },
+      name: 'create_booking',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      bookings: [
+        { amount: -1, stockEntryId: 11, transactionType: 'consume' },
+        { amount: 1, stockEntryId: 11, transactionType: 'product-opened' },
+      ],
+      bookingType: 'consume',
+      pendingScanId: created.id,
+      productId: 1,
+      transactionId: '69131a2b3cf01',
+    });
+  });
+
   // An unknown field gets the validation problem of the Next API, with one
   // entry that names the field.
   it('refuses an unknown field of create_pending_scan with the validation problem', async () => {
