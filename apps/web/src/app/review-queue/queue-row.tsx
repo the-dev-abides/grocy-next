@@ -1,12 +1,13 @@
 import { cn } from 'cn';
 import { Check, RotateCw, Trash2 } from 'lucide-react';
+import { memo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 
 import type { PendingScan, Product } from '../api/next-api';
-import type { ResultLine } from './result-panel';
+import type { RowProperties } from './row-properties';
 import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
@@ -14,13 +15,13 @@ import type { RowActions } from './use-row-actions';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { AmountCell } from './amount-cell';
 import { BookingTypeIcon } from './booking-type-icon';
-import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
+import { ProductLines } from './product-lines';
 import { RowEditButton } from './row-edit-button';
+import { isSameRowProperties } from './row-properties';
 import { RowSpoiledButton } from './row-spoiled-button';
 import { amountText, locationText, unitOf } from './row-text';
-import { StockEntryLines } from './stock-entry-lines';
 import { useRowFacts } from './use-row-facts';
 
 // The accept button on a ready row, and the Accept again button on a failed
@@ -183,18 +184,27 @@ function rowClass(state: RowState, isBusy: boolean): string {
   );
 }
 
-// The checkbox of a row, for the bulk edit.
+// The checkbox of a row, for the bulk edit. The toggle takes the id of the
+// row.
 function CheckCell({
+  id,
   isChecked,
   name,
   onToggle,
-}: Readonly<{ isChecked: boolean; name: string; onToggle: () => void }>) {
+}: Readonly<{
+  id: number;
+  isChecked: boolean;
+  name: string;
+  onToggle: (id: number) => void;
+}>) {
   return (
     <TableCell className="w-8">
       <Checkbox
         aria-label={`Check ${name}`}
         checked={isChecked}
-        onCheckedChange={onToggle}
+        onCheckedChange={() => {
+          onToggle(id);
+        }}
       />
     </TableCell>
   );
@@ -204,22 +214,17 @@ function CheckCell({
 // checkbox, the booking type icon, the product with its facts, and the amount. Then come the location
 // from `md`, the due date and the price from `xl`, and the store and the time
 // from `2xl`. Then come the state from `md` and the buttons. A failed row has
-// the expired row colour of ADR 0013.
-export function QueueRow({
+// the expired row colour of ADR 0013. The row draws again only when its own
+// props change.
+function QueueRowView({
+  chainRows,
   isChecked,
   lists,
   onChanged,
   onResult,
   onToggle,
   scan,
-}: Readonly<{
-  isChecked: boolean;
-  lists: QueueLists;
-  onChanged: () => void;
-  onResult: (line: Omit<ResultLine, 'key'>) => void;
-  onToggle: () => void;
-  scan: PendingScan;
-}>) {
+}: Readonly<RowProperties>) {
   const { actions, name, product, state, unit } = useRowFacts({
     lists,
     onChanged,
@@ -231,18 +236,23 @@ export function QueueRow({
       className={rowClass(state, actions.isBusy)}
       data-state={isChecked ? 'selected' : undefined}
     >
-      <CheckCell isChecked={isChecked} name={name} onToggle={onToggle} />
+      <CheckCell
+        id={scan.id}
+        isChecked={isChecked}
+        name={name}
+        onToggle={onToggle}
+      />
       <TableCell className="w-10">
         <BookingTypeIcon scan={scan} onSave={actions.save} />
       </TableCell>
       <ProductCell lists={lists} name={name} scan={scan} state={state}>
-        <InventoryLines
+        <ProductLines
+          chainRows={chainRows}
           lists={lists}
           product={product}
           scan={scan}
           unit={unit}
         />
-        <StockEntryLines lists={lists} product={product} scan={scan} />
       </ProductCell>
       <FactCells
         lists={lists}
@@ -264,3 +274,6 @@ export function QueueRow({
     </TableRow>
   );
 }
+
+// The memoized row. The table imports it as `QueueRow`.
+export const queueRow = memo(QueueRowView, isSameRowProperties);

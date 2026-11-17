@@ -104,4 +104,17 @@ describe('the accept when Grocy does not answer', () => {
       type: '/problems/grocy-unavailable',
     });
   });
+
+  it('answers the grocy-unavailable problem on the product list', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products`);
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      detail: 'Grocy did not answer.',
+      instance: '/api/v2/products',
+      status: 502,
+      title: 'Grocy is unavailable',
+      type: '/problems/grocy-unavailable',
+    });
+  });
 });

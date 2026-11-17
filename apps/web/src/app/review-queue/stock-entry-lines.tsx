@@ -11,12 +11,14 @@ import { lineText, missingText } from './stock-plan-text';
 // above the stock shows a red warning with the stock that Grocy has. The
 // state of the row stays "Ready", and the server refuses the accept. A
 // Consume of a parent product also takes the stock of the sub-products, as
-// the accept does.
+// the accept does. The chain rows are the older rows of the same product.
 export function StockEntryLines({
+  chainRows,
   lists,
   product,
   scan,
 }: Readonly<{
+  chainRows: readonly PendingScan[];
   lists: QueueLists;
   product: Product | undefined;
   scan: PendingScan;
@@ -25,7 +27,7 @@ export function StockEntryLines({
     return null;
   }
   const unit = nameOf(lists.quantityUnits, product.stockUnitId, '');
-  const plan = planOfScan(scan, lists.pendingScans ?? [], product, unit);
+  const plan = planOfScan(scan, chainRows, product, unit);
   if (plan === null) {
     return null;
   }

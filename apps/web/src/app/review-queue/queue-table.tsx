@@ -15,7 +15,8 @@ import type { ResultLine } from './result-panel';
 import type { QueueLists } from './use-review-queue';
 import type { Selection } from './use-selection';
 
-import { QueueRow } from './queue-row';
+import { NO_ROWS } from './chain-rows';
+import { queueRow as QueueRow } from './queue-row';
 
 const COLUMN_COUNT = 11;
 
@@ -64,14 +65,18 @@ function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
 }
 
 // The table of the review queue, in the density of ADR 0013: a header row on
-// the muted colour and a border around the table.
+// the muted colour and a border around the table. Each row gets only its own
+// data and the older rows of its product, so a poll draws only the rows that
+// changed.
 export function QueueTable({
+  chains,
   lists,
   onChanged,
   onResult,
   rows,
   selection,
 }: Readonly<{
+  chains: ReadonlyMap<number, readonly PendingScan[]>;
   lists: QueueLists;
   onChanged: () => void;
   onResult: (line: Omit<ResultLine, 'key'>) => void;
@@ -87,14 +92,13 @@ export function QueueTable({
             return (
               <QueueRow
                 key={scan.id}
+                chainRows={chains.get(scan.id) ?? NO_ROWS}
                 isChecked={selection.isChecked(scan.id)}
                 lists={lists}
                 scan={scan}
                 onChanged={onChanged}
                 onResult={onResult}
-                onToggle={() => {
-                  selection.toggle(scan.id);
-                }}
+                onToggle={selection.toggle}
               />
             );
           })}
