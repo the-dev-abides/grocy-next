@@ -317,6 +317,47 @@ describe('the review queue tools of the MCP server', () => {
     expect(cleared.structuredContent).toMatchObject({ stockEntryId: null });
   });
 
+  it('flips a Consume pending scan to a Transfer', async () => {
+    const created = await createWithApi({
+      bookingType: 'consume',
+      code: '5449000000996',
+    });
+
+    const result = await client.callTool({
+      arguments: { bookingType: 'transfer', id: created.id },
+      name: 'update_pending_scan',
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      bookingType: 'transfer',
+      id: created.id,
+    });
+    expect(await readWithApi(created.id)).toEqual(result.structuredContent);
+  });
+
+  it('refuses any other change of the booking type with the booking-type-fixed problem', async () => {
+    const created = await createWithApi({
+      bookingType: 'transfer',
+      code: '5449000000996',
+    });
+
+    const result = await client.callTool({
+      arguments: { bookingType: 'purchase', id: created.id },
+      name: 'update_pending_scan',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(problemOf(result)).toEqual({
+      detail: 'The booking type of a pending scan is set at create.',
+      instance: '/api/v2/mcp',
+      status: 409,
+      title: 'The booking type is fixed',
+      type: '/problems/booking-type-fixed',
+    });
+    expect(await readWithApi(created.id)).toEqual(created);
+  });
+
   it('sets spoiled on a Consume and the "to" location on a Transfer with update_pending_scan', async () => {
     const consume = await createWithApi({
       bookingType: 'consume',

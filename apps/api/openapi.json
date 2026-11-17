@@ -2241,7 +2241,7 @@
             "nullable": true
           },
           "bookingType": {
-            "description": "The booking that the accept makes. Set at create.",
+            "description": "The booking that the accept makes. Set at create. An update can flip it between consume and transfer only.",
             "type": "string",
             "enum": ["consume", "inventory", "purchase", "transfer"]
           },

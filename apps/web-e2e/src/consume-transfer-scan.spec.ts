@@ -38,7 +38,9 @@ test('a typed code on the Consume and Transfer scan screen shows one Consume row
   await expect(rows).toHaveCount(1, { timeout: 3000 });
   const row = rows.first();
   await expect(row).toContainText('Coca-Cola Original 330 ml');
-  await expect(row.getByRole('img', { name: 'Consume' })).toBeVisible();
+  await expect(
+    row.getByRole('button', { name: 'Consume. Change to Transfer.' }),
+  ).toBeVisible();
   await expect(row).toContainText('Consume from Fridge');
   await expect(row).toContainText('Opens a new pack');
 });
@@ -68,9 +70,49 @@ test('the switch on Transfer with the Freezer makes a typed code one Transfer ro
   await expect(rows).toHaveCount(1, { timeout: 3000 });
   const row = rows.first();
   await expect(row).toContainText('Philadelphia Original 150 g');
-  await expect(row.getByRole('img', { name: 'Transfer' })).toBeVisible();
+  await expect(
+    row.getByRole('button', { name: 'Transfer. Change to Consume.' }),
+  ).toBeVisible();
   await expect(row).toContainText('Transfer Fridge → Freezer');
   await expect(page.getByRole('radio', { name: 'Transfer' })).toBeChecked();
+});
+
+// The code 0049000006346 belongs to no other Consume or Transfer test. The
+// Inventory tests use it too, so the test ignores the Inventory rows. A tap on
+// the icon of the row sends one update that flips the booking type.
+test('a tap on the icon of a Transfer row on the scan screen makes the row a Consume', async ({
+  page,
+  request,
+}) => {
+  const code = '0049000006346';
+  await removeRows(request, (row) => {
+    return (
+      (row.bookingType === 'consume' || row.bookingType === 'transfer') &&
+      row.code === code
+    );
+  });
+  await page.goto('/scan/consume-transfer');
+  await page.getByRole('radio', { name: 'Transfer' }).click();
+  await typeCode(page, code);
+
+  const rows = sessionRows(page);
+  await expect(rows).toHaveCount(1, { timeout: 3000 });
+  const row = rows.first();
+  await row
+    .getByRole('button', { name: 'Transfer. Change to Consume.' })
+    .click();
+
+  await expect(
+    row.getByRole('button', { name: 'Consume. Change to Transfer.' }),
+  ).toBeVisible();
+  await expect(row).toContainText('Consume from');
+  await expect(rows).toHaveCount(1);
+  const stored = await listRows(request);
+  expect(
+    stored
+      .filter((item) => item.code === code && item.bookingType !== 'inventory')
+      .map((item) => item.bookingType),
+  ).toEqual(['consume']);
 });
 
 // The Grocycode grcy:p:3 is product 3, with its stock in the Pantry. The trash

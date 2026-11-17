@@ -1,5 +1,5 @@
 import { skipToken } from '@reduxjs/toolkit/query';
-import { ArrowRightLeft, Minus, Plus, Utensils } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -10,25 +10,12 @@ import type { PendingScanRowLists } from './pending-scan-row';
 import { useGetProductQuery } from '../api/next-api';
 import { unitOf } from '../review-queue/row-text';
 import { ConsumeTransferForm } from './consume-transfer-form';
+import { FlipButton } from './flip-button';
 import { scanOpenText } from './open-text';
 import { PendingScanRow } from './pending-scan-row';
 import { consumeDetailText, transferDetailText } from './scan-text';
 import { SpoiledButton } from './spoiled-button';
 import { WriteInNameField } from './write-in-name-field';
-
-// The icon of the booking type: the fork and knife of Consume and the two
-// arrows of Transfer. The icon has the name of the booking type for a screen
-// reader.
-function BookingIcon({
-  bookingType,
-}: Readonly<{ bookingType: PendingScan['bookingType'] }>) {
-  const className = 'size-5 shrink-0 text-primary';
-  return bookingType === 'transfer' ? (
-    <ArrowRightLeft role="img" aria-label="Transfer" className={className} />
-  ) : (
-    <Utensils role="img" aria-label="Consume" className={className} />
-  );
-}
 
 // The amount in its unit between minus and plus. One tap changes the amount
 // by one. Minus stops at one, so the amount stays above zero.
@@ -119,7 +106,8 @@ function RowControls({
 }
 
 // One row of the Consume and Transfer session list. The row starts with the
-// icon of its booking type. The detail line shows the time, the booking type,
+// icon of its booking type. A tap on the icon flips the row between Consume
+// and Transfer. The detail line shows the time, the booking type,
 // the locations, and "Spoiled". A Consume row also says "Opens a new pack" or
 // "From the opened pack". A Transfer row with no "to" location shows the
 // line in red. A tap on the name opens the row form under the row, with the
@@ -147,7 +135,7 @@ export function ConsumeTransferRow({
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="flex min-h-12 items-center gap-2">
-        <BookingIcon bookingType={scan.bookingType} />
+        <FlipButton scan={scan} onUpdate={onUpdate} />
         <PendingScanRow
           form={{
             isOpen,
