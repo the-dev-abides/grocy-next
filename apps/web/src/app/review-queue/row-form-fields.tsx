@@ -41,7 +41,9 @@ function BookingTypeField({ form, patch }: Readonly<FieldsProperties>) {
       label="Booking type"
       value={form.bookingType}
       onChange={(value) => {
-        patch({ bookingType: value === 'transfer' ? 'transfer' : 'consume' });
+        if (isSwitchBookingType(value)) {
+          patch({ bookingType: value });
+        }
       }}
     />
   );

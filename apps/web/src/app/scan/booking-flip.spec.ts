@@ -1,3 +1,4 @@
+import { isSwitchBookingType } from '../booking-types';
 import { flipLabel, flippedBookingType } from './booking-flip';
 
 describe('the flip of a booking type', () => {
@@ -7,8 +8,8 @@ describe('the flip of a booking type', () => {
   });
 
   it('gives no flip for a Purchase and an Inventory', () => {
-    expect(flippedBookingType('purchase')).toBeUndefined();
-    expect(flippedBookingType('inventory')).toBeUndefined();
+    expect(isSwitchBookingType('purchase')).toBe(false);
+    expect(isSwitchBookingType('inventory')).toBe(false);
   });
 
   it('names the booking type and the booking type after a tap', () => {

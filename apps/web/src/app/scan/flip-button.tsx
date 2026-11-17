@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 
-import { bookingTypeIcon } from '../booking-types';
+import { bookingTypeIcon, isSwitchBookingType } from '../booking-types';
 import { flipLabel, flippedBookingType } from './booking-flip';
 
 // The icon of a Consume row or a Transfer row as a button: the fork and knife
@@ -18,13 +18,12 @@ export function FlipButton({
   scan: Pick<PendingScan, 'bookingType'>;
   size?: 'icon' | 'icon-lg';
 }>) {
-  const flipped = flippedBookingType(bookingType);
-  if (flipped === undefined) {
+  if (!isSwitchBookingType(bookingType)) {
     return null;
   }
-  const current = flipped === 'consume' ? 'transfer' : 'consume';
-  const label = flipLabel(current);
-  const meta = { icon: bookingTypeIcon[current] };
+  const flipped = flippedBookingType(bookingType);
+  const label = flipLabel(bookingType);
+  const meta = { icon: bookingTypeIcon[bookingType] };
   return (
     <Button
       variant="ghost"
