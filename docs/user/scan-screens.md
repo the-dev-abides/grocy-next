@@ -71,6 +71,57 @@ paths are untested on a real device:
   camera file in Chromium on a desktop computer. They do not use a real
   camera.
 
+## The hardware scanner
+
+A hardware scanner is a device that reads a code and sends the code to the
+app as key presses, as a keyboard does. Connect it with USB or Bluetooth in
+keyboard mode. You do not tap a button. The camera and the hardware scanner
+work at the same time.
+
+A code from the hardware scanner gets the same feedback as a camera scan.
+After the first code in a scan session, the label at the bottom left of the
+camera picture shows the word `Scanner`. Each code from the hardware scanner
+is one scan. Two scans of the same item count two.
+
+Set the hardware scanner as follows. The guide of the hardware scanner tells
+how to change each setting.
+
+- Set the hardware scanner to send Enter after the code. The app ends the
+  code at Enter. A Tab after the code does not end it.
+- Turn off the code prefix (the AIM identifier). The prefix is a short text,
+  such as `]E0`, before the code. The app does not remove it, so the code
+  does not match a product barcode.
+- Make the keyboard layout of the computer or the phone the same as the
+  keyboard layout of the hardware scanner. The hardware scanner sends key
+  positions, and the layout of the computer or the phone gives the
+  characters. When the two layouts differ, symbols such as `@ # / [ ]` can
+  be wrong.
+
+Before a scan, tap outside the fields of the screen, for example on the
+title. A scan while a field has the focus goes into that field. A scan into
+the typed code field becomes a scan at the Enter. A scan into a field of a
+row, such as the product name, changes that field. Correct the field on the
+screen or in the review queue.
+
+The app discards the collected key presses after one second with no key.
+
+On Android, the soft keyboard does not open while a hardware scanner is
+connected. To show it, open the Android settings, then `System`,
+`Keyboard`, and `Physical keyboard`, and turn on `Use on-screen keyboard`.
+The path and the name can differ on your phone. On some phones the setting
+is `Show virtual keyboard`.
+
+### The hardware scanner paths that are untested
+
+Nobody tested the hardware scanner with a real device. The automatic tests
+send the key presses from the test browser on a desktop computer. These
+paths are untested:
+
+- A real hardware scanner, with USB or Bluetooth.
+- A Bluetooth hardware scanner on Android.
+- A keyboard layout that is not US.
+- The soft keyboard on a phone while a hardware scanner is connected.
+
 ## The typed code field
 
 Use the typed code field for a code that has no barcode, for example the

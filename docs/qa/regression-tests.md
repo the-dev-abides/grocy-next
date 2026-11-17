@@ -22,6 +22,12 @@ different device or browser when they need one.
 | QA-004     | Decode in the worker at speed on the test phone        | The test phone, in Chrome |
 | QA-005     | Hear and feel the scan feedback after the permission   | The test phone, in Chrome |
 | QA-006     | See the Open Facts image in the browser on the phone   | The test phone, in Chrome |
+| QA-007     | Scan with a USB hardware scanner on a desktop browser  | A desktop browser         |
+| QA-008     | Scan with a Bluetooth hardware scanner on the phone    | The test phone, in Chrome |
+| QA-009     | Scan with a keyboard layout that is not US             | A desktop browser         |
+| QA-010     | Scan with a host layout that differs from the scanner  | A desktop browser         |
+| QA-011     | Scan while a field of a row has the focus              | A desktop browser         |
+| QA-012     | Scan a GS1 DataMatrix code with a group separator      | A desktop browser         |
 
 ## QA-001 Install the app from the manifest
 
@@ -235,3 +241,187 @@ Steps:
 7. Swipe the row to the left past the middle of the screen on the Purchase
    scan screen, or reject it in the review queue.
    Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-007 Scan with a USB hardware scanner on a desktop browser
+
+Device or browser: a desktop computer with a current Chrome, Firefox, or
+Safari, and a USB hardware scanner in keyboard mode. A hardware scanner is a
+device that reads a code and sends the code to the app as key presses.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- The hardware scanner sends Enter after the code and sends no code prefix
+  (the AIM identifier). The host keyboard layout and the layout of the
+  hardware scanner are both US.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen from the sidebar. Click on the title of
+   the screen, so that no field and no button has the focus.
+   Expected: the list is empty.
+2. Scan the barcode `5449000000996` with the hardware scanner.
+   Expected: one row with the product name of the code appears at the top of
+   the list. The frame of the camera picture turns green, and the banner
+   shows the product name. The line at the bottom left of the camera picture
+   shows the word `Scanner`.
+3. Scan the same barcode again.
+   Expected: the banner shows `+1`, and the row shows the amount `2`. Each
+   scan makes one create call, so two scans count two.
+4. Click `Done`, then reject the row in the review queue.
+   Expected: the row is gone.
+5. Open the Inventory scan screen from the sidebar. Click on the title of
+   the screen. Scan the barcode `5449000000996`.
+   Expected: one row with the product name and the Grocy stock appears. The
+   line at the bottom left of the camera picture shows the word `Scanner`.
+6. Click the `Add` button of the code field, then press Enter on the
+   keyboard.
+   Expected: the focused button works as before. An Enter with no code does
+   nothing to the list.
+7. Reject the row.
+   Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-008 Scan with a Bluetooth hardware scanner on the phone
+
+Device or browser: the test phone, in Chrome, and a Bluetooth hardware
+scanner in keyboard mode.
+
+Preconditions:
+
+- The build under test runs, and the phone reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- The hardware scanner is paired with the phone, sends Enter after the code,
+  and sends no code prefix.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen from the sidebar. Tap on the title of the
+   screen, so that no field has the focus.
+   Expected: the soft keyboard does not open.
+2. Scan the barcode `5449000000996` with the hardware scanner.
+   Expected: one row with the product name appears. The phone plays the
+   sound and vibrates as for a camera scan. The line at the bottom left of
+   the camera picture shows the word `Scanner`. The soft keyboard does not
+   open.
+3. Scan the same barcode again.
+   Expected: the row shows the amount `2`. The list still has one row.
+4. Open the Android settings, then `System`, `Keyboard`, and `Physical
+keyboard`. Turn on `Use on-screen keyboard`. The name of the path can
+   differ on the phone. On some phones the setting is `Show virtual
+keyboard`.
+   Expected: the setting is on.
+5. Go back to the app and tap the code field.
+   Expected: the soft keyboard opens while the hardware scanner is
+   connected.
+6. Reject the row.
+   Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-009 Scan with a keyboard layout that is not US
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The host keyboard layout is not US, for example German or French. The
+  hardware scanner is set to the same layout.
+- A Code 128 or QR code with letters, digits, and the symbols
+  `@ # / - .` is at hand, for example `AB-12/34@x.y#z`.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the code.
+   Expected: one row with the bare text of the code appears. The text on the
+   row is the same as the text in the code, symbol for symbol.
+3. Reject the row.
+   Expected: the row is gone.
+
+## QA-010 Scan with a host layout that differs from the scanner
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The host keyboard layout is not the layout of the hardware scanner, for
+  example a German host and a US hardware scanner.
+- The same code as in QA-009 is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the code.
+   Expected: one row appears. The symbols, and on some layouts the letters
+   `y` and `z`, can be wrong. The app does not correct them. Record in the
+   test run the text on the row and the two layouts.
+3. Reject the row.
+   Expected: the row is gone.
+
+## QA-011 Scan while a field of a row has the focus
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+The rows of the Purchase and the Inventory scan screens have no amount
+field. The Inventory row of an unknown code has the field `Type the product
+name`, so this case uses that field.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Inventory scan screen. Type `4027` into the code field and click
+   `Add`.
+   Expected: one row with the code `4027` and the field `Type the product
+name` appears.
+2. Click into the field `Type the product name` of the row, so that the
+   field has the focus. Then scan the barcode `5449000000996` with the
+   hardware scanner.
+   Expected: the digits of the code go into the field. The app makes no new
+   row. The line at the bottom left of the camera picture does not show the
+   word `Scanner`.
+3. Clear the field, then click on the title of the screen.
+   Expected: the field is empty.
+4. Reject the row.
+   Expected: the row is gone.
+
+## QA-012 Scan a GS1 DataMatrix code with a group separator
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode that sends the group separator as Ctrl plus `]`.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The hardware scanner sends no code prefix.
+- A GS1 DataMatrix code with two variable-length elements is at hand, for
+  example the batch `(10)ABC123` followed by the serial `(21)XYZ`. A group
+  separator is between the two elements.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the DataMatrix code.
+   Expected: one row with the bare code appears.
+3. Read the code of the row with the API:
+   `GET /api/v2/pending-scans`.
+   Expected: the code of the row holds the group separator character
+   (0x1D, written `\u001d` in the JSON) between `ABC123` and `21XYZ`.
+4. Reject the row.
+   Expected: the row is gone.
