@@ -5,7 +5,11 @@ import path from 'node:path';
 
 import { lockFolder } from './lock-options.js';
 
-// The test function of every spec file. It adds the file lock.
+// The test function of every spec file. It adds the file lock and the page error check.
+//
+// Page error check: an uncaught error on the page is a bug, also when the
+// screen still looks right. Thus each uncaught page error fails the test. The
+// failure message has the test title and the text of each error.
 //
 // All browser projects run against one API and one Grocy mock. A spec file
 // owns its notes and its codes, and the tests of one browser share them in
@@ -65,6 +69,18 @@ export const test = base.extend<{ fileLock: string }>({
     },
     { auto: true, timeout: LOCK_TIMEOUT_MS },
   ],
+  page: async ({ page }, use, testInfo) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => {
+      errors.push(error.stack ?? error.message);
+    });
+    await use(page);
+    if (errors.length > 0) {
+      throw new Error(
+        `The page of the test "${testInfo.title}" had ${String(errors.length)} uncaught errors:\n${errors.join('\n---\n')}`,
+      );
+    }
+  },
 });
 
 export { expect } from '@playwright/test';
