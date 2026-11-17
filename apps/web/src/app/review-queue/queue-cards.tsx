@@ -5,19 +5,22 @@ import type { ResultLine } from './result-panel';
 import type { QueueLists } from './use-review-queue';
 import type { Selection } from './use-selection';
 
-import { QueueCard } from './queue-card';
+import { NO_ROWS } from './chain-rows';
+import { queueCard as QueueCard } from './queue-card';
 
 // The cards view of the review queue. It shows one card per row that the filter
 // shows. It has one column on a phone, two from `lg`, and three from `2xl`. The
 // checkbox above the cards checks every shown card, as the header checkbox of
 // the table does.
 export function QueueCards({
+  chains,
   lists,
   onChanged,
   onResult,
   rows,
   selection,
 }: Readonly<{
+  chains: ReadonlyMap<number, readonly PendingScan[]>;
   lists: QueueLists;
   onChanged: () => void;
   onResult: (line: Omit<ResultLine, 'key'>) => void;
@@ -46,14 +49,13 @@ export function QueueCards({
           return (
             <QueueCard
               key={scan.id}
+              chainRows={chains.get(scan.id) ?? NO_ROWS}
               isChecked={selection.isChecked(scan.id)}
               lists={lists}
               scan={scan}
               onChanged={onChanged}
               onResult={onResult}
-              onToggle={() => {
-                selection.toggle(scan.id);
-              }}
+              onToggle={selection.toggle}
             />
           );
         })}
