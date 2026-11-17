@@ -240,6 +240,58 @@ describe('the accept of a Consume pending scan', () => {
     expect(row.error).toBe(message);
   });
 
+  // The row names stock entry 14, the open can at the Pantry. The consume
+  // takes that stock entry only. It is open, so no open follows.
+  it('accepts a Consume of a stock entry and names the stock entry in the Grocy consume', async () => {
+    const created = await createAndRead({
+      amount: 1,
+      locationId: 2,
+      productId: 1,
+      stockEntryId: '69131a2b3c84c',
+    });
+
+    const response = await accept(created.id);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      bookingType: 'consume',
+      bookings: [
+        {
+          ...CONSUME_ROW,
+          amount: -1,
+          dueDate: '2027-02-01',
+          id: 109,
+          locationId: 2,
+          price: 0.85,
+          purchasedDate: '2026-11-05',
+          stockEntryId: 14,
+        },
+      ],
+      pendingScanId: created.id,
+      productId: 1,
+      transactionId: '69131a2b3cf34',
+    });
+  });
+
+  // The Pantry has 3 cans of product 1, but stock entry 14 has 1 can. The
+  // amount check uses the stock entry, as the Grocy consume form does.
+  it('refuses a Consume above the amount of the stock entry of the row', async () => {
+    const created = await createAndRead({
+      amount: 2,
+      locationId: 2,
+      productId: 1,
+      stockEntryId: '69131a2b3c84c',
+    });
+
+    const response = await accept(created.id);
+
+    expect(response.status).toBe(422);
+    const row = await readRow(created.id);
+    expect(row.error).toBe(
+      'Amount to be consumed cannot be > current stock amount (if supplied, at the desired location)',
+    );
+  });
+
   it('describes the bookings of the open in the OpenAPI document', async () => {
     const response = await fetch(`${baseUrl}/api/v2/openapi.json`);
     const document = (await response.json()) as {
