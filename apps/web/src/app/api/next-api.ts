@@ -168,6 +168,8 @@ export type StockEntry = {
   open: boolean;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text. */
+  stockId: string;
 };
 export type Product = {
   /** The description of the product, or null when it has none. */
@@ -176,6 +178,12 @@ export type Product = {
   id: number;
   /** The name of the product. */
   name: string;
+  /** Whether the product can be opened. It is false for a product with the Grocy setting "cannot be opened". */
+  canBeOpened: boolean;
+  /** The id of the default consume location, or null. */
+  consumeLocationId: number | null;
+  /** The id of the consume quantity unit. A Consume with no unit is in this unit. */
+  consumeUnitId: number;
   /** The resolved conversions of the product. */
   conversions: QuantityUnitConversion[];
   /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */

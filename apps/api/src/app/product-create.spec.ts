@@ -89,6 +89,9 @@ describe('the product create of the Next API', () => {
       `/api/v2/products/${String(NEW_PRODUCT_ID)}`,
     );
     expect(await response.json()).toEqual({
+      canBeOpened: true,
+      consumeLocationId: null,
+      consumeUnitId: 2,
       conversions: [
         { factor: 4.5, fromQuantityUnitId: 3, toQuantityUnitId: 2 },
       ],
@@ -149,6 +152,9 @@ describe('the product create of the Next API', () => {
 
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({
+      canBeOpened: true,
+      consumeLocationId: null,
+      consumeUnitId: 2,
       conversions: [{ factor: 1, fromQuantityUnitId: 2, toQuantityUnitId: 2 }],
       defaultDueDays: 0,
       description: null,

@@ -33,6 +33,7 @@ const PRODUCT_1_STOCK_ENTRIES = [
     locationId: 1,
     open: false,
     purchasedDate: '2026-10-20',
+    stockId: '69131a2b3c619',
   },
   {
     amount: 1,
@@ -41,6 +42,7 @@ const PRODUCT_1_STOCK_ENTRIES = [
     locationId: 1,
     open: false,
     purchasedDate: '2026-11-01',
+    stockId: '69131a2b3c73b',
   },
   {
     amount: 1,
@@ -49,6 +51,7 @@ const PRODUCT_1_STOCK_ENTRIES = [
     locationId: 2,
     open: true,
     purchasedDate: '2026-11-05',
+    stockId: '69131a2b3c84c',
   },
   {
     amount: 1,
@@ -57,6 +60,7 @@ const PRODUCT_1_STOCK_ENTRIES = [
     locationId: 2,
     open: false,
     purchasedDate: '2026-10-01',
+    stockId: '69131a2b3c95d',
   },
   {
     amount: 1,
@@ -65,6 +69,7 @@ const PRODUCT_1_STOCK_ENTRIES = [
     locationId: 2,
     open: false,
     purchasedDate: '2026-10-25',
+    stockId: '69131a2b3ca6e',
   },
 ];
 
@@ -100,6 +105,9 @@ describe('the product read of the Next API', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
+      canBeOpened: true,
+      consumeLocationId: 1,
+      consumeUnitId: 1,
       conversions: [{ factor: 1, fromQuantityUnitId: 1, toQuantityUnitId: 1 }],
       defaultDueDays: 0,
       description: null,
@@ -139,8 +147,21 @@ describe('the product read of the Next API', () => {
           locationId: 2,
           open: false,
           purchasedDate: '2026-01-10',
+          stockId: '69131a2b3cc80',
         },
       ],
+    });
+  });
+
+  // Product 2 has the Grocy setting "cannot be opened" and no default
+  // consume location. Its consume unit is the Pack, unit 2.
+  it('reads the consume facts of a product that cannot be opened', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/2`);
+
+    expect(await response.json()).toMatchObject({
+      canBeOpened: false,
+      consumeLocationId: null,
+      consumeUnitId: 2,
     });
   });
 
@@ -260,6 +281,9 @@ describe('the product read of the Next API', () => {
         'description',
         'id',
         'name',
+        'canBeOpened',
+        'consumeLocationId',
+        'consumeUnitId',
         'conversions',
         'defaultDueDays',
         'hasPicture',
@@ -284,6 +308,7 @@ describe('the product read of the Next API', () => {
         'locationId',
         'open',
         'purchasedDate',
+        'stockId',
       ],
     });
     expect(document.components.schemas['QuantityUnitConversion']).toMatchObject(

@@ -1564,6 +1564,10 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
             "description": "The purchase date.",
             "nullable": true
+          },
+          "stockId": {
+            "type": "string",
+            "description": "The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text."
           }
         },
         "required": [
@@ -1572,7 +1576,8 @@
           "id",
           "locationId",
           "open",
-          "purchasedDate"
+          "purchasedDate",
+          "stockId"
         ],
         "additionalProperties": false
       },
@@ -1593,6 +1598,23 @@
           "name": {
             "type": "string",
             "description": "The name of the product."
+          },
+          "canBeOpened": {
+            "type": "boolean",
+            "description": "Whether the product can be opened. It is false for a product with the Grocy setting \"cannot be opened\"."
+          },
+          "consumeLocationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the default consume location, or null.",
+            "nullable": true
+          },
+          "consumeUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the consume quantity unit. A Consume with no unit is in this unit."
           },
           "conversions": {
             "type": "array",
@@ -1670,6 +1692,9 @@
           "description",
           "id",
           "name",
+          "canBeOpened",
+          "consumeLocationId",
+          "consumeUnitId",
           "conversions",
           "defaultDueDays",
           "hasPicture",
