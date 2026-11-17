@@ -6,6 +6,7 @@ import {
   PENDING_SCANS,
   type PendingScanRow,
   pickOption,
+  removeRows,
   removeRowsWithCode,
   scannerLabel,
   sendScannerCode,
@@ -23,8 +24,13 @@ test('a typed fixture code shows the product name, the time, and the barcode pri
   page,
   request,
 }) => {
+  // The Consume camera test scans this code too. Thus the test removes the
+  // Purchase rows of the code only.
   const code = '5449000000996';
-  await removeRowsWithCode(request, code);
+  await removeRows(
+    request,
+    (row) => row.bookingType === 'purchase' && row.code === code,
+  );
   await page.goto('/scan/purchase');
 
   await typeCode(page, code);
@@ -78,9 +84,9 @@ test('a fixture code typed two times shows one row with the amount two at the to
 // The tests of the code 8000500310427 run one after the other in one worker,
 // in the order of the file. Two tests on one code must not run at one time,
 // because each test removes the open rows of the code first. The hardware
-// scanner tests of the Purchase and the Inventory scan screens send this code,
-// as the spec of the hardware scanner says. Thus the Inventory test is in this
-// file too.
+// scanner tests of the three scan screens send this code, as the spec of the
+// hardware scanner says. Thus the Inventory test and the Consume test are in
+// this file too.
 test.describe('the code 8000500310427', () => {
   test.describe.configure({ mode: 'default' });
 
@@ -142,6 +148,31 @@ test.describe('the code 8000500310427', () => {
 
     const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
     await expect(row).toContainText('In Grocy: 1 Pack', { timeout: 3000 });
+    await expect(sessionRows(page)).toHaveCount(1);
+    await expect(scannerLabel(page)).toBeVisible();
+  });
+
+  test('a hardware scanner code with no field in focus shows one Consume row, and the decoder line says Scanner', async ({
+    page,
+    request,
+  }) => {
+    // Product 3 has its stock in the Pantry.
+    const code = '8000500310427';
+    await removeRowsWithCode(request, code);
+    await page.goto('/scan/consume-transfer');
+    await expect(
+      page.getByText('0 scans in the review queue', { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(':focus')).toHaveCount(0);
+    await expect(scannerLabel(page)).toHaveCount(0);
+
+    await sendScannerCode(page, code);
+
+    const row = sessionRows(page).filter({ hasText: 'Nutella Biscuits 304 g' });
+    await expect(row).toContainText('Consume from Pantry', { timeout: 3000 });
+    await expect(
+      row.getByRole('button', { name: 'Consume. Change to Transfer.' }),
+    ).toBeVisible();
     await expect(sessionRows(page)).toHaveCount(1);
     await expect(scannerLabel(page)).toBeVisible();
   });

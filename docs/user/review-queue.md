@@ -68,7 +68,8 @@ A row or a card with `Accept failed` has a different background colour.
 
 The filter is above the list. It has four fields:
 
-- `Booking type`: Purchase, Inventory, Consume, or Transfer.
+- `Booking type`: `All booking types`, or one of Purchase, Inventory,
+  Consume, and Transfer.
 - `Location`: the location of the pending scan. A Transfer shows when its
   "from" location or its "to" location is the location of the filter.
 - `Product group`: the product group of the pending scan. The scan screens
@@ -348,6 +349,22 @@ product, unless the pending scan has a different unit.
 
 The result panel shows one `transfer_from` booking and one `transfer_to`
 booking for each stock entry that Grocy moved.
+
+## The paths that are untested
+
+The automatic tests run the review queue in desktop browsers. The pending
+scans of the tests come from typed codes, from the camera file in Chromium,
+and from key presses that act as a hardware scanner. These paths to the
+review queue are untested:
+
+- The camera on an iPhone or an iPad (iOS).
+- The camera of a desktop computer or a laptop.
+- A real hardware scanner, with USB or Bluetooth.
+- A Bluetooth hardware scanner on Android.
+- A keyboard layout that is not US.
+- The soft keyboard on a phone while a hardware scanner is connected.
+
+The page "The scan screens" tells more about each path.
 
 ## The attribution
 
