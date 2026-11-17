@@ -1,7 +1,8 @@
+import { useCallback, useMemo } from 'react';
+
 import type {
   Location,
   PendingScan,
-  Product,
   ProductGroup,
   ProductListItem,
   QuantityUnit,
@@ -19,19 +20,13 @@ import {
   useListStoresQuery,
 } from '../api/next-api';
 import { POLL_MS } from '../api/poll-interval';
-import { useProductReads } from '../api/use-product-reads';
 import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
-// the short product form. The household conversions take part in the stock unit
-// proposal of the short product form. The pending scans are every row of the
-// queue, also the rows that the filter hides. The stock entry lines of a row
-// see the stock after the older rows that share its stock entries. The product
-// reads are the reads of the products of those rows.
+// the short product form. The household conversions take part in the stock
+// unit proposal of the short product form.
 export interface QueueLists {
   locations: readonly Location[] | undefined;
-  pendingScans?: readonly PendingScan[] | undefined;
-  productReads?: ReadonlyMap<number, Product> | undefined;
   productGroups: readonly ProductGroup[] | undefined;
   products: readonly ProductListItem[] | undefined;
   quantityUnitConversions: readonly QuantityUnitConversion[] | undefined;
@@ -51,30 +46,82 @@ export interface ReviewQueue {
 // recent at the top, and the lists that name a row. It polls the list while the
 // screen is open. An accept and a reject refetch the list, so the row changes
 // before the next poll. The cache tags of `cache-tags.ts` load the list again
-// when a poll was on the way during the change.
+// when a poll was on the way during the change. The queue gives its rows only
+// when every list that names a row has loaded or failed. Each list that comes
+// in draws every row again, so rows that show early cost one full draw per
+// list, and they show "#3" in place of the names in the meantime. The lists
+// and the refetch keep their identity between draws, so a row that did not
+// change does not draw again.
 export function useReviewQueue(): ReviewQueue {
+  // The hook reads only the fields that the queue uses. Thus a poll that
+  // brings the same list does not draw the screen again: the fetch flag of
+  // the poll changes, but the queue does not read it.
   const pendingScans = useListPendingScansQuery(undefined, {
     pollingInterval: POLL_MS,
+    selectFromResult: ({ data, isError, isLoading }) => {
+      return {
+        data,
+        isError,
+        isLoading,
+      };
+    },
   });
+  const { refetch } = pendingScans;
   const items = pendingScans.data?.items;
-  const productReads = useProductReads(items ?? []);
+  const masterData = useMasterDataLists();
+  const isLoading = pendingScans.isLoading || masterData.isLoading;
+  const rows = useMemo(
+    () => (items === undefined || isLoading ? undefined : queueRows(items)),
+    [isLoading, items],
+  );
   return {
     isError: pendingScans.isError,
-    isLoading: pendingScans.isLoading,
-    lists: {
-      locations: useListLocationsQuery(undefined).data?.items,
-      pendingScans: items,
-      productGroups: useListProductGroupsQuery(undefined).data?.items,
-      productReads,
-      products: useListProductsQuery(undefined).data?.items,
-      quantityUnitConversions:
-        useListQuantityUnitConversionsQuery(undefined).data?.items,
-      quantityUnits: useListQuantityUnitsQuery(undefined).data?.items,
-      stores: useListStoresQuery(undefined).data?.items,
-    },
-    refetch: () => {
-      void pendingScans.refetch();
-    },
-    rows: items === undefined ? undefined : queueRows(items),
+    isLoading,
+    lists: masterData.lists,
+    refetch: useCallback(() => {
+      void refetch();
+    }, [refetch]),
+    rows,
+  };
+}
+
+// The master data lists of the queue, and whether one of them still loads
+// for the first time. A list that failed to load does not count as loading,
+// so it does not hold the rows back. Its rows show the fallback names.
+function useMasterDataLists(): { isLoading: boolean; lists: QueueLists } {
+  const queries = {
+    locations: useListLocationsQuery(undefined),
+    productGroups: useListProductGroupsQuery(undefined),
+    products: useListProductsQuery(undefined),
+    quantityUnitConversions: useListQuantityUnitConversionsQuery(undefined),
+    quantityUnits: useListQuantityUnitsQuery(undefined),
+    stores: useListStoresQuery(undefined),
+  };
+  const locations = queries.locations.data?.items;
+  const productGroups = queries.productGroups.data?.items;
+  const products = queries.products.data?.items;
+  const quantityUnitConversions = queries.quantityUnitConversions.data?.items;
+  const quantityUnits = queries.quantityUnits.data?.items;
+  const stores = queries.stores.data?.items;
+  const lists = useMemo(() => {
+    return {
+      locations,
+      productGroups,
+      products,
+      quantityUnitConversions,
+      quantityUnits,
+      stores,
+    };
+  }, [
+    locations,
+    productGroups,
+    products,
+    quantityUnitConversions,
+    quantityUnits,
+    stores,
+  ]);
+  return {
+    isLoading: Object.values(queries).some((query) => query.isLoading),
+    lists,
   };
 }

@@ -1,14 +1,16 @@
-import { type ComponentProps, useState } from 'react';
+import { type ComponentProps, useCallback, useMemo, useState } from 'react';
 
 import type { PendingScan } from '../api/next-api';
 import type { QueueView } from './queue-view';
 import type { ResultLine } from './result-panel';
 import type { ReviewQueue } from './use-review-queue';
 
+import { useProductReads } from '../api/use-product-reads';
 import { Page } from '../shell/page';
 import { Attribution } from './attribution';
 import { BulkEditDialog } from './bulk-edit-dialog';
 import { BulkToolbar } from './bulk-toolbar';
+import { chainRowsOf } from './chain-rows';
 import { FilterBar } from './filter-bar';
 import { QueueCards } from './queue-cards';
 import { filterRows, NO_FILTER } from './queue-filter';
@@ -19,19 +21,21 @@ import { useReviewQueue } from './use-review-queue';
 import { useSelection } from './use-selection';
 import { useQueueView, ViewSwitch } from './view-switch';
 
-// The lines of the result panel, most recent at the top.
+// The lines of the result panel, most recent at the top. The callbacks keep
+// their identity between draws, so a row that did not change does not draw
+// again.
 function useResultLines() {
   const [lines, setLines] = useState<readonly ResultLine[]>([]);
   return {
-    addLine: (line: Omit<ResultLine, 'key'>) => {
+    addLine: useCallback((line: Omit<ResultLine, 'key'>) => {
       setLines((current) => {
         const key = (current[0]?.key ?? 0) + 1;
         return [{ ...line, key }, ...current];
       });
-    },
-    clear: () => {
+    }, []),
+    clear: useCallback(() => {
       setLines([]);
-    },
+    }, []),
     lines,
   };
 }
@@ -48,6 +52,14 @@ function ViewBody({
   );
 }
 
+// The chain rows of each row of the queue. The hook loads the product read of
+// each Consume row and Transfer row, so that the chain can see the stock
+// entries that a parent product shares with its sub-products.
+function useChainRows(rows: readonly PendingScan[]) {
+  const productReads = useProductReads(rows);
+  return useMemo(() => chainRowsOf(rows, productReads), [rows, productReads]);
+}
+
 // The view switch, the filter, the bulk actions, the result panel, and the
 // table or the cards of the rows that the filter shows. Both views share the
 // filter, the checked rows, and the bulk actions.
@@ -59,6 +71,7 @@ function QueueBody({
   const [filter, setFilter] = useState(NO_FILTER);
   const [editRows, setEditRows] = useState<null | PendingScan[]>(null);
   const results = useResultLines();
+  const chains = useChainRows(rows);
   const shown = filterRows(rows, filter);
   const selection = useSelection(shown.map(({ id }) => id));
   const actions = useBulkActions({
@@ -85,6 +98,7 @@ function QueueBody({
       <ResultPanel lines={results.lines} onClose={results.clear} />
       <ViewBody
         view={view}
+        chains={chains}
         lists={queue.lists}
         rows={shown}
         selection={selection}

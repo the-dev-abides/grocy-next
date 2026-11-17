@@ -18,13 +18,18 @@ export function nameOf(
     : (rows?.find((row) => row.id === id)?.name ?? `#${String(id)}`);
 }
 
+// The formatter of the scan time. To make a formatter is slow, and the review
+// queue writes the time of every row on every render. Thus the module makes
+// the formatter one time.
+const TIME_FORMAT = new Intl.DateTimeFormat([], {
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
 // The time of a scan in the time zone of the browser, as the browser locale
 // writes hours and minutes.
 export function timeOf(timestamp: string): string {
-  return Temporal.Instant.from(timestamp).toLocaleString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return TIME_FORMAT.format(Temporal.Instant.from(timestamp).epochMilliseconds);
 }
 
 // The price of a row as entered, with its price type, or the words for none.
