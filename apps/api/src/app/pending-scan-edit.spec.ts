@@ -177,6 +177,71 @@ describe('the update and the delete of a pending scan', () => {
     expect(await read(created.id)).toEqual(created);
   });
 
+  it('refuses an update that changes a Purchase row to a Consume', async () => {
+    const created = await createAndRead({
+      bookingType: 'purchase',
+      code: '5449000000996',
+    });
+
+    const response = await update(created.id, { bookingType: 'consume' });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      type: '/problems/booking-type-fixed',
+    });
+    expect(await read(created.id)).toEqual(created);
+  });
+
+  it('refuses an update that changes a Consume row to an Inventory', async () => {
+    const created = await createAndRead({
+      bookingType: 'consume',
+      code: '5449000000996',
+    });
+
+    const response = await update(created.id, { bookingType: 'inventory' });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      type: '/problems/booking-type-fixed',
+    });
+    expect(await read(created.id)).toEqual(created);
+  });
+
+  it('flips a Consume row to a Transfer and back, and the row keeps its fields', async () => {
+    const created = await createAndRead({
+      amount: 2,
+      bookingType: 'consume',
+      code: '5449000000996',
+      spoiled: true,
+      toLocationId: 3,
+    });
+
+    const transfer = await updateAndRead(created.id, {
+      bookingType: 'transfer',
+    });
+
+    expect(transfer).toEqual({
+      ...created,
+      bookingType: 'transfer',
+      updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+    expect(await read(created.id)).toEqual(transfer);
+
+    const consume = await updateAndRead(created.id, {
+      bookingType: 'consume',
+    });
+
+    expect(consume).toEqual({
+      ...created,
+      updatedAt: expect.stringMatching(TIMESTAMP),
+    });
+    expect(consume).toMatchObject({
+      amount: 2,
+      spoiled: true,
+      toLocationId: 3,
+    });
+  });
+
   it('accepts an update that repeats the booking type', async () => {
     const created = await createAndRead({
       bookingType: 'inventory',

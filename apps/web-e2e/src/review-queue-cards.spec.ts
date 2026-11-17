@@ -157,7 +157,9 @@ test('each card starts with the icon of its booking type', async ({
     cardsOf(page, `${note} purchase`).getByRole('img', { name: 'Purchase' }),
   ).toBeVisible();
   await expect(
-    cardsOf(page, `${note} consume`).getByRole('img', { name: 'Consume' }),
+    cardsOf(page, `${note} consume`).getByRole('button', {
+      name: 'Consume. Change to Transfer.',
+    }),
   ).toBeVisible();
 
   await removeRows(request, hasNote);
