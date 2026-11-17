@@ -78,7 +78,8 @@ describe('the words of a review queue row', () => {
   });
 
   // The unit select of the row form names the default unit of the booking
-  // type, with the unit of the product when the product read has answered.
+  // type. When the product read has answered, it also names the unit of the
+  // product.
   it('names the default unit of each booking type in the unit select', () => {
     expect(defaultUnitLabel('purchase', product, quantityUnits)).toBe(
       'Purchase unit (Pack)',

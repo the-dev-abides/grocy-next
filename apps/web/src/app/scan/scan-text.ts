@@ -71,7 +71,7 @@ export function transferDetailText(
   return `Transfer ${transferLocationsText(scan, locations)}`;
 }
 
-// The strip under the camera of the Consume and Transfer scan screen names
+// The strip under the camera of the Consume and Transfer scan screen. It names
 // the booking type of the next scan, and on a Transfer the "to" location.
 export function nextScanText(
   bookingType: PendingScan['bookingType'],

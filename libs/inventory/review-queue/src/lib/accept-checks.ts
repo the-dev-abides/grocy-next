@@ -26,8 +26,8 @@ export function toLocationIdOf(row: StoredPendingScan): number {
   return row.toLocationId;
 }
 
-// A Purchase, a Consume, and a Transfer book an amount of more than zero. Null, zero, or
-// less is the no-amount problem.
+// A Purchase, a Consume, and a Transfer book an amount of more than zero. Null,
+// zero, or less is the no-amount problem.
 export function positiveAmountOf(
   row: StoredPendingScan,
   words: string,

@@ -50,12 +50,12 @@ export function formDefaultOf(
     : product.locationId;
 }
 
-// The defaults of a row that names one stock entry, as the Grocy consume form
-// and the Grocy transfer form set them after a scan of a stock entry
-// Grocycode. The "from" location is the location of the stock entry, because
-// the accept can take the stock entry at its location only. A Consume also
-// takes the amount of the stock entry, when the body has no amount. Grocy
-// stores that amount in the stock unit, so the row takes the stock unit.
+// The defaults of a row that names one stock entry. The Grocy consume form and
+// the Grocy transfer form set them after a scan of a stock entry Grocycode. The
+// "from" location is the location of the stock entry. The accept can take the
+// stock entry at its location only. A Consume with no body amount also takes
+// the amount of the stock entry. Grocy stores that amount in the stock unit, so
+// the row takes the stock unit.
 export function stockEntryDefaultsOf(
   body: Pick<CreatePendingScan, 'amount' | 'bookingType'>,
   defaults: FormDefaults,

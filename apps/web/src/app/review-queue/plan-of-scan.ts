@@ -68,12 +68,12 @@ function keepParts(
   }
 }
 
-// The plans of the rows, oldest first. Each row sees the stock after the
-// older rows that share a stock entry with it, so two rows do not show the
-// same pack two times. The rows of one product share their stock entries. A
-// Consume of a parent product also shares the stock entries of its
-// sub-products. A row with an error did not book, so it changes no stock. The
-// unit is the name of the stock unit.
+// The plans of the rows, oldest first. Each row sees the stock after the older
+// rows that share a stock entry with it. Thus two rows do not show the same
+// pack two times. The rows of one product share their stock entries. A Consume
+// of a parent product also shares the stock entries of its sub-products. A row
+// with an error did not book, so it changes no stock. The unit is the name of
+// the stock unit.
 export function plansOf(
   rows: readonly ChainRow[],
   unit: string,

@@ -12,11 +12,12 @@ import {
   removeRows,
 } from './pending-scans.js';
 
-// The tests of a change on the review queue while a poll of the pending scan list is on the way.
-// The API keeps its rows for the whole run, and every test of every file runs in parallel against one API.
-// Each test creates its own rows through the API with a note of its own.
-// No other note contains the note of a test of this file, and the note of a test contains no other note.
-// The rows carry a product and no code, so no scan merges into them.
+// The tests of a change on the review queue while a poll of the pending scan
+// list is on the way. The API keeps its rows for the whole run. Every test of
+// every file runs in parallel against one API. Each test creates its own rows
+// through the API with a note of its own. No other note contains the note of a
+// test of this file. The note of a test contains no other note. The rows carry
+// a product and no code, so no scan merges into them.
 
 // The next poll comes three seconds after the answer of the last poll. After
 // the held answer, the list must load again at once, not at the next poll.
@@ -32,11 +33,12 @@ function msBetween(start: null | number, end: null | number): null | number {
   return start === null || end === null ? null : end - start;
 }
 
-// The browser holds the answer of the next poll of the pending scan list until
-// the answer of the change arrives and the row is not busy any more. The row
-// is busy until the action has asked for the list again. The API reads the
-// list when the poll starts, so the held answer does not have the change. The
-// function returns when the API has read the list for the held poll.
+// The browser holds the answer of the next poll of the pending scan list. It
+// holds it until the answer of the change arrives and the row is not busy any
+// more. The row is busy until the action has asked for the list again. The API
+// reads the list when the poll starts, so the held answer does not have the
+// change. The function returns when the API has read the list for the held
+// poll.
 async function holdNextPollUntil(
   page: Page,
   isChange: (response: Response) => boolean,

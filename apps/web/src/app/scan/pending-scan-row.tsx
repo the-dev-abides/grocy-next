@@ -98,9 +98,11 @@ export interface RowFormToggle {
   onToggle: () => void;
 }
 
-// One row of the session list, shared by the scan screens. A row with a row form has its name as a button that opens or closes the form.
-// The row shows the name and a line with the time. It shows the details of the screen and the service link of a lookup result. The controls of the screen are on the right.
-// A row that needs a field before the accept shows its line in red.
+// One row of the session list, shared by the scan screens. A row with a row
+// form has its name as a button that opens or closes the form. The row shows
+// the name and a line with the time. It shows the details of the screen and the
+// service link of a lookup result. The controls of the screen are on the
+// right. A row that needs a field before the accept shows its line in red.
 export function PendingScanRow({
   children,
   details,

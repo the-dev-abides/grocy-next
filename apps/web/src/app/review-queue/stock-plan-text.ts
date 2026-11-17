@@ -68,9 +68,9 @@ export function lineText(
     : consumeText(line, amount, tail);
 }
 
-// The short words of the open on consume on the scan screen row: "Opens a
-// new pack" when the accept opens the rest of a sealed pack, and "From the
-// opened pack" when the accept takes from opened packs only.
+// The short words of the open on consume on the scan screen row. "Opens a new
+// pack" means that the accept opens the rest of a sealed pack. "From the opened
+// pack" means that the accept takes from opened packs only.
 export function openText(plan: null | Plan): null | string {
   if (plan === null || plan.lines.length === 0) {
     return null;
@@ -110,11 +110,11 @@ function choiceOf(entry: StockEntry): Choice {
   return { label: stockEntryText(entry), value: entry.stockId };
 }
 
-// The choices of the stock entry select: no stock entry first, then the stock
-// entries at the "from" location in the Grocy consume order. A Consume also
-// lists the stock entries of the sub-products. A stock entry
-// of the row that the list does not hold, such as a stock entry that is used
-// up, stays as a choice with its stock id, so the select shows it.
+// The choices of the stock entry select. No stock entry comes first. Then come
+// the stock entries at the "from" location in the Grocy consume order. A
+// Consume also lists the stock entries of the sub-products. The stock entry of
+// the row can be missing from the list, for example when it is used up. It then
+// stays as a choice with its stock id, so the select shows it.
 export function stockEntryChoices(
   product:
     | Pick<

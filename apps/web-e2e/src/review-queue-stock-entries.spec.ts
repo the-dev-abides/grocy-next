@@ -11,25 +11,25 @@ import {
   typeCode,
 } from './pending-scans.js';
 
-// The tests of the stock entry lines. The review queue tests create their
-// own rows through the API with a note of their own.
+// The tests of the stock entry lines. The review queue tests create their own
+// rows through the API with a note of their own.
 //
-// The stock entry lines of a row chain with every Consume row and Transfer
-// row in the queue that shares a stock entry with it. Product 5, Yoghurt, is
-// a parent product with no own stock. Its sub-product, product 6, has 3
-// sealed packs at the Fridge, due 25 Nov, in stock entry 69131a2b3cd91. Thus
-// a Consume of product 5 and a Consume of product 6 share that stock entry.
+// The stock entry lines of a row chain with every Consume row and Transfer row
+// in the queue that shares a stock entry with it. Product 5, Yoghurt, is a
+// parent product with no own stock. Its sub-product, product 6, has 3 sealed
+// packs at the Fridge, due 25 Nov, in stock entry 69131a2b3cd91. Thus a Consume
+// of product 5 and a Consume of product 6 share that stock entry.
 //
 // Only the tests of the block below make Consume rows or Transfer rows of
-// product 5 or product 6. The tests of the block never run at the same time:
-// the file lock stops the other browsers, and the block runs its tests one
-// after the other in one worker. Each test removes the Consume rows and the
-// Transfer rows of both products first.
+// product 5 or product 6. The tests of the block never run at the same
+// time. The file lock stops the other browsers. The block runs its tests one
+// after the other in one worker. Each test first removes the Consume rows and
+// the Transfer rows of both products.
 //
-// The review queue shows every row of every test, so on a busy host the
-// first drawing of the table and the product reads can take more than the
-// default 5 s of an expectation. The first check of the stock entry lines
-// of a test thus waits longer.
+// The review queue shows every row of every test. On a busy host, the first
+// drawing of the table and the product reads can take more than 5 s. That is
+// the default time of an expectation. Thus the first check of the stock entry
+// lines of a test waits longer.
 const FIRST_LINES = { timeout: 15_000 };
 
 const DUE = '(25 Nov|Nov 25)';
@@ -106,8 +106,9 @@ test.describe('the Consume rows of product 5 and product 6', () => {
     await removeYoghurtRows(request);
   });
 
-  // A Consume of the parent takes the stock of the child, as the accept does,
-  // so the row shows the pack of the child and the warning above that stock.
+  // A Consume of the parent takes the stock of the child, as the accept
+  // does. Thus the row shows the pack of the child and the warning above that
+  // stock.
   test('the stock entry lines of a Consume of a parent product show the stock of its sub-product and the warning above it', async ({
     page,
     request,
@@ -173,7 +174,7 @@ test.describe('the Consume rows of product 5 and product 6', () => {
   });
 
   // The Grocycode grcy:p:5 is product 5. A Consume of 1 of the parent on the
-  // scan screen takes a part of the pack of the child, as the accept does, so
+  // scan screen takes a part of the pack of the child, as the accept does. Thus
   // the accept opens the rest.
   test('a Consume row of a parent product on the scan screen says "Opens a new pack" from the stock of its sub-product', async ({
     page,

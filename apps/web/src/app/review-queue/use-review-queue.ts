@@ -23,11 +23,11 @@ import { useProductReads } from '../api/use-product-reads';
 import { queueRows } from './queue-rows';
 
 // The master data lists that name the facts of a row and fill the selects of
-// the short product form. The household conversions take part in the stock
-// unit proposal of the short product form. The pending scans are every row of
-// the queue, also the rows that the filter hides, because the stock entry
-// lines of a row see the stock after the older rows that share its stock
-// entries. The product reads are the reads of the products of those rows.
+// the short product form. The household conversions take part in the stock unit
+// proposal of the short product form. The pending scans are every row of the
+// queue, also the rows that the filter hides. The stock entry lines of a row
+// see the stock after the older rows that share its stock entries. The product
+// reads are the reads of the products of those rows.
 export interface QueueLists {
   locations: readonly Location[] | undefined;
   pendingScans?: readonly PendingScan[] | undefined;

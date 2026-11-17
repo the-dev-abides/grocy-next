@@ -55,9 +55,9 @@ function Switch({ scanDefaults }: Readonly<{ scanDefaults: ScanDefaults }>) {
   );
 }
 
-// The controls under the camera of the Consume and Transfer scan screen: the
-// strip that names the next booking type, the switch, and on Transfer the
-// "To" location select. The "to" location is a session default.
+// The controls under the camera of the Consume and Transfer scan screen. These
+// are the strip that names the next booking type, the switch, and on Transfer
+// the "To" location select. The "to" location is a session default.
 export function BookingSwitch({
   lists,
   scanDefaults,

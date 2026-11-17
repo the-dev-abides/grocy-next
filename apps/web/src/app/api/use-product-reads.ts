@@ -17,9 +17,9 @@ function productIdsOf(rows: readonly PendingScan[]): number[] {
   return [...new Set(ids)].toSorted((first, second) => first - second);
 }
 
-// The product reads of the products of the Consume rows and the Transfer rows.
-// The stock entry lines of a row chain with the rows that share its stock
-// entries, also the rows of other products and the rows that the filter
+// The product reads of the products of the Consume rows and the Transfer
+// rows. The stock entry lines of a row chain with the rows that share its stock
+// entries. These can be rows of other products and rows that the filter
 // hides. Thus the hook loads the read of each product and keeps it while the
 // screen is open. A read that did not load yet is not in the map.
 export function useProductReads(

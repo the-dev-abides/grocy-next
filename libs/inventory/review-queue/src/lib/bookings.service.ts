@@ -149,13 +149,16 @@ export class BookingsService {
     return this.finish(row, productId, result);
   }
 
-  // The Consume accept of ADR 0017. The amount goes to the stock unit with the resolved conversions of the product. The empty unit is the consume unit.
-  // The read of the stock entries before the consume serves the amount check
-  // and the open on consume. An amount above the stock at the "from" location,
-  // or above the stock entry when the row names one, is refused with the Grocy message and no Grocy call. After the consume,
-  // the open of each sealed stock entry that the consume left partly in stock
-  // follows. The booking lists the rows of the consume, then the rows of the
-  // open. The transaction id is the transaction of the consume.
+  // The Consume accept of ADR 0017. `stockAmountOf` converts the amount to the
+  // stock unit. The empty unit is the consume unit. The read of the stock
+  // entries before the consume serves the amount check and the open on
+  // consume. The accept refuses an amount above the stock at the "from"
+  // location. When the row names a stock entry, it refuses an amount above that
+  // stock entry. The refusal is the above-stock problem, and Grocy gets no
+  // call. After the consume, each sealed stock entry that the consume left
+  // partly in stock gets an open. The booking lists the rows of the consume,
+  // then the rows of the open. The transaction id is the transaction of the
+  // consume.
   private async acceptConsume(
     row: StoredPendingScan,
     productId: number,
@@ -209,10 +212,10 @@ export class BookingsService {
     });
   }
 
-  // The Transfer accept converts the amount to the stock unit with the resolved conversions of the product. The empty unit is the stock unit.
-  // Then it books the transfer in Grocy with both locations. Grocy applies
-  // the freezer rules and refuses a tare weight product. Grocy Next adds no
-  // rule.
+  // The Transfer accept. `stockAmountOf` converts the amount to the stock
+  // unit. The empty unit is the stock unit. Then the accept books the transfer
+  // in Grocy with both locations. Grocy applies the freezer rules and refuses a
+  // tare weight product. Grocy Next adds no rule.
   private async acceptTransfer(
     row: StoredPendingScan,
     productId: number,

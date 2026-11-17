@@ -42,8 +42,9 @@ function stateOfValue(value: string): null | RowState {
   return STATES.find((state) => state === value) ?? null;
 }
 
-// The filter above the table: a booking type, a location, a product group, and a state, as the spec decided.
-// The filter narrows the table and the rows that the bulk actions act on.
+// The filter above the table: a booking type, a location, a product group, and
+// a state, as the spec decided. The filter narrows the table and the rows that
+// the bulk actions act on.
 export function FilterBar({
   filter,
   lists,

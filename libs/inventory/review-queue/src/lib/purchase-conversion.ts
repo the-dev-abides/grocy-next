@@ -67,7 +67,8 @@ function factorOf(unitId: number, product: StockUnit): number {
 }
 
 // The unit of a Consume row or a Transfer row with no unit, as ADR 0010
-// decided: the consume unit on a Consume, and the stock unit on a Transfer.
+// decided. It is the consume unit on a Consume and the stock unit on a
+// Transfer.
 export function emptyUnitIdOf(
   bookingType: 'consume' | 'transfer',
   product: Pick<ProductDetails, 'consumeUnitId' | 'stockUnitId'>,

@@ -155,9 +155,9 @@ function isPlanned(row: PlanRow): row is PlannedRow {
   return row.amount !== null && isSwitchBookingType(row.bookingType);
 }
 
-// The plan of one Consume or Transfer row on the given stock entries. A row
-// of another booking type, a row with no amount, and a row in a unit with no
-// conversion to the stock unit have no plan.
+// The plan of one Consume or Transfer row on the given stock entries. These
+// rows have no plan: a row of another booking type, a row with no amount, and a
+// row in a unit with no conversion to the stock unit.
 export function planOn(
   row: PlanRow,
   product: PlanProduct,

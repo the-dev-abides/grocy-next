@@ -31,7 +31,7 @@ const TRANSFER_ROW = {
 
 // The Transfer pending scans and their accept. The create follows the Grocy
 // transfer form, as ADR 0010 decided. The fixture household has 3 cans of
-// product 1 at the Fridge and 500 grams of the tare weight product 7 at the
+// product 1 at the Fridge. It has 500 grams of the tare weight product 7 at the
 // Pantry, its default location. The Fridge is 1, the Pantry is 2, and the
 // Freezer is 3.
 describe('the Transfer pending scans of the Next API', () => {
@@ -121,7 +121,7 @@ describe('the Transfer pending scans of the Next API', () => {
     });
   });
 
-  // The repeat rule of ADR 0010 matches the booking type, so a Transfer scan
+  // The repeat rule of ADR 0010 matches the booking type. Thus a Transfer scan
   // does not add to an open Consume row of the same code.
   it('makes a new row for a Transfer scan of 5449000000996 while a Consume row of that code is open', async () => {
     const consume = await createAndRead({

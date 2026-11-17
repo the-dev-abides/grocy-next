@@ -25,7 +25,8 @@ const FROM_XL = 'hidden xl:table-cell';
 const FROM_2XL = 'hidden 2xl:table-cell';
 
 // The header row on the muted colour. The booking type column comes after the
-// checkbox. The columns of the prototype table appear by breakpoint. The checkbox of the header checks every shown row.
+// checkbox. The columns of the prototype table appear by breakpoint. The
+// checkbox of the header checks every shown row.
 function QueueHeader({ selection }: Readonly<{ selection: Selection }>) {
   return (
     <TableHeader>

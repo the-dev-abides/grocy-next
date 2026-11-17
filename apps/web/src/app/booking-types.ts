@@ -34,9 +34,9 @@ export const bookingTypeLabel: Readonly<Record<BookingType, string>> = {
   transfer: 'Transfer',
 };
 
-// The icon of each booking type. The icons are the icons of the scan screens:
-// the barcode of Purchase, the clipboard of Inventory, the fork and knife of
-// Consume, and the two arrows of Transfer.
+// The icon of each booking type, as on the scan screens. Purchase has the
+// barcode, and Inventory has the clipboard. Consume has the fork and knife, and
+// Transfer has the two arrows.
 export const bookingTypeIcon: Readonly<Record<BookingType, LucideIcon>> = {
   consume: Utensils,
   inventory: ClipboardList,

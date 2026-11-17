@@ -117,11 +117,12 @@ describe('the Consume pending scans of the Next API', () => {
   });
 
   // The stock entry Grocycode names stock entry 14 of product 1: 1 can, open,
-  // at the Pantry. The Grocy consume form then sets the "from" location to
-  // the location of the stock entry and the amount to its amount. Grocy
-  // stores that amount in the stock unit, so the row takes the stock unit,
-  // the Can. The location of the stock entry wins over the "from" location of the scan
-  // screen, because the accept can take the stock entry at its location only.
+  // at the Pantry. The Grocy consume form then sets the "from" location to the
+  // location of the stock entry. It also sets the amount to the amount of the
+  // stock entry. Grocy stores that amount in the stock unit, so the row takes
+  // the stock unit, the Can. The location of the stock entry wins over the
+  // "from" location of the scan screen. The accept can take the stock entry at
+  // its location only.
   it('creates a Consume of a stock entry Grocycode with the product, the stock entry, and its location and amount', async () => {
     const response = await create({
       bookingType: 'consume',

@@ -200,11 +200,12 @@ function CheckCell({
   );
 }
 
-// One row of the review queue table. The columns of the prototype are the
-// checkbox, the booking type icon, the product with its facts, and the amount. Then come the location
-// from `md`, the due date and the price from `xl`, and the store and the time
-// from `2xl`. Then come the state from `md` and the buttons. A failed row has
-// the expired row colour of ADR 0013.
+// One row of the review queue table. The columns of the prototype come in this
+// order. First come the checkbox, the booking type icon, the product with its
+// facts, and the amount. Then come the location from `md`, the due date and the
+// price from `xl`, and the store and the time from `2xl`. Then come the state
+// from `md` and the buttons. A failed row has the expired row colour of ADR
+// 0013.
 export function QueueRow({
   isChecked,
   lists,

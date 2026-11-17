@@ -13,9 +13,9 @@ function isTransferOf(row: PendingScanRow, code: string): boolean {
   return row.bookingType === 'transfer' && row.code === code;
 }
 
-// The tests of the Consume and Transfer scan screen. Each test removes the rows
-// of its code and its booking type first, so a repeat scan from an earlier run
-// does not merge into the new row.
+// The tests of the Consume and Transfer scan screen. Each test first removes
+// the rows of its code and its booking type. Thus a repeat scan from an earlier
+// run does not merge into the new row.
 
 // The Grocycode grcy:p:1 is product 1. The Consume takes 1 of the 2 sealed
 // cans of stock entry 11 at the Fridge, so the accept opens the rest. The

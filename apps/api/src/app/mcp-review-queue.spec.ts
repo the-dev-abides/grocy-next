@@ -198,8 +198,9 @@ describe('the review queue tools of the MCP server', () => {
   });
 
   // The Transfer of a product with no code takes the defaults of the Grocy
-  // transfer form: the amount one, the empty unit, and the default location
-  // of the product, the Fridge, where product 1 has stock.
+  // transfer form. These are the amount one, the empty unit, and the default
+  // location of the product. That location is the Fridge, where product 1 has
+  // stock.
   it('creates a Transfer pending scan with the defaults of the Grocy transfer form', async () => {
     const result = await client.callTool({
       arguments: { bookingType: 'transfer', productId: 1, toLocationId: 2 },
@@ -455,9 +456,9 @@ describe('the review queue tools of the MCP server', () => {
   });
 
   // The consume takes 1 of the 2 cans of the sealed stock entry 11 at the
-  // Fridge, so the accept also opens the rest of it, as ADR 0017 decided. The
-  // result lists the consume row, then the open row. The transaction id is
-  // the transaction of the consume.
+  // Fridge. Thus the accept also opens the rest of it, as ADR 0017 decided. The
+  // result lists the consume row, then the open row. The transaction id is the
+  // transaction of the consume.
   it('accepts a Consume pending scan and returns the consume and open bookings', async () => {
     const created = await createWithApi({
       amount: 1,

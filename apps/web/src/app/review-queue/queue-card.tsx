@@ -202,8 +202,10 @@ function cardClass(state: RowState, isChecked: boolean, isBusy: boolean) {
   );
 }
 
-// One card of the review queue, with the facts and the actions of a table row in big controls. The checkbox feeds the same checked set as the table. The booking type icon comes after the checkbox.
-// A swipe to the left rejects the row.
+// One card of the review queue. It has the facts and the actions of a table row
+// in big controls. The checkbox feeds the same checked set as the table. The
+// booking type icon comes after the checkbox. A swipe to the left rejects the
+// row.
 export function QueueCard({
   isChecked,
   lists,

@@ -70,10 +70,10 @@ function textOrNull(text: string): null | string {
   return trimmed === '' ? null : trimmed;
 }
 
-// The update of the full form: every field of the form. An empty text, and a
-// text that is not a number in a number field, saves null. The booking type
-// changes only between Consume and Transfer, so the form of a Purchase row
-// and of an Inventory row sends the booking type of the row.
+// The update of the full form: every field of the form. An empty text saves
+// null. A text that is not a number in a number field also saves null. The
+// booking type changes only between Consume and Transfer. Thus the form of a
+// Purchase row and of an Inventory row sends the booking type of the row.
 export function rowFormBody(form: RowForm): UpdatePendingScan {
   return {
     amount: numberOf(form.amount) ?? null,

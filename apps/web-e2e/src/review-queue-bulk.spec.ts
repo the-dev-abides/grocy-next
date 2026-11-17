@@ -102,9 +102,9 @@ test('Accept all on a filtered table books the ready rows, skips the others, and
 }) => {
   const note = 'bulk-accept';
   await removeRowsWithNote(request, note);
-  // A ready Purchase row, a row with no product, an Inventory row with no
-  // count, and a Transfer with no "to" location, all in the Freezer and in the
-  // group Snacks.
+  // Four rows in the Freezer and in the group Snacks: a ready Purchase row, a
+  // row with no product, an Inventory row with no count, and a Transfer with no
+  // "to" location.
   const facts = { locationId: FREEZER, note, productGroupId: SNACKS };
   const ready = await createRow(request, {
     ...facts,

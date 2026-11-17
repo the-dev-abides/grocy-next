@@ -159,7 +159,7 @@ test('an accept of a known Purchase row removes the row and shows the booking fa
 });
 
 // The consume takes 1 of the 2 cans of the sealed stock entry 11 at the
-// Fridge, so the accept also opens the rest of it. The Grocy mock answers the
+// Fridge. Thus the accept also opens the rest of it. The Grocy mock answers the
 // consume row and the open row.
 test('a Consume row shows the fork and knife icon, and its accept shows the consume and the open in the result line', async ({
   page,
