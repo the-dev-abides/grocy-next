@@ -418,7 +418,7 @@ export type PendingScanList = {
 export type UpdatePendingScan = {
   /** The amount. */
   amount?: number | null;
-  /** The booking that the accept makes. Set at create. */
+  /** The booking that the accept makes. Set at create. An update can flip it between consume and transfer only. */
   bookingType?: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed. */
   code?: string | null;
