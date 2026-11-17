@@ -48,20 +48,32 @@ export function toConsumeStockEntries(
   });
 }
 
+function toStockEntry(row: z.infer<typeof grocyStockEntrySchema>): StockEntry {
+  return {
+    amount: row.amount,
+    dueDate: row.best_before_date,
+    id: row.id,
+    locationId: row.location_id,
+    open: row.open !== 0,
+    purchasedDate: row.purchased_date,
+    stockId: row.stock_id,
+  };
+}
+
 // The stock entries in the order of the rows, which is the Grocy consume
 // order.
 export function toStockEntries(
   rows: z.infer<typeof grocyStockEntriesSchema>,
 ): StockEntry[] {
+  return rows.map((row) => toStockEntry(row));
+}
+
+// The stock entries of a read with the sub-products, with the product of each
+// stock entry, in the order of the rows, which is the Grocy consume order.
+export function toStockEntriesWithProduct(
+  rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
+): (StockEntry & { productId: number })[] {
   return rows.map((row) => {
-    return {
-      amount: row.amount,
-      dueDate: row.best_before_date,
-      id: row.id,
-      locationId: row.location_id,
-      open: row.open !== 0,
-      purchasedDate: row.purchased_date,
-      stockId: row.stock_id,
-    };
+    return { ...toStockEntry(row), productId: row.product_id };
   });
 }

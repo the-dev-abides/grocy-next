@@ -1,4 +1,9 @@
-import type { Product, QuantityUnitConversion, StockEntry } from './product.ts';
+import type {
+  Product,
+  QuantityUnitConversion,
+  StockEntry,
+  SubProductStockEntry,
+} from './product.ts';
 
 // One product barcode of a product: one code linked to the product, with
 // the optional defaults for a scan. The price is the last price of the
@@ -14,11 +19,12 @@ export interface ProductBarcode {
 }
 
 // The stock facts of a product that come from two Grocy reads of their
-// own. These are the stock entries in the Grocy consume order and the resolved
-// conversions.
+// own. These are the stock entries in the Grocy consume order, the resolved
+// conversions, and the stock entries of the sub-products.
 export interface ProductStock {
   conversions: QuantityUnitConversion[];
   stockEntries: StockEntry[];
+  subProductStockEntries: SubProductStockEntry[];
 }
 
 // The details of one product as one Grocy read answers them. They hold every field of the product of the Next API except the stock facts above. They also hold the product barcodes that the code resolution of the review queue reads, and the active flag. The stock amount is the own stock in the stock unit.
@@ -56,6 +62,7 @@ export function toProduct(
     stockAmount: details.stockAmount,
     stockEntries: stock.stockEntries,
     stockUnitId: details.stockUnitId,
+    subProductStockEntries: stock.subProductStockEntries,
     tareWeight: details.tareWeight,
   };
 }

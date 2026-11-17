@@ -123,6 +123,7 @@ describe('the product read of the Next API', () => {
       stockAmount: 6,
       stockEntries: PRODUCT_1_STOCK_ENTRIES,
       stockUnitId: 1,
+      subProductStockEntries: [],
       tareWeight: null,
     });
   });
@@ -178,6 +179,31 @@ describe('the product read of the Next API', () => {
       stockAmount: 0,
       stockEntries: [],
       tareWeight: null,
+    });
+  });
+
+  // A Consume of a parent product takes the stock of its sub-products, as the
+  // Grocy consume form does. The read gives the stock entries of the
+  // sub-products in the stock unit of the parent, with the product of each
+  // stock entry and its open rule. The child product 6 has three packs in
+  // one stock entry, and the Pack is the stock unit of both products.
+  it('reads the stock entries of the sub-products of a parent product', async () => {
+    const response = await fetch(`${baseUrl}/api/v2/products/5`);
+
+    expect(await response.json()).toMatchObject({
+      subProductStockEntries: [
+        {
+          amount: 3,
+          canBeOpened: true,
+          dueDate: '2026-11-25',
+          id: 20,
+          locationId: 1,
+          open: false,
+          productId: 6,
+          purchasedDate: '2026-11-08',
+          stockId: '69131a2b3cd91',
+        },
+      ],
     });
   });
 
@@ -298,6 +324,7 @@ describe('the product read of the Next API', () => {
         'stockAmount',
         'stockEntries',
         'stockUnitId',
+        'subProductStockEntries',
         'tareWeight',
       ],
     });

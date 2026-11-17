@@ -8,6 +8,7 @@ import {
   GrocyClient,
   grocyRefused,
   GrocyStockClient,
+  readConsumeProducts,
 } from '@grocy-next/inventory-products';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,7 +29,6 @@ import {
   isAboveStock,
   openRest,
   opensAfterConsume,
-  readConsumeProducts,
   stockAt,
 } from './consume-accept.ts';
 import { isNoChange } from './inventory-change.ts';
