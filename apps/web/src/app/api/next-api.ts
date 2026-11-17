@@ -464,6 +464,8 @@ export type StockLogRow = {
   price: number | null;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** Whether the booking is a spoiled consume. False on every other booking. */
+  spoiled: boolean;
   /** The id of the stock entry, when Grocy wrote it. */
   stockEntryId: number | null;
   /** The id of the store. */

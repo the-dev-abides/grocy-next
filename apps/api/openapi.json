@@ -2366,6 +2366,10 @@
             "description": "The purchase date.",
             "nullable": true
           },
+          "spoiled": {
+            "type": "boolean",
+            "description": "Whether the booking is a spoiled consume. False on every other booking."
+          },
           "stockEntryId": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -2393,6 +2397,7 @@
           "note",
           "price",
           "purchasedDate",
+          "spoiled",
           "stockEntryId",
           "storeId",
           "transactionType"

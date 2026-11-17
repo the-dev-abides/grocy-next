@@ -27,6 +27,10 @@ const stockLogRowSchema = z
       .date()
       .nullable()
       .meta({ description: 'The purchase date.' }),
+    spoiled: z.boolean().meta({
+      description:
+        'Whether the booking is a spoiled consume. False on every other booking.',
+    }),
     stockEntryId: z.int().nullable().meta({
       description: 'The id of the stock entry, when Grocy wrote it.',
     }),
