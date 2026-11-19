@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 
 import type { PendingScan } from '../api/next-api';
+import type { HardwareScannerHandle } from './use-hardware-scanner';
 import type { ScanFeedback } from './use-scan-feedback';
 import type { ScanSession } from './use-scan-session';
 import type { ScannerHandle } from './use-scanner';
@@ -16,6 +17,7 @@ import { DefaultsSection } from './defaults-section';
 import { bannerOf } from './scan-outcome';
 import { SwipeRow } from './swipe-row';
 import { TypeCodeField } from './type-code-field';
+import { useHardwareScanner } from './use-hardware-scanner';
 import { useScanFeedback } from './use-scan-feedback';
 import { useScanSession } from './use-scan-session';
 import { useScanner } from './use-scanner';
@@ -100,22 +102,50 @@ function FailureAlert({ hasFailed }: Readonly<{ hasFailed: boolean }>) {
   );
 }
 
+// The camera view with the feedback of the last scan. The line of the decoder
+// label shows "Scanner" after the first code from the hardware scanner.
+function ScanCamera({
+  feedback,
+  hardwareScanner,
+  scanner,
+}: Readonly<{
+  feedback: ScanFeedback;
+  hardwareScanner: HardwareScannerHandle;
+  scanner: ScannerHandle;
+}>) {
+  return (
+    <CameraView
+      className="
+        h-40
+        lg:aspect-4/3 lg:h-auto
+      "
+      attachVideo={scanner.attachVideo}
+      banner={feedback.banner}
+      flash={feedback.flash}
+      hasHardwareScanner={hardwareScanner.hasScanned}
+      isAudioUnlocked={scanner.isAudioUnlocked}
+      status={scanner.status}
+      onRetry={scanner.retry}
+    />
+  );
+}
+
 // The left column, which stays at the top. It holds the title, the defaults
 // section, and the camera view with the feedback of the last scan. It holds the
 // controls of the screen under the camera. From `lg` up, it also holds the
 // typed code field.
 function ScanControls({
-  bookingType,
   children,
   feedback,
+  hardwareScanner,
   onCode,
   scanner,
   session,
   title,
 }: Readonly<{
-  bookingType: PendingScan['bookingType'];
   children?: ReactNode;
   feedback: ScanFeedback;
+  hardwareScanner: HardwareScannerHandle;
   onCode: (code: string) => void;
   scanner: ScannerHandle;
   session: ScanSession;
@@ -131,23 +161,16 @@ function ScanControls({
     >
       <h1 className="px-3 pt-3 pb-2 text-2xl font-medium">{title}</h1>
       <DefaultsSection
-        bookingType={bookingType}
+        bookingType={scanDefaults.bookingType}
         defaults={scanDefaults.defaults}
         lists={lists}
         onChange={scanDefaults.setDefaults}
         onReset={scanDefaults.resetDefaults}
       />
-      <CameraView
-        className="
-          h-40
-          lg:aspect-4/3 lg:h-auto
-        "
-        attachVideo={scanner.attachVideo}
-        banner={feedback.banner}
-        flash={feedback.flash}
-        isAudioUnlocked={scanner.isAudioUnlocked}
-        status={scanner.status}
-        onRetry={scanner.retry}
+      <ScanCamera
+        feedback={feedback}
+        hardwareScanner={hardwareScanner}
+        scanner={scanner}
       />
       <FailureAlert hasFailed={hasFailed} />
       {children}
@@ -163,13 +186,13 @@ function ScanControls({
   );
 }
 
-// The scan screen that the Purchase and the Inventory screens share, in the
-// layout of the prototype. A left column stays at the top. It holds the
-// defaults section, the camera view, the controls of the screen, and the typed
-// code field. The scans of the session are the page, most recent at the top. A
-// camera scan and a typed code send the same create call and get the same
-// feedback. The screen gives the controls under the camera and the row of the
-// session list.
+// The scan screen that the Purchase, the Inventory, and the Consume and
+// Transfer screens share, in the layout of the prototype. A left column stays
+// at the top. It holds the defaults section, the camera view, the controls of
+// the screen, and the typed code field. The scans of the session are the
+// page, most recent at the top. A camera scan, a hardware scanner code, and a
+// typed code send the same create call and get the same feedback. The screen
+// gives the controls under the camera and the row of the session list.
 export function ScanScreen({
   bookingType,
   emptyText,
@@ -190,19 +213,20 @@ export function ScanScreen({
   async function scan(code: string): Promise<void> {
     const added = await session.addCode(code);
     if (added !== null) {
-      feedback.show(bannerOf(added.scan, session.lists, added.wasInSession));
+      feedback.show(bannerOf(added.scan, session.lists, added.previous));
     }
   }
   const addCode = (code: string) => {
     void scan(code);
   };
   const scanner = useScanner(addCode);
+  const hardwareScanner = useHardwareScanner(addCode);
 
   return (
     <div className="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
       <ScanControls
-        bookingType={bookingType}
         feedback={feedback}
+        hardwareScanner={hardwareScanner}
         scanner={scanner}
         session={session}
         title={title}

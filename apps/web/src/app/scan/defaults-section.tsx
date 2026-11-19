@@ -2,7 +2,6 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useId, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,10 +11,10 @@ import {
 } from '@/components/ui/select';
 
 import type { PendingScan } from '../api/next-api';
-import type { DueRule } from './due-rule';
 import type { DefaultsLists, SessionDefaults } from './session-defaults';
 
-import { DEFAULT_DUE_DAYS } from './due-rule';
+import { isSwitchBookingType } from '../booking-types';
+import { DueRuleField } from './due-rule-field';
 import { defaultsSummary } from './session-defaults';
 
 // The value of the select row for no default.
@@ -73,103 +72,6 @@ export function RowSelect({
           })}
         </SelectContent>
       </Select>
-    </div>
-  );
-}
-
-const DUE_KINDS: readonly { label: string; value: DueRule['kind'] }[] = [
-  { label: 'Product default', value: 'none' },
-  { label: 'Days from today', value: 'days' },
-  { label: 'Fixed date', value: 'date' },
-];
-
-// The rule of a kind when the shopper picks the kind.
-function dueRuleOfKind(kind: string): DueRule {
-  if (kind === 'days') {
-    return { days: DEFAULT_DUE_DAYS, kind };
-  }
-  if (kind === 'date') {
-    return { date: '', kind };
-  }
-  return { kind: 'none' };
-}
-
-// The days or the date of the rule. The rule none has no value.
-function DueValueField({
-  onChange,
-  rule,
-}: Readonly<{ onChange: (rule: DueRule) => void; rule: DueRule }>) {
-  if (rule.kind === 'days') {
-    return (
-      <Input
-        type="number"
-        inputMode="numeric"
-        min={0}
-        className="w-20"
-        aria-label="Days"
-        value={rule.days}
-        onChange={(event) => {
-          const days = Number(event.target.value);
-          onChange({ days: Number.isFinite(days) ? days : 0, kind: 'days' });
-        }}
-      />
-    );
-  }
-  if (rule.kind === 'date') {
-    return (
-      <Input
-        type="date"
-        className="w-36"
-        aria-label="Date"
-        value={rule.date}
-        onChange={(event) => {
-          onChange({ date: event.target.value, kind: 'date' });
-        }}
-      />
-    );
-  }
-  return null;
-}
-
-// The due date rule: the kind, and the days or the date of the kind.
-function DueRuleField({
-  label,
-  onChange,
-  rule,
-}: Readonly<{
-  label: string;
-  onChange: (rule: DueRule) => void;
-  rule: DueRule;
-}>) {
-  const id = useId();
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </label>
-      <div className="flex gap-2">
-        <Select
-          items={DUE_KINDS}
-          value={rule.kind}
-          onValueChange={(kind) => {
-            onChange(dueRuleOfKind(kind ?? 'none'));
-          }}
-        >
-          <SelectTrigger id={id} className="min-w-0 flex-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DUE_KINDS.map((kind) => {
-              return (
-                <SelectItem key={kind.value} value={kind.value}>
-                  {kind.label}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-        <DueValueField rule={rule} onChange={onChange} />
-      </div>
     </div>
   );
 }
@@ -238,6 +140,54 @@ function DefaultsFields({
   );
 }
 
+// The fields of the open section. The Consume and Transfer screen has two
+// defaults here: the "from" location and the "to" location. The "To" select
+// under the switch shows the same "to" location.
+function SectionFields({
+  bookingType,
+  defaults,
+  lists,
+  onChange,
+}: Readonly<{
+  bookingType: PendingScan['bookingType'];
+  defaults: SessionDefaults;
+  lists: DefaultsLists;
+  onChange: (patch: Partial<SessionDefaults>) => void;
+}>) {
+  if (!isSwitchBookingType(bookingType)) {
+    return (
+      <DefaultsFields
+        bookingType={bookingType}
+        defaults={defaults}
+        lists={lists}
+        onChange={onChange}
+      />
+    );
+  }
+  return (
+    <>
+      <RowSelect
+        label="From"
+        none="Product default"
+        rows={lists.locations}
+        value={defaults.locationId}
+        onChange={(locationId) => {
+          onChange({ locationId });
+        }}
+      />
+      <RowSelect
+        label="To, for a Transfer"
+        none="Not set"
+        rows={lists.locations}
+        value={defaults.toLocationId}
+        onChange={(toLocationId) => {
+          onChange({ toLocationId });
+        }}
+      />
+    </>
+  );
+}
+
 // The collapsible section with the session defaults above the camera. The
 // header button opens and closes it. The closed header shows the active
 // defaults in one line. Reset puts every default back to unset.
@@ -282,7 +232,7 @@ export function DefaultsSection({
       </button>
       {isOpen && (
         <div className="flex flex-col gap-3 border-b p-3">
-          <DefaultsFields
+          <SectionFields
             bookingType={bookingType}
             defaults={defaults}
             lists={lists}

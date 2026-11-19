@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export interface Selection {
   isAllChecked: boolean;
@@ -17,19 +17,22 @@ export function useSelection(shownIds: readonly number[]): Selection & {
   const checkedIds = shownIds.filter((id) => checked.has(id));
   const isAllChecked =
     shownIds.length > 0 && checkedIds.length === shownIds.length;
+  // The toggle keeps its identity between draws, so a row that did not
+  // change does not draw again.
+  const toggle = useCallback((id: number) => {
+    setChecked((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
   return {
     checkedIds,
     isAllChecked,
     isChecked: (id) => checked.has(id),
-    toggle: (id) => {
-      setChecked((current) => {
-        const next = new Set(current);
-        if (!next.delete(id)) {
-          next.add(id);
-        }
-        return next;
-      });
-    },
+    toggle,
     toggleAll: () => {
       setChecked(isAllChecked ? new Set() : new Set(shownIds));
     },

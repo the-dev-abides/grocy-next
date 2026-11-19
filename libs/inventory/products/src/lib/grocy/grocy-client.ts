@@ -8,6 +8,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
+import type { ConsumeSettings } from '../consume-settings.ts';
 import type { ProductConversion } from '../product-conversion.ts';
 import type { ProductDetails } from '../product-details.ts';
 import type { ProductListItem, QuantityUnitConversion } from '../product.ts';
@@ -21,7 +22,6 @@ import type {
   MasterDataRow,
 } from './grocy-master-data.ts';
 import type { GrocyProductBody } from './grocy-product-body.ts';
-import type { GrocyProduct } from './grocy-product.ts';
 
 import { toBase64 } from './base64.ts';
 import {
@@ -46,6 +46,11 @@ import {
   grocyProductDetailsSchema,
   toProductDetails,
 } from './grocy-product-details.ts';
+import { grocyProductRowsSchema } from './grocy-product.ts';
+import {
+  grocyUserSettingsSchema,
+  toConsumeSettings,
+} from './grocy-user-settings.ts';
 
 // The status and the message of a Grocy refusal, for the `grocy` field of
 // the grocy-refused problem. A refusal body with no message gives the
@@ -209,14 +214,12 @@ export class GrocyClient {
   }
 
   // The active products. The objects endpoint returns every product in one
-  // response. Grocy has no page size, so the list has no cut-off.
+  // response. Grocy has no page size, so the list has no cut-off. The read
+  // goes through `send`, so a Grocy that does not answer gives the
+  // grocy-unavailable problem.
   async listProducts(): Promise<ProductListItem[]> {
-    const response = await firstValueFrom(
-      this.http.get<GrocyProduct[]>('/api/objects/products', {
-        params: { 'query[]': 'active=1' },
-      }),
-    );
-    return response.data.map((product) => {
+    const data = await this.query('products', 'active=1');
+    return grocyProductRowsSchema.parse(data).map((product) => {
       return {
         description: product.description,
         id: product.id,
@@ -250,6 +253,13 @@ export class GrocyClient {
     return this.readDetails(
       `/api/stock/products/by-barcode/${encodeURIComponent(code)}`,
     );
+  }
+
+  // The two user settings of the default consume amount, for the create of
+  // a Consume pending scan.
+  async readConsumeSettings(): Promise<ConsumeSettings> {
+    const data = await this.get('/api/user/settings');
+    return toConsumeSettings(grocyUserSettingsSchema.parse(data));
   }
 
   // This method sets the factor of one conversion row.

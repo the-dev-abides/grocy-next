@@ -6,6 +6,11 @@ import { z } from 'zod';
 // relative URI per cause, with a fixed title and a fixed status. A later
 // ticket adds a type when an operation needs one.
 export const PROBLEM_TYPES = {
+  aboveStock: {
+    status: 422,
+    title: 'The amount is above the stock',
+    type: '/problems/above-stock',
+  },
   bookingTypeFixed: {
     status: 409,
     title: 'The booking type is fixed',
@@ -50,6 +55,11 @@ export const PROBLEM_TYPES = {
     status: 415,
     title: 'The body is not JSON',
     type: '/problems/not-json',
+  },
+  noToLocation: {
+    status: 409,
+    title: 'The Transfer has no "to" location',
+    type: '/problems/no-to-location',
   },
   unauthorized: {
     status: 401,

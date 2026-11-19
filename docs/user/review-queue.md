@@ -5,7 +5,7 @@ pending scan is one scanned or typed code from a scan screen. Open the review
 queue from the sidebar, or tap `Done` on a scan screen. The address `/` of
 Grocy Next also opens the review queue.
 
-The review queue shows the pending scans of both scan screens, with the most
+The review queue shows the pending scans of every scan screen, with the most
 recent scan at the top. It gets the new pending scans every three seconds.
 
 When you accept a pending scan, Grocy Next makes the booking in Grocy and
@@ -27,28 +27,54 @@ On a screen that is 1024 pixels wide or more, the review queue opens in the
 table view. On a smaller screen, it opens in the cards view. When you change
 the view, the browser keeps your choice for the next visit.
 
+## The booking type
+
+Each row and each card starts with the icon of its booking type:
+
+| Icon           | Booking type |
+| -------------- | ------------ |
+| Barcode        | Purchase     |
+| Clipboard      | Inventory    |
+| Fork and knife | Consume      |
+| Two arrows     | Transfer     |
+
+On a Consume row and a Transfer row, the icon is a button. Tap it to flip
+the row between Consume and Transfer. Do this when you scanned with the
+switch in the wrong position. The row keeps all its fields, so a flip two
+times loses no data. The flip clears the Grocy message of the last failed
+accept, as each change of a row does. On a Purchase row and an Inventory row,
+a tap on the icon does nothing.
+
+The location of a Transfer shows as "From → To", for example
+`Fridge → Freezer`. A Transfer with no "to" location shows
+`No "to" location` in place of the "to" location.
+
 ## The state of a pending scan
 
-Each pending scan has one of four states. A badge on the row or the card
+Each pending scan has one of five states. A badge on the row or the card
 shows the state.
 
-| State             | Meaning                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `Needs a product` | The code matched no product in Grocy.                     |
-| `Needs a count`   | The Inventory pending scan has no count.                  |
-| `Ready`           | You can accept the pending scan.                          |
-| `Accept failed`   | Grocy refused the last accept. The row shows the message. |
+| State                   | Meaning                                                   |
+| ----------------------- | --------------------------------------------------------- |
+| `Needs a product`       | The code matched no product in Grocy.                     |
+| `Needs a count`         | The Inventory pending scan has no count.                  |
+| `Needs a 'to' location` | The Transfer pending scan has no "to" location.           |
+| `Ready`                 | You can accept the pending scan.                          |
+| `Accept failed`         | Grocy refused the last accept. The row shows the message. |
 
 A row or a card with `Accept failed` has a different background colour.
 
 ## The filter
 
-The filter is above the list. It has three fields:
+The filter is above the list. It has four fields:
 
-- `Location`: the location of the pending scan.
+- `Booking type`: `All booking types`, or one of Purchase, Inventory,
+  Consume, and Transfer.
+- `Location`: the location of the pending scan. A Transfer shows when its
+  "from" location or its "to" location is the location of the filter.
 - `Product group`: the product group of the pending scan. The scan screens
   copy it from the session defaults.
-- `State`: one of the four states.
+- `State`: one of the five states.
 
 The filter changes the pending scans that the list shows. The line above
 the list shows the number of pending scans, the number that the filter
@@ -58,6 +84,8 @@ shows, and the number that you checked.
 
 Each row and each card has these buttons:
 
+- `Spoiled` (a trash can) shows only on a Consume. A tap turns the spoiled
+  flag on or off. The trash can is red when the flag is on.
 - `Edit` (the pencil icon) opens the full form of the pending scan.
 - `Reject` (the trash icon) deletes the pending scan.
 - `Accept` (the check icon) makes the booking. This button shows only on a
@@ -120,10 +148,37 @@ the form stays open and shows the problem.
 
 ## The full form
 
-Tap `Edit` to open the full form of one pending scan. The form has every
-field: the amount or the count, the unit, the location, the due date, the
-store, the price and the price type, the product group of a new product,
-and the note. Tap `Save` to keep the changes.
+Tap `Edit` to open the full form of one pending scan. Tap `Save` to keep the
+changes. The fields depend on the booking type:
+
+- Purchase: the amount, the unit, the location, the due date, the store, the
+  price, and the price type.
+- Inventory: the count, the location of added stock, the due date of added
+  stock, the store, and the price. The Inventory accept uses no price type.
+- Consume: the booking type, `Spoiled`, the amount, the unit, and `From`, the
+  "from" location.
+- Transfer: the booking type, the amount, the unit, `From`, and `To`, the "to"
+  location.
+
+Every form also has the product group of a new product, when the pending scan
+has no product, and the note.
+
+The empty unit is the default unit of the booking type. The unit select names
+it, for example `Consume unit (Can)`. It is the purchase unit on a Purchase,
+the consume unit on a Consume, and the stock unit on a Transfer. A Consume
+with no unit shows the amount in the consume unit of the product, as Grocy
+does.
+
+The booking type field changes a Consume to a Transfer, or a Transfer to a
+Consume. The pending scan keeps all its fields.
+
+A Consume and a Transfer also have `Stock entry`. The select lists the stock
+entries at the "from" location in the Grocy consume order, as the Grocy
+consume form and transfer form list them, for example "Amount: 2; Due on
+2026-12-15; Bought on 2026-10-20; Not opened". The first choice, `Next in
+the Grocy consume order`, names no stock entry. With a stock entry, the
+accept takes that stock entry only. A new "from" location clears the stock
+entry.
 
 ## The bulk actions
 
@@ -141,6 +196,23 @@ that the filter shows. The checkboxes control only the bulk edit.
    `Keep as is`. A field that you do not set does not change.
 4. Tap `Apply`.
 
+A field shows only when it applies to a checked pending scan:
+
+- `Booking type` applies to a Consume and a Transfer. It changes a Consume
+  to a Transfer, or a Transfer to a Consume.
+- `To` applies to a Transfer. `Spoiled` applies to a Consume. These two
+  fields use the booking type that you set in `Booking type`.
+- `Due date` applies to a Purchase and an Inventory.
+- `Store` and `Price` apply to a Purchase and an Inventory. `Price type`
+  applies to a Purchase.
+- `Amount`, the location, `Product group of a new product`, and `Note`
+  apply to all pending scans. When you check only Consume and Transfer
+  pending scans, the location field is `From`.
+
+When a field applies to only some of the checked pending scans, its label
+shows the number, for example `To (1 of 2 rows)`. The field changes only
+those pending scans.
+
 ### Accept all and Reject all
 
 `Accept all` and `Reject all` act on every pending scan that the filter
@@ -149,8 +221,9 @@ the filter first.
 
 Each button opens a confirm dialog with the number of pending scans.
 
-- `Accept all` books every pending scan that has a product and, for
-  Inventory, a count. It skips the other pending scans. The dialog shows the
+- `Accept all` books every pending scan that has a product, for Inventory a
+  count, and for a Transfer a "to" location. It skips the other pending
+  scans. The dialog shows the
   number that it books and the number that it skips.
 - `Reject all` deletes every pending scan that the filter shows.
 
@@ -196,6 +269,103 @@ Two types of product have a note on the stock line:
 - A product with a tare weight needs the gross weight, with the container.
   A count below the tare weight shows a red warning, and Grocy refuses the
   accept.
+
+## The stock entry lines
+
+Each Consume and Transfer pending scan shows one line under the name for
+each stock entry that the accept takes, for example "0.1 l from a new pack
+in Fridge, due 22 Nov. Opens the rest.". The lines use the Grocy consume
+order: the stock entries at the default consume location first, then the
+opened stock entries, then the earliest due date, then the earliest
+purchase date. The amounts are in the stock unit.
+
+- "from the opened pack": the accept takes a part of an opened stock entry.
+- "all of a sealed pack": the accept takes the whole stock entry, so no open
+  follows.
+- "from a new pack ... Opens the rest.": the accept takes a part of a sealed
+  stock entry and opens the rest.
+- "from a sealed pack ... The rest stays sealed.": the product cannot be
+  opened, or it has a tare weight.
+- On a Transfer, "Grocy splits the pack": the accept moves a part of a stock
+  entry.
+
+A pending scan sees the stock after the older pending scans that take from
+the same stock entries. These are the pending scans of the same product, and
+a Consume of a parent product together with the pending scans of its child
+products. Thus two pending scans do not show the same pack two times. A pending scan with an error does not change the stock that the
+newer pending scans see. A pending scan that names a stock entry shows that
+stock entry only.
+
+When a Consume is more than the stock, a red line names the stock that
+Grocy has, for example "Grocy has only 2 Pack for this Consume. The accept
+fails.". The state stays `Ready`. The accept fails with the Grocy message.
+
+A Consume of a parent product also takes the stock of its child products,
+as the accept does. The lines and the red line include that stock. The
+amount of a child stock entry is in the stock unit of the parent product.
+The stock entry select of a Consume also lists the stock entries of the
+child products, as the Grocy consume form does. A Transfer takes the stock
+entries of the product only, as Grocy does.
+
+After an accept, the review queue loads the product again. The lines of the
+other pending scans and the Inventory preview then show the new stock.
+
+## The Consume accept
+
+The accept of a Consume pending scan takes the amount out of stock at the
+"from" location. Grocy picks the stock entries in its consume order.
+
+- When the amount is more than the stock at the "from" location, the accept
+  fails with the Grocy message. Grocy does not change.
+- When the pending scan names a stock entry, the consume takes that stock
+  entry only. An amount above that stock entry fails with the same Grocy
+  message.
+- When the consume takes a part of a sealed stock entry, the accept also
+  opens the rest of that stock entry. You do not open it in a second step.
+  Grocy applies the "move on open" setting and the due date after the open.
+- A product with the Grocy setting "cannot be opened" and a product with a
+  tare weight get no open.
+- When the open fails, the consume stays booked, and the accept succeeds.
+- A Consume of a parent product can take the stock of its child products,
+  as the Grocy consume form does.
+- A product with a tare weight needs the gross weight, with the container.
+- A spoiled Consume follows the same steps. Grocy stores the consume as
+  spoiled.
+
+The result panel shows the consume and the open.
+
+## The Transfer accept
+
+The accept of a Transfer pending scan moves the amount from the "from"
+location to the "to" location. The amount is in the stock unit of the
+product, unless the pending scan has a different unit.
+
+- A Transfer with no "to" location has no `Accept` button. Tap `Edit`, set
+  `To`, and tap `Save`.
+- Grocy picks the stock entries at the "from" location in its consume order.
+  When the pending scan names a stock entry, Grocy moves that stock entry
+  only. Grocy applies its freezer rules to the due dates.
+- Grocy cannot transfer a product with a tare weight. The accept fails with
+  the Grocy message.
+
+The result panel shows one `transfer_from` booking and one `transfer_to`
+booking for each stock entry that Grocy moved.
+
+## The paths that are untested
+
+The automatic tests run the review queue in desktop browsers. The pending
+scans of the tests come from typed codes, from the camera file in Chromium,
+and from key presses that act as a hardware scanner. These paths to the
+review queue are untested:
+
+- The camera on an iPhone or an iPad (iOS).
+- The camera of a desktop computer or a laptop.
+- A real hardware scanner, with USB or Bluetooth.
+- A Bluetooth hardware scanner on Android.
+- A keyboard layout that is not US.
+- The soft keyboard on a phone while a hardware scanner is connected.
+
+The page "The scan screens" tells more about each path.
 
 ## The attribution
 

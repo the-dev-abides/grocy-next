@@ -10,10 +10,23 @@ function patched<T>(current: T, value: T | undefined = current): T {
   return value;
 }
 
-// The booking type is set at create. An update that changes it is the
-// booking-type-fixed problem of ADR 0014.
+// The two booking types that a row can flip between, as the spec of
+// milestone 3 decided.
+const FLIP_TYPES: ReadonlySet<string> = new Set(['consume', 'transfer']);
+
+function isFlip(from: string, to: string): boolean {
+  return FLIP_TYPES.has(from) && FLIP_TYPES.has(to);
+}
+
+// The booking type is set at create. An update can flip it between Consume
+// and Transfer only. Any other change is the booking-type-fixed problem of
+// ADR 0014.
 function checkBookingType(row: StoredPendingScan, body: UpdatePendingScan) {
-  if (body.bookingType !== undefined && body.bookingType !== row.bookingType) {
+  if (
+    body.bookingType !== undefined &&
+    body.bookingType !== row.bookingType &&
+    !isFlip(row.bookingType, body.bookingType)
+  ) {
     throw new ProblemException(
       PROBLEM_TYPES.bookingTypeFixed,
       'The booking type of a pending scan is set at create.',
@@ -52,6 +65,7 @@ export function updatedPendingScan(
   const updated: StoredPendingScan = {
     ...row,
     amount: patched(row.amount, body.amount),
+    bookingType: patched(row.bookingType, body.bookingType),
     code: patched(row.code, body.code),
     dueDate: patched(row.dueDate, body.dueDate),
     error: null,
@@ -62,7 +76,10 @@ export function updatedPendingScan(
     productGroupId: patched(row.productGroupId, body.productGroupId),
     productId: patched(row.productId, body.productId),
     quantityUnitId: patched(row.quantityUnitId, body.quantityUnitId),
+    spoiled: patched(row.spoiled, body.spoiled),
+    stockEntryId: patched(row.stockEntryId, body.stockEntryId),
     storeId: patched(row.storeId, body.storeId),
+    toLocationId: patched(row.toLocationId, body.toLocationId),
     updatedAt: now,
     writeInName: patched(row.writeInName, body.writeInName),
   };

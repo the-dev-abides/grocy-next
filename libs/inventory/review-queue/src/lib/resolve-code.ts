@@ -7,17 +7,23 @@ import type {
 import { codeForms } from './code-forms.ts';
 
 // The product that a code resolved to, with the product barcode row that
-// matched the code. A product Grocycode has no product barcode row.
+// matched the code. A product Grocycode has no product barcode row. The
+// details are the Grocy read that the resolution made, so the create of a
+// Consume reads the product defaults with no second read. A stock entry
+// Grocycode also names one stock entry by its Grocy `stock_id`.
 export interface ProductMatch {
   barcode: null | ProductBarcode;
+  product: ProductDetails;
   productId: number;
+  stockEntryId: null | string;
 }
 
 // A Grocycode has three or more parts joined by `:`. Part one is `grcy`.
 // Part two is the type: `p` for a product. Part three is the id. A stock
-// entry Grocycode has a fourth part, which this resolution ignores.
+// entry Grocycode has a fourth part, the Grocy `stock_id` of the stock entry.
+// Grocy reads the fourth part only and ignores more parts.
 const GROCYCODE = /^grcy:/i;
-const PRODUCT_GROCYCODE = /^grcy:p:(\d+)(?::|$)/i;
+const PRODUCT_GROCYCODE = /^grcy:p:(\d+)(?::([^:]*))?(?::|$)/i;
 
 // The resolution order of ADR 0011: a product Grocycode, then the Grocy
 // product barcode lookup for each form of the code. Grocy ignores case on
@@ -43,12 +49,19 @@ async function resolveGrocycode(
   grocy: GrocyClient,
   code: string,
 ): Promise<null | ProductMatch> {
-  const [, id] = PRODUCT_GROCYCODE.exec(code) ?? [];
+  const [, id, stockId] = PRODUCT_GROCYCODE.exec(code) ?? [];
   if (id === undefined) {
     return null;
   }
   const product = await grocy.readProductDetails(Number(id));
-  return isActive(product) ? { barcode: null, productId: product.id } : null;
+  return isActive(product)
+    ? {
+        barcode: null,
+        product,
+        productId: product.id,
+        stockEntryId: stockId === undefined || stockId === '' ? null : stockId,
+      }
+    : null;
 }
 
 async function resolveBarcode(
@@ -62,7 +75,7 @@ async function resolveBarcode(
   const code = form.toLowerCase();
   const barcode =
     product.barcodes.find((row) => row.barcode.toLowerCase() === code) ?? null;
-  return { barcode, productId: product.id };
+  return { barcode, product, productId: product.id, stockEntryId: null };
 }
 
 function isActive(product: null | ProductDetails): product is ProductDetails {

@@ -1,57 +1,46 @@
-import type { BulkEdit } from './bulk-edit';
+import type { PendingScan } from '../api/next-api';
+import type { BulkEdit, BulkField } from './bulk-edit';
 import type { QueueLists } from './use-review-queue';
 
+import { isSwitchBookingType } from '../booking-types';
+import { bulkFieldCounts, bulkFieldLabel } from './bulk-edit';
+import {
+  BOOKING_TYPE_CHOICES,
+  bookingTypeOf,
+  DUE_CHOICES,
+  dueDateOfValue,
+  dueValueOf,
+  KEEP_CHOICE,
+  KEEP_TEXT,
+  PRICE_TYPE_CHOICES,
+  priceTypeOf,
+  SPOILED_CHOICES,
+  spoiledOf,
+  spoiledValueOf,
+} from './bulk-edit-choices';
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { KEEP, keepIdOf, keepValueOf, NONE } from './keep-choices';
 import { TextField } from './text-field';
 
 type Patch = (fields: Partial<BulkEdit>) => void;
 
-const KEEP_TEXT = 'Keep as is';
+// The label of a field with the count of the checked rows that it changes.
+type LabelOf = (field: BulkField, label: string) => string;
 
-// The value of the due date select for a fixed date.
-const DATE = 'date';
-
-const DUE_CHOICES = [
-  { label: KEEP_TEXT, value: KEEP },
-  { label: 'Product default', value: NONE },
-  { label: 'Fixed date', value: DATE },
-];
-
-const PRICE_TYPE_CHOICES = [
-  { label: KEEP_TEXT, value: KEEP },
-  { label: 'per unit', value: 'unit' },
-  { label: 'in total', value: 'total' },
-];
-
-function dueValueOf(dueDate: BulkEdit['dueDate']): string {
-  if (dueDate === undefined) {
-    return KEEP;
-  }
-  return dueDate === null ? NONE : DATE;
-}
-
-function dueDateOfValue(value: string): BulkEdit['dueDate'] {
-  if (value === KEEP) {
-    return undefined;
-  }
-  return value === NONE ? null : '';
-}
-
-function priceTypeOf(value: string): BulkEdit['priceType'] {
-  return value === 'unit' || value === 'total' ? value : undefined;
+interface FieldsProperties {
+  edit: BulkEdit;
+  labelOf: LabelOf;
+  lists: QueueLists;
+  patch: Patch;
 }
 
 // The due date: keep it, the product default, or a fixed date.
-function DueDateFields({
-  edit,
-  patch,
-}: Readonly<{ edit: BulkEdit; patch: Patch }>) {
+function DueDateFields({ edit, labelOf, patch }: Readonly<FieldsProperties>) {
   return (
     <>
       <ChoiceSelect
         choices={DUE_CHOICES}
-        label="Due date"
+        label={labelOf('dueDate', 'Due date')}
         value={dueValueOf(edit.dueDate)}
         onChange={(value) => {
           patch({ dueDate: dueDateOfValue(value) });
@@ -71,15 +60,17 @@ function DueDateFields({
   );
 }
 
-// The price and its price type.
+// The price, and the price type of a Purchase row.
 function PriceFields({
   edit,
+  hasPriceType,
+  labelOf,
   patch,
-}: Readonly<{ edit: BulkEdit; patch: Patch }>) {
+}: Readonly<FieldsProperties & { hasPriceType: boolean }>) {
   return (
     <>
       <TextField
-        label="Price"
+        label={labelOf('price', 'Price')}
         inputMode="decimal"
         placeholder={KEEP_TEXT}
         value={edit.price}
@@ -87,56 +78,118 @@ function PriceFields({
           patch({ price: event.target.value });
         }}
       />
-      <ChoiceSelect
-        choices={PRICE_TYPE_CHOICES}
-        label="Price type"
-        value={edit.priceType ?? KEEP}
-        onChange={(value) => {
-          patch({ priceType: priceTypeOf(value) });
-        }}
-      />
+      {hasPriceType && (
+        <ChoiceSelect
+          choices={PRICE_TYPE_CHOICES}
+          label={labelOf('priceType', 'Price type')}
+          value={edit.priceType ?? KEEP}
+          onChange={(value) => {
+            patch({ priceType: priceTypeOf(value) });
+          }}
+        />
+      )}
     </>
   );
 }
 
-// The master data selects: the location, the store, and the product group
-// of a new product.
-function RowSelects({
+// The fields of a Consume row and of a Transfer row: the booking type, the
+// "to" location of a Transfer, and spoiled of a Consume.
+function MoveFields({
+  counts,
   edit,
+  labelOf,
   lists,
   patch,
-}: Readonly<{ edit: BulkEdit; lists: QueueLists; patch: Patch }>) {
-  const keep = { label: KEEP_TEXT, value: KEEP };
+}: Readonly<FieldsProperties & { counts: Record<BulkField, number> }>) {
+  return (
+    <>
+      {counts.bookingType > 0 && (
+        <ChoiceSelect
+          choices={BOOKING_TYPE_CHOICES}
+          label={labelOf('bookingType', 'Booking type')}
+          value={edit.bookingType ?? KEEP}
+          onChange={(value) => {
+            patch({ bookingType: bookingTypeOf(value) });
+          }}
+        />
+      )}
+      {counts.toLocation > 0 && (
+        <ChoiceSelect
+          choices={choicesOf(
+            [KEEP_CHOICE, { label: 'None', value: NONE }],
+            lists.locations,
+          )}
+          label={labelOf('toLocation', 'To')}
+          value={keepValueOf(edit.toLocationId)}
+          onChange={(value) => {
+            patch({ toLocationId: keepIdOf(value) });
+          }}
+        />
+      )}
+      {counts.spoiled > 0 && (
+        <ChoiceSelect
+          choices={SPOILED_CHOICES}
+          label={labelOf('spoiled', 'Spoiled')}
+          value={spoiledValueOf(edit.spoiled)}
+          onChange={(value) => {
+            patch({ spoiled: spoiledOf(value) });
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// The store of a Purchase row and of an Inventory row.
+function StoreField({
+  edit,
+  labelOf,
+  lists,
+  patch,
+}: Readonly<FieldsProperties>) {
+  return (
+    <ChoiceSelect
+      choices={choicesOf(
+        [KEEP_CHOICE, { label: 'None', value: NONE }],
+        lists.stores,
+      )}
+      label={labelOf('store', 'Store')}
+      value={keepValueOf(edit.storeId)}
+      onChange={(value) => {
+        patch({ storeId: keepIdOf(value) });
+      }}
+    />
+  );
+}
+
+// The master data selects: the location, the store of a Purchase row and of an
+// Inventory row, and the product group of a new product.
+function RowSelects({
+  hasStore,
+  locationLabel,
+  ...props
+}: Readonly<FieldsProperties & { hasStore: boolean; locationLabel: string }>) {
+  const { edit, labelOf, lists, patch } = props;
   return (
     <>
       <ChoiceSelect
         choices={choicesOf(
-          [keep, { label: 'Product default', value: NONE }],
+          [KEEP_CHOICE, { label: 'Product default', value: NONE }],
           lists.locations,
         )}
-        label="Location"
+        label={labelOf('location', locationLabel)}
         value={keepValueOf(edit.locationId)}
         onChange={(value) => {
           patch({ locationId: keepIdOf(value) });
         }}
       />
+      {hasStore && <StoreField {...props} />}
       <ChoiceSelect
         choices={choicesOf(
-          [keep, { label: 'None', value: NONE }],
-          lists.stores,
-        )}
-        label="Store"
-        value={keepValueOf(edit.storeId)}
-        onChange={(value) => {
-          patch({ storeId: keepIdOf(value) });
-        }}
-      />
-      <ChoiceSelect
-        choices={choicesOf(
-          [keep, { label: 'None', value: NONE }],
+          [KEEP_CHOICE, { label: 'None', value: NONE }],
           lists.productGroups,
         )}
-        label="Product group of a new product"
+        label={labelOf('productGroup', 'Product group of a new product')}
         value={keepValueOf(edit.productGroupId)}
         onChange={(value) => {
           patch({ productGroupId: keepIdOf(value) });
@@ -146,14 +199,33 @@ function RowSelects({
   );
 }
 
-// The fields of the bulk edit, in the two-column grid of ADR 0013. The fields
-// are the amount, the location, the due date, the store, and the price with its
-// price type. Then come the product group of a new product and the note.
+// A Consume and a Transfer take the stock from the "from" location. When
+// every checked row is a Consume or a Transfer, the location is "From".
+function locationLabelOf(rows: readonly Pick<PendingScan, 'bookingType'>[]) {
+  return rows.every((scan) => isSwitchBookingType(scan.bookingType))
+    ? 'From'
+    : 'Location';
+}
+
+// The fields of the bulk edit, in the two-column grid of ADR 0013. A field
+// shows only when it changes at least one checked row, as the spec decided. A
+// field that changes only a part of the checked rows names the count in its
+// label.
 export function BulkEditFields({
   edit,
   lists,
   patch,
-}: Readonly<{ edit: BulkEdit; lists: QueueLists; patch: Patch }>) {
+  rows,
+}: Readonly<{
+  edit: BulkEdit;
+  lists: QueueLists;
+  patch: Patch;
+  rows: readonly PendingScan[];
+}>) {
+  const counts = bulkFieldCounts(edit, rows);
+  const labelOf: LabelOf = (field, label) =>
+    bulkFieldLabel(label, counts[field], rows.length);
+  const props = { edit, labelOf, lists, patch };
   return (
     <div
       className="
@@ -173,9 +245,16 @@ export function BulkEditFields({
           patch({ amount: event.target.value });
         }}
       />
-      <RowSelects edit={edit} lists={lists} patch={patch} />
-      <DueDateFields edit={edit} patch={patch} />
-      <PriceFields edit={edit} patch={patch} />
+      <MoveFields {...props} counts={counts} />
+      <RowSelects
+        {...props}
+        hasStore={counts.store > 0}
+        locationLabel={locationLabelOf(rows)}
+      />
+      {counts.dueDate > 0 && <DueDateFields {...props} />}
+      {counts.price > 0 && (
+        <PriceFields {...props} hasPriceType={counts.priceType > 0} />
+      )}
       <TextField
         label="Note"
         placeholder={KEEP_TEXT}

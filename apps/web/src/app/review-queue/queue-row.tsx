@@ -1,29 +1,66 @@
 import { cn } from 'cn';
 import { Check, RotateCw, Trash2 } from 'lucide-react';
+import { memo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 
 import type { PendingScan, Product } from '../api/next-api';
-import type { ResultLine } from './result-panel';
+import type { RowProperties } from './row-properties';
 import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
 
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { AmountCell } from './amount-cell';
-import { InventoryLines } from './inventory-lines';
+import { BookingTypeIcon } from './booking-type-icon';
 import { ProductButtons } from './product-buttons';
 import { ProductCell, StateBadge } from './product-cell';
+import { ProductLines } from './product-lines';
 import { RowEditButton } from './row-edit-button';
-import { amountText, unitOf } from './row-text';
+import { isSameRowProperties } from './row-properties';
+import { RowSpoiledButton } from './row-spoiled-button';
+import { amountText, locationText, unitOf } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
-// The edit button and the reject button on every row. The accept button on
-// a ready row, and the Accept again button on a failed row. A row that needs
-// a product shows Pick product and New product in place of the accept. A row
-// that needs a count has no accept.
+// The accept button on a ready row, and the Accept again button on a failed
+// row. Other rows have no accept.
+function RowAcceptButton({
+  actions,
+  state,
+}: Readonly<{ actions: RowActions; state: RowState }>) {
+  if (state === 'ready') {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Accept"
+        disabled={actions.isBusy}
+        onClick={actions.accept}
+      >
+        <Check />
+      </Button>
+    );
+  }
+  if (state === 'failed') {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={actions.isBusy}
+        onClick={actions.accept}
+      >
+        <RotateCw data-icon="inline-start" /> Accept again
+      </Button>
+    );
+  }
+  return null;
+}
+
+// The spoiled trash can on a Consume row. The edit button and the reject
+// button on every row. Then the accept. A row that needs a product shows Pick
+// product and New product in place of the accept.
 function RowButtons({
   actions,
   lists,
@@ -41,6 +78,7 @@ function RowButtons({
 }>) {
   return (
     <div className="flex flex-wrap items-center justify-end gap-1">
+      <RowSpoiledButton actions={actions} scan={scan} />
       <RowEditButton
         actions={actions}
         lists={lists}
@@ -57,27 +95,7 @@ function RowButtons({
       >
         <Trash2 />
       </Button>
-      {state === 'ready' && (
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Accept"
-          disabled={actions.isBusy}
-          onClick={actions.accept}
-        >
-          <Check />
-        </Button>
-      )}
-      {state === 'failed' && (
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={actions.isBusy}
-          onClick={actions.accept}
-        >
-          <RotateCw data-icon="inline-start" /> Accept again
-        </Button>
-      )}
+      <RowAcceptButton actions={actions} state={state} />
       {state === 'needs-product' && (
         <ProductButtons actions={actions} lists={lists} scan={scan} />
       )}
@@ -135,7 +153,7 @@ function FactCells({
         </span>
       </TableCell>
       <TableCell className={FROM_MD}>
-        {nameOf(lists.locations, scan.locationId, 'Product default')}
+        {locationText(scan, lists.locations)}
       </TableCell>
       <TableCell className={FROM_XL}>{dueDateText(scan.dueDate)}</TableCell>
       <TableCell className={cn(FROM_XL, 'text-right')}>
@@ -166,43 +184,47 @@ function rowClass(state: RowState, isBusy: boolean): string {
   );
 }
 
-// The checkbox of a row, for the bulk edit.
+// The checkbox of a row, for the bulk edit. The toggle takes the id of the
+// row.
 function CheckCell({
+  id,
   isChecked,
   name,
   onToggle,
-}: Readonly<{ isChecked: boolean; name: string; onToggle: () => void }>) {
+}: Readonly<{
+  id: number;
+  isChecked: boolean;
+  name: string;
+  onToggle: (id: number) => void;
+}>) {
   return (
     <TableCell className="w-8">
       <Checkbox
         aria-label={`Check ${name}`}
         checked={isChecked}
-        onCheckedChange={onToggle}
+        onCheckedChange={() => {
+          onToggle(id);
+        }}
       />
     </TableCell>
   );
 }
 
-// One row of the review queue table. The columns of the prototype are the
-// checkbox, the product with its facts, and the amount. Then come the location
-// from `md`, the due date and the price from `xl`, and the store and the time
-// from `2xl`. Then come the state from `md` and the buttons. A failed row has
-// the expired row colour of ADR 0013.
-export function QueueRow({
+// One row of the review queue table. The columns of the prototype come in this
+// order. First come the checkbox, the booking type icon, the product with its
+// facts, and the amount. Then come the location from `md`, the due date and the
+// price from `xl`, and the store and the time from `2xl`. Then come the state
+// from `md` and the buttons. A failed row has the expired row colour of ADR
+// 0013. The row draws again only when its own props change.
+function QueueRowView({
+  chainRows,
   isChecked,
   lists,
   onChanged,
   onResult,
   onToggle,
   scan,
-}: Readonly<{
-  isChecked: boolean;
-  lists: QueueLists;
-  onChanged: () => void;
-  onResult: (line: Omit<ResultLine, 'key'>) => void;
-  onToggle: () => void;
-  scan: PendingScan;
-}>) {
+}: Readonly<RowProperties>) {
   const { actions, name, product, state, unit } = useRowFacts({
     lists,
     onChanged,
@@ -214,9 +236,18 @@ export function QueueRow({
       className={rowClass(state, actions.isBusy)}
       data-state={isChecked ? 'selected' : undefined}
     >
-      <CheckCell isChecked={isChecked} name={name} onToggle={onToggle} />
+      <CheckCell
+        id={scan.id}
+        isChecked={isChecked}
+        name={name}
+        onToggle={onToggle}
+      />
+      <TableCell className="w-10">
+        <BookingTypeIcon scan={scan} onSave={actions.save} />
+      </TableCell>
       <ProductCell lists={lists} name={name} scan={scan} state={state}>
-        <InventoryLines
+        <ProductLines
+          chainRows={chainRows}
           lists={lists}
           product={product}
           scan={scan}
@@ -243,3 +274,6 @@ export function QueueRow({
     </TableRow>
   );
 }
+
+// The memoized row. The table imports it as `QueueRow`.
+export const queueRow = memo(QueueRowView, isSameRowProperties);

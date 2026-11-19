@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import type { PendingScan, UpdatePendingScan } from '../api/next-api';
 import type { PendingScanRowLists } from './pending-scan-row';
+import type { PreviousRow } from './scan-outcome';
 import type { DefaultsLists } from './session-defaults';
 import type { ScanDefaults } from './use-scan-defaults';
 
@@ -22,12 +23,13 @@ import { useScanDefaults } from './use-scan-defaults';
 
 type ScanLists = DefaultsLists & PendingScanRowLists;
 
-// The stored row of one create call, and whether the session already held
-// it. An Inventory repeat scan answers the open row with no change, so the
-// row itself does not show that it was a repeat.
+// The stored row of one create call, and what the session knew of the row
+// before the call. An Inventory repeat scan answers the open row with no
+// change, so the row itself does not show that it was a repeat. The old
+// amount gives the amount that a merge added.
 interface AddedScan {
+  previous: PreviousRow;
   scan: PendingScan;
-  wasInSession: boolean;
 }
 
 export interface ScanSession {
@@ -48,6 +50,19 @@ function useScanLists(): ScanLists {
     products: useListProductsQuery(undefined).data?.items,
     quantityUnits: useListQuantityUnitsQuery(undefined).data?.items,
     stores: useListStoresQuery(undefined).data?.items,
+  };
+}
+
+// What the session knew of a row before a call: whether it held the row, and
+// the amount of the row in the last list.
+function previousRowOf(
+  scan: PendingScan,
+  items: readonly PendingScan[] | undefined,
+  sessionIds: ReadonlySet<number>,
+): PreviousRow {
+  return {
+    previousAmount: items?.find(({ id }) => id === scan.id)?.amount ?? null,
+    wasInSession: sessionIds.has(scan.id),
   };
 }
 
@@ -83,11 +98,11 @@ export function useScanSession(
       setHasFailed(true);
       return null;
     }
-    const wasInSession = sessionIds.has(scan.id);
+    const previous = previousRowOf(scan, pendingScans.data?.items, sessionIds);
     setSessionIds((ids) => new Set([...ids, scan.id]));
     setHasFailed(false);
     await pendingScans.refetch();
-    return { scan, wasInSession };
+    return { previous, scan };
   }
 
   return {
@@ -95,7 +110,11 @@ export function useScanSession(
       const fields = scanDefaults.takeCreateFields();
       return send(
         createPendingScan({
-          createPendingScan: { ...fields, bookingType, code },
+          createPendingScan: {
+            ...fields,
+            bookingType: scanDefaults.bookingType,
+            code,
+          },
         }).unwrap(),
       );
     },

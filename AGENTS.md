@@ -19,7 +19,7 @@ rule set. Code identifiers, syntax, and quoted text are exempt.
 
 ## Decisions
 
-Agents do not MAKE any NEW decisions on your own. A decision is any choice between any two or more meaningfully different and objectively relevant options. You will not hide any such decisions from the maintainer. Putting a decision behind a configuration setting is itself, a decision.
+Agents do not MAKE any NEW architectural decisions on your own. A decision is any choice between any two or more meaningfully different and objectively relevant options. You will not hide any such decisions from the maintainer. Putting a decision behind a configuration setting is itself, a decision.
 
 ## Questions
 
@@ -48,9 +48,6 @@ Never stop, kill, or restart a process that you did not start. Jeff's dev
 server is Jeff's. Stop only the processes that you started, and stop them
 before you end the session.
 
-Do not work in a git worktree. Check out the branch in the main repo, so
-that Jeff's running dev server serves it.
-
 ## Names
 
 Use plain names. A name says what a thing is. Do not give a part of the
@@ -69,17 +66,13 @@ from memory. The lockfile is the pin.
 
 ## GitHub Actions
 
-Pin every third-party action to a commit SHA. A third party is anyone who is
-not us. Write the release tag in a comment after the SHA. Set
+Pin every third-party action to a commit SHA. Write the release tag in a comment after the SHA. Set
 `timeout-minutes: 15` on every job. Give every workflow a `concurrency`
 group.
 
 ## Commits
 
-Work on a branch. Make one small commit for each logical change. Do not amend
-a commit. Do not squash commits on the branch. Do not rebase. The PR is
-squash-merged, and the PR title becomes the commit message on `main`. Small
-branch commits are easier to review.
+Small branch commits are easier to review.
 
 ## Agent skills
 

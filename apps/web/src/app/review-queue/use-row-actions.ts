@@ -6,7 +6,7 @@ import {
   useDeletePendingScanMutation,
   useUpdatePendingScanMutation,
 } from '../api/next-api';
-import { bookingText, failureText, isGrocyRefused } from './result-text';
+import { bookingText, failureText, isRowError } from './result-text';
 
 export interface RowActions {
   accept: () => void;
@@ -92,7 +92,7 @@ export function useRowActions({
         outcome: 'booked',
       });
     } catch (error) {
-      if (!isGrocyRefused(error)) {
+      if (!isRowError(error)) {
         onResult({ message: failureText(error), name, outcome: 'failed' });
       }
     }

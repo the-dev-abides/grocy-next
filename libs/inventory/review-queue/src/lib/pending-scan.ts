@@ -1,9 +1,16 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { lookupResultSchema } from './lookup-result.ts';
+
 // The booking type of a pending scan says which booking the accept makes.
 // The scan screen sets it at create.
-export const BOOKING_TYPES = ['inventory', 'purchase'] as const;
+export const BOOKING_TYPES = [
+  'consume',
+  'inventory',
+  'purchase',
+  'transfer',
+] as const;
 export type BookingType = (typeof BOOKING_TYPES)[number];
 
 // The price of a pending scan is stored as entered, with its price type.
@@ -11,53 +18,13 @@ export type BookingType = (typeof BOOKING_TYPES)[number];
 const PRICE_TYPES = ['total', 'unit'] as const;
 export type PriceType = (typeof PRICE_TYPES)[number];
 
-// The lookup result of ADR 0010: the fixed set of fields that the online
-// lookup returned for a code that no product barcode matched. The lookup
-// worker of a later ticket stores it.
-const lookupResultSchema = z
-  .strictObject({
-    brand: z.string().nullable().meta({ description: 'The brand.' }),
-    imageUrl: z
-      .string()
-      .nullable()
-      .meta({ description: 'The URL of the front image.' }),
-    name: z.string().meta({ description: 'The product name.' }),
-    netQuantity: z
-      .number()
-      .nullable()
-      .meta({ description: 'The net quantity in the net quantity unit.' }),
-    netQuantityUnit: z
-      .string()
-      .nullable()
-      .meta({ description: 'The unit of the net quantity, g or ml.' }),
-    // A row that the lookup filled before this field existed has no package
-    // shapes, so the field defaults to an empty list.
-    packageShapes: z.array(z.string()).default([]).meta({
-      description:
-        'The shapes of the packaging components, as Open Facts taxonomy ids such as en:bag.',
-    }),
-    quantityText: z
-      .string()
-      .nullable()
-      .meta({ description: 'The quantity text as printed on the label.' }),
-    service: z
-      .string()
-      .meta({ description: 'The name of the service that held the product.' }),
-    sourceUrl: z.string().meta({
-      description: 'The URL of the product page, for the attribution.',
-    }),
-  })
-  .meta({ id: 'LookupResult' });
-
-export type LookupResult = z.infer<typeof lookupResultSchema>;
-
 // One pending scan in the Next API, with every field of ADR 0010. Every
 // field is present in every response. An unset optional field is null.
 const pendingScanSchema = z
   .strictObject({
     amount: z.number().nullable().meta({
       description:
-        'The amount. Purchase: in the unit quantityUnitId, or the purchase unit of the product. Inventory: the new own stock in the stock unit.',
+        'The amount. Purchase, Consume, and Transfer: in the unit quantityUnitId, or else the purchase unit, the consume unit, or the stock unit of the product. Inventory: the new own stock in the stock unit.',
     }),
     bookingType: z
       .enum(BOOKING_TYPES)
@@ -79,10 +46,10 @@ const pendingScanSchema = z
     lastLookupAt: z.iso.datetime().nullable().meta({
       description: 'The time of the last lookup attempt, in UTC, or null.',
     }),
-    locationId: z
-      .int()
-      .nullable()
-      .meta({ description: 'The id of the location.' }),
+    locationId: z.int().nullable().meta({
+      description:
+        'The id of the location. Consume and Transfer: the "from" location.',
+    }),
     lookupResult: lookupResultSchema
       .nullable()
       .meta({ description: 'The lookup result, or null.' }),
@@ -104,12 +71,23 @@ const pendingScanSchema = z
       .nullable()
       .meta({ description: 'The id of the product, or null.' }),
     quantityUnitId: z.int().nullable().meta({
-      description: 'The id of the quantity unit of the amount. Purchase only.',
+      description:
+        'The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.',
     }),
     scannedAt: z.iso
       .datetime()
       .meta({ description: 'The time of the scan, in UTC.' }),
+    spoiled: z.boolean().meta({
+      description: 'Whether the product was spoiled. Consume only.',
+    }),
+    stockEntryId: z.string().nullable().meta({
+      description:
+        'The Grocy stock_id of the one stock entry that the accept takes, or null.',
+    }),
     storeId: z.int().nullable().meta({ description: 'The id of the store.' }),
+    toLocationId: z.int().nullable().meta({
+      description: 'The id of the "to" location of a Transfer, or null.',
+    }),
     updatedAt: z.iso
       .datetime()
       .meta({ description: 'The time of the last change, in UTC.' }),
@@ -141,11 +119,10 @@ const pendingScanBodySchema = z
       .optional()
       .meta({ description: 'The code as scanned or typed.' }),
     dueDate: z.iso.date().optional().meta({ description: 'The due date.' }),
-    locationId: z
-      .int()
-      .positive()
-      .optional()
-      .meta({ description: 'The id of the location.' }),
+    locationId: z.int().positive().optional().meta({
+      description:
+        'The id of the location. Consume and Transfer: the "from" location.',
+    }),
     note: z.string().optional().meta({ description: 'The note.' }),
     price: z.number().optional().meta({ description: 'The price as entered.' }),
     priceType: z
@@ -163,13 +140,24 @@ const pendingScanBodySchema = z
       .optional()
       .meta({ description: 'The id of the product.' }),
     quantityUnitId: z.int().positive().optional().meta({
-      description: 'The id of the quantity unit of the amount. Purchase only.',
+      description:
+        'The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.',
+    }),
+    spoiled: z.boolean().optional().meta({
+      description: 'Whether the product was spoiled. Consume only.',
+    }),
+    stockEntryId: z.string().min(1).optional().meta({
+      description:
+        'The Grocy stock_id of the one stock entry that the accept takes.',
     }),
     storeId: z
       .int()
       .positive()
       .optional()
       .meta({ description: 'The id of the store.' }),
+    toLocationId: z.int().positive().optional().meta({
+      description: 'The id of the "to" location of a Transfer.',
+    }),
     writeInName: z.string().optional().meta({
       description: 'The product name that the user typed on the scan screen.',
     }),
@@ -179,14 +167,16 @@ const pendingScanBodySchema = z
     path: ['code'],
   });
 
-// The update body: a JSON merge patch (RFC 7396) on the writable fields, as
-// ADR 0014 decided. An absent field stays as it is. A field set to null
-// clears it. The booking type is in the body so that a client can send the
-// row back, but the update refuses a change of it.
+// The update body: a JSON merge patch (RFC 7396) on the writable fields, as ADR
+// 0014 decided. An absent field stays as it is. A field set to null clears
+// it. The booking type is in the body for two reasons. A client can send the
+// row back, and a client can flip a row between Consume and Transfer. The
+// update refuses any other change of it.
 const pendingScanUpdateSchema = z.strictObject({
   amount: z.number().nullable().optional().meta({ description: 'The amount.' }),
   bookingType: z.enum(BOOKING_TYPES).optional().meta({
-    description: 'The booking that the accept makes. Set at create.',
+    description:
+      'The booking that the accept makes. Set at create. An update can flip it between consume and transfer only.',
   }),
   code: z
     .string()
@@ -199,12 +189,10 @@ const pendingScanUpdateSchema = z.strictObject({
     .nullable()
     .optional()
     .meta({ description: 'The due date.' }),
-  locationId: z
-    .int()
-    .positive()
-    .nullable()
-    .optional()
-    .meta({ description: 'The id of the location.' }),
+  locationId: z.int().positive().nullable().optional().meta({
+    description:
+      'The id of the location. Consume and Transfer: the "from" location.',
+  }),
   note: z.string().nullable().optional().meta({ description: 'The note.' }),
   price: z
     .number()
@@ -228,7 +216,15 @@ const pendingScanUpdateSchema = z.strictObject({
     .optional()
     .meta({ description: 'The id of the product.' }),
   quantityUnitId: z.int().positive().nullable().optional().meta({
-    description: 'The id of the quantity unit of the amount. Purchase only.',
+    description:
+      'The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.',
+  }),
+  spoiled: z.boolean().optional().meta({
+    description: 'Whether the product was spoiled. Consume only.',
+  }),
+  stockEntryId: z.string().min(1).nullable().optional().meta({
+    description:
+      'The Grocy stock_id of the one stock entry that the accept takes.',
   }),
   storeId: z
     .int()
@@ -236,6 +232,9 @@ const pendingScanUpdateSchema = z.strictObject({
     .nullable()
     .optional()
     .meta({ description: 'The id of the store.' }),
+  toLocationId: z.int().positive().nullable().optional().meta({
+    description: 'The id of the "to" location of a Transfer.',
+  }),
   writeInName: z.string().nullable().optional().meta({
     description: 'The product name that the user typed on the scan screen.',
   }),

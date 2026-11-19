@@ -115,6 +115,16 @@ The API tests start the two mocks on ports 18082 and 18083, so the API tests
 and the end-to-end tests can run at one time. The mocks hold no state. A
 booking in the Grocy mock returns a fixed stock log row and changes nothing.
 
+All browsers run against the one API. A spec file owns its notes and its
+codes, so the same file in two browsers at one time would change the rows of
+the other browser. Thus each spec file imports `test` and `expect` from
+`apps/web-e2e/src/fixtures.ts`, not from `@playwright/test`. Its file lock
+makes a test wait while a test of the same file runs in another browser. The
+tests of one browser still run in parallel. A note must not contain another
+note, because a row filter by text also finds the longer note. The same file
+fails a test when its page has an uncaught error. The failure message has
+the test title and the error text.
+
 ### The camera files
 
 The camera tests run on Chromium only, with the Chromium fake camera, as ADR

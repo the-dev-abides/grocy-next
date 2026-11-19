@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 // The product list page reads the `items` envelope of the Next API through
 // the generated API slice. The Next API lists the six active fixture products

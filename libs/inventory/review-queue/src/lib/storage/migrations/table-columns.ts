@@ -5,9 +5,15 @@ import type { TableColumnOptions } from 'typeorm/schema-builder/options/TableCol
 // of the entity schemas, so one migration creates a table on SQLite and
 // PostgreSQL. A `Date` column is `datetime` on SQLite and `timestamp` on
 // PostgreSQL. A JSON column is `text`, as the `simple-json` type of the entity
-// schema stores it.
+// schema stores it. A `boolean` column is `boolean` on both engines.
 export type ColumnType =
-  'date' | 'float' | 'integer' | 'text' | 'varchar' | DateConstructor;
+  | 'boolean'
+  | 'date'
+  | 'float'
+  | 'integer'
+  | 'text'
+  | 'varchar'
+  | DateConstructor;
 
 // One column of a table. The driver of the connection maps the TypeORM type
 // name to its own type.

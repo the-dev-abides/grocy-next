@@ -1,4 +1,7 @@
-import type { QuantityUnitConversion } from '@grocy-next/inventory-products';
+import type {
+  ProductDetails,
+  QuantityUnitConversion,
+} from '@grocy-next/inventory-products';
 
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 
@@ -21,6 +24,9 @@ export interface ProductUnits {
   stockUnitId: number;
 }
 
+// The stock unit of the product and the resolved conversions of the product.
+export type StockUnit = Pick<ProductUnits, 'conversions' | 'stockUnitId'>;
+
 // The amount in the stock unit and the price per stock unit, as the Grocy
 // purchase takes them.
 export interface StockUnitPurchase {
@@ -28,10 +34,13 @@ export interface StockUnitPurchase {
   price: null | number;
 }
 
-// The factor from the scanned unit to the stock unit. The stock unit
-// converts to itself with factor 1. Any other unit needs a resolved
-// conversion to the stock unit. None is the no-conversion problem.
-function factorOf(unitId: number, product: ProductUnits): number {
+// The factor from one unit to the stock unit, or null when the product has
+// no resolved conversion between them. The stock unit converts to itself
+// with factor 1.
+export function stockFactorOf(
+  unitId: number,
+  product: StockUnit,
+): null | number {
   if (unitId === product.stockUnitId) {
     return 1;
   }
@@ -41,13 +50,42 @@ function factorOf(unitId: number, product: ProductUnits): number {
       row.toQuantityUnitId === product.stockUnitId
     );
   });
-  if (conversion === undefined) {
+  return conversion?.factor ?? null;
+}
+
+// The factor from the scanned unit to the stock unit. A unit with no
+// resolved conversion to the stock unit is the no-conversion problem.
+function factorOf(unitId: number, product: StockUnit): number {
+  const factor = stockFactorOf(unitId, product);
+  if (factor === null) {
     throw new ProblemException(
       PROBLEM_TYPES.noConversion,
       `The product has no conversion from the quantity unit ${String(unitId)} to the stock unit ${String(product.stockUnitId)}.`,
     );
   }
-  return conversion.factor;
+  return factor;
+}
+
+// The unit of a Consume row or a Transfer row with no unit, as ADR 0010
+// decided. It is the consume unit on a Consume and the stock unit on a
+// Transfer.
+export function emptyUnitIdOf(
+  bookingType: 'consume' | 'transfer',
+  product: Pick<ProductDetails, 'consumeUnitId' | 'stockUnitId'>,
+): number {
+  return bookingType === 'consume'
+    ? product.consumeUnitId
+    : product.stockUnitId;
+}
+
+// This function converts an amount in one unit to the stock unit. A Consume
+// uses it, as the Grocy consume form converts the amount before the call.
+export function toStockAmount(
+  amount: number,
+  unitId: number,
+  product: StockUnit,
+): number {
+  return amount * factorOf(unitId, product);
 }
 
 // This function converts the entered amount and price of a Purchase pending

@@ -1320,7 +1320,7 @@
                 }
               }
             },
-            "description": "The pending scan has no product\n\nThe pending scan has no amount"
+            "description": "The pending scan has no product\n\nThe pending scan has no amount\n\nThe Transfer has no \"to\" location"
           },
           "415": {
             "content": {
@@ -1340,7 +1340,7 @@
                 }
               }
             },
-            "description": "An id names nothing in Grocy\n\nThe product has no conversion to the stock unit\n\nGrocy refused the change"
+            "description": "An id names nothing in Grocy\n\nThe product has no conversion to the stock unit\n\nThe amount is above the stock\n\nGrocy refused the change"
           },
           "502": {
             "content": {
@@ -1564,6 +1564,10 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
             "description": "The purchase date.",
             "nullable": true
+          },
+          "stockId": {
+            "type": "string",
+            "description": "The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text."
           }
         },
         "required": [
@@ -1572,7 +1576,74 @@
           "id",
           "locationId",
           "open",
-          "purchasedDate"
+          "purchasedDate",
+          "stockId"
+        ],
+        "additionalProperties": false
+      },
+      "SubProductStockEntry": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The amount in the stock unit of the parent product."
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The due date of the stock entry.",
+            "nullable": true
+          },
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the stock entry."
+          },
+          "locationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the location.",
+            "nullable": true
+          },
+          "open": {
+            "type": "boolean",
+            "description": "Whether the stock entry is open."
+          },
+          "purchasedDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "description": "The purchase date.",
+            "nullable": true
+          },
+          "stockId": {
+            "type": "string",
+            "description": "The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text."
+          },
+          "canBeOpened": {
+            "type": "boolean",
+            "description": "Whether the open on consume can open the rest of the stock entry. It is false for a sub-product with \"cannot be opened\" or with tare weight handling."
+          },
+          "productId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the sub-product of the stock entry."
+          }
+        },
+        "required": [
+          "amount",
+          "dueDate",
+          "id",
+          "locationId",
+          "open",
+          "purchasedDate",
+          "stockId",
+          "canBeOpened",
+          "productId"
         ],
         "additionalProperties": false
       },
@@ -1593,6 +1664,23 @@
           "name": {
             "type": "string",
             "description": "The name of the product."
+          },
+          "canBeOpened": {
+            "type": "boolean",
+            "description": "Whether the product can be opened. It is false for a product with the Grocy setting \"cannot be opened\"."
+          },
+          "consumeLocationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the default consume location, or null.",
+            "nullable": true
+          },
+          "consumeUnitId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the consume quantity unit. The empty unit of a Consume is this unit."
           },
           "conversions": {
             "type": "array",
@@ -1660,6 +1748,13 @@
             "maximum": 9007199254740991,
             "description": "The id of the stock quantity unit."
           },
+          "subProductStockEntries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubProductStockEntry"
+            },
+            "description": "The stock entries of the sub-products of a parent product, in the Grocy consume order. A Consume of the parent product takes them after the sub-product substitution. The list is empty for a product that is no parent product."
+          },
           "tareWeight": {
             "description": "The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight.",
             "type": "number",
@@ -1670,6 +1765,9 @@
           "description",
           "id",
           "name",
+          "canBeOpened",
+          "consumeLocationId",
+          "consumeUnitId",
           "conversions",
           "defaultDueDays",
           "hasPicture",
@@ -1682,6 +1780,7 @@
           "stockAmount",
           "stockEntries",
           "stockUnitId",
+          "subProductStockEntries",
           "tareWeight"
         ],
         "additionalProperties": false
@@ -1869,7 +1968,7 @@
           },
           "bookingType": {
             "type": "string",
-            "enum": ["inventory", "purchase"],
+            "enum": ["consume", "inventory", "purchase", "transfer"],
             "description": "The booking that the accept makes."
           },
           "code": {
@@ -1884,7 +1983,7 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
           },
           "locationId": {
-            "description": "The id of the location.",
+            "description": "The id of the location. Consume and Transfer: the \"from\" location.",
             "type": "integer",
             "exclusiveMinimum": true,
             "maximum": 9007199254740991,
@@ -1918,14 +2017,30 @@
             "minimum": 0
           },
           "quantityUnitId": {
-            "description": "The id of the quantity unit of the amount. Purchase only.",
+            "description": "The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.",
             "type": "integer",
             "exclusiveMinimum": true,
             "maximum": 9007199254740991,
             "minimum": 0
           },
+          "spoiled": {
+            "description": "Whether the product was spoiled. Consume only.",
+            "type": "boolean"
+          },
+          "stockEntryId": {
+            "description": "The Grocy stock_id of the one stock entry that the accept takes.",
+            "type": "string",
+            "minLength": 1
+          },
           "storeId": {
             "description": "The id of the store.",
+            "type": "integer",
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991,
+            "minimum": 0
+          },
+          "toLocationId": {
+            "description": "The id of the \"to\" location of a Transfer.",
             "type": "integer",
             "exclusiveMinimum": true,
             "maximum": 9007199254740991,
@@ -2004,13 +2119,13 @@
         "type": "object",
         "properties": {
           "amount": {
-            "description": "The amount. Purchase: in the unit quantityUnitId, or the purchase unit of the product. Inventory: the new own stock in the stock unit.",
+            "description": "The amount. Purchase, Consume, and Transfer: in the unit quantityUnitId, or else the purchase unit, the consume unit, or the stock unit of the product. Inventory: the new own stock in the stock unit.",
             "type": "number",
             "nullable": true
           },
           "bookingType": {
             "type": "string",
-            "enum": ["inventory", "purchase"],
+            "enum": ["consume", "inventory", "purchase", "transfer"],
             "description": "The booking that the accept makes."
           },
           "code": {
@@ -2053,7 +2168,7 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "The id of the location.",
+            "description": "The id of the location. Consume and Transfer: the \"from\" location.",
             "nullable": true
           },
           "lookupResult": {
@@ -2105,7 +2220,7 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "The id of the quantity unit of the amount. Purchase only.",
+            "description": "The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.",
             "nullable": true
           },
           "scannedAt": {
@@ -2114,11 +2229,27 @@
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
             "description": "The time of the scan, in UTC."
           },
+          "spoiled": {
+            "type": "boolean",
+            "description": "Whether the product was spoiled. Consume only."
+          },
+          "stockEntryId": {
+            "description": "The Grocy stock_id of the one stock entry that the accept takes, or null.",
+            "type": "string",
+            "nullable": true
+          },
           "storeId": {
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
             "description": "The id of the store.",
+            "nullable": true
+          },
+          "toLocationId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "The id of the \"to\" location of a Transfer, or null.",
             "nullable": true
           },
           "updatedAt": {
@@ -2152,7 +2283,10 @@
           "productId",
           "quantityUnitId",
           "scannedAt",
+          "spoiled",
+          "stockEntryId",
           "storeId",
+          "toLocationId",
           "updatedAt",
           "writeInName"
         ],
@@ -2181,9 +2315,9 @@
             "nullable": true
           },
           "bookingType": {
-            "description": "The booking that the accept makes. Set at create.",
+            "description": "The booking that the accept makes. Set at create. An update can flip it between consume and transfer only.",
             "type": "string",
-            "enum": ["inventory", "purchase"]
+            "enum": ["consume", "inventory", "purchase", "transfer"]
           },
           "code": {
             "type": "string",
@@ -2202,7 +2336,7 @@
             "type": "integer",
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
-            "description": "The id of the location.",
+            "description": "The id of the location. Consume and Transfer: the \"from\" location.",
             "nullable": true
           },
           "note": {
@@ -2238,7 +2372,17 @@
             "type": "integer",
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
-            "description": "The id of the quantity unit of the amount. Purchase only.",
+            "description": "The id of the quantity unit of the amount. Purchase, Consume, and Transfer only.",
+            "nullable": true
+          },
+          "spoiled": {
+            "description": "Whether the product was spoiled. Consume only.",
+            "type": "boolean"
+          },
+          "stockEntryId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The Grocy stock_id of the one stock entry that the accept takes.",
             "nullable": true
           },
           "storeId": {
@@ -2246,6 +2390,13 @@
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
             "description": "The id of the store.",
+            "nullable": true
+          },
+          "toLocationId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "The id of the \"to\" location of a Transfer.",
             "nullable": true
           },
           "writeInName": {
@@ -2314,6 +2465,10 @@
             "description": "The purchase date.",
             "nullable": true
           },
+          "spoiled": {
+            "type": "boolean",
+            "description": "Whether the booking is a spoiled consume. False on every other booking."
+          },
           "stockEntryId": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -2341,6 +2496,7 @@
           "note",
           "price",
           "purchasedDate",
+          "spoiled",
           "stockEntryId",
           "storeId",
           "transactionType"
@@ -2355,11 +2511,11 @@
             "items": {
               "$ref": "#/components/schemas/StockLogRow"
             },
-            "description": "The stock log rows of the transaction."
+            "description": "The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. On a Transfer, the list holds a `transfer_from` row and a `transfer_to` row for each stock entry that Grocy moved."
           },
           "bookingType": {
             "type": "string",
-            "enum": ["inventory", "purchase"],
+            "enum": ["consume", "inventory", "purchase", "transfer"],
             "description": "The booking that the accept made."
           },
           "pendingScanId": {
@@ -2375,7 +2531,7 @@
             "description": "The id of the product."
           },
           "transactionId": {
-            "description": "The id of the Grocy transaction, or null on no change.",
+            "description": "The id of the Grocy transaction, or null on no change. On a Consume, it is the transaction of the consume, not of the open.",
             "type": "string",
             "nullable": true
           }

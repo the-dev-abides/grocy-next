@@ -1,6 +1,7 @@
 import type { QueueFilter } from './queue-filter';
 import type { QueueLists } from './use-review-queue';
 
+import { BOOKING_TYPES, bookingTypeChoices } from '../booking-types';
 import { ChoiceSelect, choicesOf } from './choice-select';
 import { type RowState, stateLabel } from './row-state';
 
@@ -10,6 +11,7 @@ const ALL = 'all';
 const STATES: readonly RowState[] = [
   'needs-product',
   'needs-count',
+  'needs-to-location',
   'failed',
   'ready',
 ];
@@ -18,6 +20,15 @@ const STATE_CHOICES = [
   { label: 'All states', value: ALL },
   ...STATES.map((state) => ({ label: stateLabel[state], value: state })),
 ];
+
+const BOOKING_TYPE_CHOICES = [
+  { label: 'All booking types', value: ALL },
+  ...bookingTypeChoices(BOOKING_TYPES),
+];
+
+function bookingTypeOf(value: string): QueueFilter['bookingType'] {
+  return BOOKING_TYPES.find((type) => type === value) ?? null;
+}
 
 function idOf(value: string): null | number {
   return value === ALL ? null : Number(value);
@@ -31,9 +42,9 @@ function stateOfValue(value: string): null | RowState {
   return STATES.find((state) => state === value) ?? null;
 }
 
-// The filter above the table: a location, a product group, and a state, as
-// the spec decided. The filter narrows the table and the rows that the bulk
-// actions act on.
+// The filter above the table: a booking type, a location, a product group, and
+// a state, as the spec decided. The filter narrows the table and the rows that
+// the bulk actions act on.
 export function FilterBar({
   filter,
   lists,
@@ -47,10 +58,18 @@ export function FilterBar({
     <div
       className="
         grid gap-3
-        sm:grid-cols-3
-        lg:max-w-3xl
+        sm:grid-cols-2
+        lg:max-w-4xl lg:grid-cols-4
       "
     >
+      <ChoiceSelect
+        choices={BOOKING_TYPE_CHOICES}
+        label="Booking type"
+        value={filter.bookingType ?? ALL}
+        onChange={(value) => {
+          onChange({ ...filter, bookingType: bookingTypeOf(value) });
+        }}
+      />
       <ChoiceSelect
         choices={choicesOf(
           [{ label: 'All locations', value: ALL }],

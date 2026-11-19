@@ -70,6 +70,16 @@ another product already has. A product picture upload and a product update
 answer 204. The product details never show the new product barcode or the
 picture, because the mock holds no state.
 
+A transfer of product 1 answers two fixed stock log rows, a `transfer_from`
+row at the Fridge and a `transfer_to` row at the Pantry, in one
+transaction. A transfer of the tare weight product 7 gets the Grocy error
+`Transferring tare weight enabled products is not yet possible`, as Grocy
+answers it.
+
+The user settings hold the two settings of the default consume amount, with
+the Grocy defaults: the default consume amount 1, and the quick consume
+amount setting off. The create of a Consume pending scan reads them.
+
 A product create answers the id 4 for every name except the name of product
 1, which gets the Grocy error of a name that another product already has.
 The create captures the name, the location, the two units, the minimum
@@ -191,6 +201,14 @@ none. The create captures its fields into the store `product9`. The details
 of product 9 read that store and have the factor 1000. Its resolved
 conversions are the household conversions between the Kilogram, the Gram,
 and the Ounce.
+
+A product create with the name `Oat drink 1 l` answers the id 10. The MCP
+tool test of the product create uses it. The create captures its fields into
+the store `product10`, and the details of product 10 read that store. The API
+test files run at the same time and share one Grocy mock. Thus each test file
+that creates a product must use its own id and its own store. If two files
+use the store `product`, a create in one file can change the read of
+product 4 in the other file, and a test fails sometimes.
 
 A conversion create captures the product, the two units, and the factor of
 the request into the store `created-conversion`. The mock holds no state, so

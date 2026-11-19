@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { cn } from 'cn';
 import { Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -90,25 +91,57 @@ export function RejectButton({ onReject }: Readonly<{ onReject: () => void }>) {
   );
 }
 
-// One row of the session list, shared by the two scan screens. The row shows
+// The row form under a row: whether it is open, and the tap on the name that
+// opens or closes it.
+export interface RowFormToggle {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+// One row of the session list, shared by the scan screens. A row with a row
+// form has its name as a button that opens or closes the form. The row shows
 // the name and a line with the time. It shows the details of the screen and the
-// service link of a lookup result. The controls of the screen are on the right.
+// service link of a lookup result. The controls of the screen are on the
+// right. A row that needs a field before the accept shows its line in red.
 export function PendingScanRow({
   children,
   details,
+  form,
+  isWarning = false,
   lists,
   scan,
 }: Readonly<{
   children: ReactNode;
   details: readonly string[];
+  form?: RowFormToggle;
+  isWarning?: boolean;
   lists: PendingScanRowLists;
   scan: PendingScan;
 }>) {
+  const name = <ScanName products={lists.products} scan={scan} />;
   return (
     <>
       <div className="min-w-0 flex-1">
-        <ScanName products={lists.products} scan={scan} />
-        <p className="truncate text-xs text-muted-foreground">
+        {form === undefined ? (
+          name
+        ) : (
+          <button
+            type="button"
+            aria-expanded={form.isOpen}
+            className="block max-w-full text-left"
+            onClick={form.onToggle}
+          >
+            {name}
+          </button>
+        )}
+        <p
+          className={cn(
+            'truncate text-xs',
+            isWarning
+              ? 'font-medium text-destructive'
+              : 'text-muted-foreground',
+          )}
+        >
           <time dateTime={scan.scannedAt}>{timeOf(scan.scannedAt)}</time>
           {details.map((detail) => ` · ${detail}`).join('')}
           <ServiceLink scan={scan} />

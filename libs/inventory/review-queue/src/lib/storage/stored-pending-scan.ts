@@ -2,7 +2,8 @@ import type { ValueTransformer } from 'typeorm';
 
 import { EntitySchema } from 'typeorm';
 
-import type { BookingType, LookupResult, PriceType } from '../pending-scan.ts';
+import type { LookupResult } from '../lookup-result.ts';
+import type { BookingType, PriceType } from '../pending-scan.ts';
 
 // One pending scan as the Grocy Next storage holds it. The shape is the pending
 // scan of the Next API. A timestamp is RFC 3339 text in UTC, a due date is
@@ -26,7 +27,10 @@ export interface StoredPendingScan {
   productId: null | number;
   quantityUnitId: null | number;
   scannedAt: string;
+  spoiled: boolean;
+  stockEntryId: null | string;
   storeId: null | number;
+  toLocationId: null | number;
   updatedAt: string;
   writeInName: null | string;
 }
@@ -68,7 +72,10 @@ export const storedPendingScanSchema = new EntitySchema<StoredPendingScan>({
     productId: { nullable: true, type: 'integer' },
     quantityUnitId: { nullable: true, type: 'integer' },
     scannedAt: { transformer: timestamp, type: Date },
+    spoiled: { default: false, type: 'boolean' },
+    stockEntryId: { nullable: true, type: 'varchar' },
     storeId: { nullable: true, type: 'integer' },
+    toLocationId: { nullable: true, type: 'integer' },
     updatedAt: { transformer: timestamp, type: Date },
     writeInName: { nullable: true, type: 'varchar' },
   },

@@ -1,6 +1,3 @@
-import type { ProductDetails } from '@grocy-next/inventory-products';
-
-import { GrocyClient, grocyRefused } from '@grocy-next/inventory-products';
 import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,16 +15,10 @@ import type { StoredPendingScan } from './storage/stored-pending-scan.ts';
 import { LookupWorker } from './lookup/lookup-worker.ts';
 import { pendingScanToStore } from './pending-scan-to-store.ts';
 import { updatedPendingScan } from './pending-scan-update.ts';
-import { ProductPictures } from './product-picture.ts';
-import { readActiveProduct } from './read-product.ts';
+import { ProductLink } from './product-link.ts';
 import { findRepeatTarget, mergedPendingScan } from './repeat-scan.ts';
-import { resolveCode } from './resolve-code.ts';
-import {
-  changedProductIdOf,
-  hasBarcode,
-  linkNutritionFacts,
-  withProduct,
-} from './set-product.ts';
+import { ScanDefaults } from './scan-defaults.ts';
+import { changedProductIdOf, linkNutritionFacts } from './set-product.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 import { now } from './storage/timestamp.ts';
 
@@ -45,9 +36,9 @@ export class PendingScansService {
   constructor(
     @InjectRepository(storedPendingScanSchema)
     private readonly pendingScans: Repository<StoredPendingScan>,
-    private readonly grocy: GrocyClient,
     private readonly lookups: LookupWorker,
-    private readonly pictures: ProductPictures,
+    private readonly defaults: ScanDefaults,
+    private readonly productLink: ProductLink,
   ) {}
 
   // The update that sets a product, as the spec decided. The Grocy writes come
@@ -59,32 +50,11 @@ export class PendingScansService {
     updated: StoredPendingScan,
     productId: number,
   ): Promise<PendingScan> {
-    const product = await readActiveProduct(this.grocy, productId);
-    const productBarcodeId = await this.addBarcode(product, updated.code);
-    await this.pictures.setFromLookup(product, updated.lookupResult);
-    const row = withProduct(updated, product, productBarcodeId);
+    const row = await this.productLink.link(updated, productId);
     return this.pendingScans.manager.transaction(async (manager) => {
       await linkNutritionFacts(manager, row);
       return manager.save(storedPendingScanSchema, row);
     });
-  }
-
-  // When the row has a code, the code goes to the product as a product
-  // barcode. This happens only when the product has no product barcode with
-  // that code. The result is the id of the new product barcode, or null when
-  // none was added. A Grocy refusal is the grocy-refused problem of ADR 0014.
-  private async addBarcode(
-    product: ProductDetails,
-    code: null | string,
-  ): Promise<null | number> {
-    if (code === null || hasBarcode(product, code)) {
-      return null;
-    }
-    const result = await this.grocy.createProductBarcode(product.id, code);
-    if (result.isRefused) {
-      throw grocyRefused(result.grocy);
-    }
-    return result.id;
   }
 
   // The create call of ADR 0010: the Grocy reads first, then one database
@@ -94,17 +64,14 @@ export class PendingScansService {
   // a row that the worker already took. A repeat Inventory scan writes
   // nothing and returns the open row. A lookup result is never in the
   // create response. A product id in the body must name an active product,
-  // else the create is the unknown-id problem.
+  // else the create is the unknown-id problem. A Consume and a Transfer also
+  // read the defaults of the Grocy form of the booking type.
   async create(
     body: CreatePendingScan,
     repeatRule: RepeatRule,
   ): Promise<CreateResult> {
-    if (body.productId !== undefined) {
-      await readActiveProduct(this.grocy, body.productId);
-    }
-    const match =
-      body.code === undefined ? null : await resolveCode(this.grocy, body.code);
-    const row = pendingScanToStore(body, match, now());
+    const { defaults, match } = await this.defaults.readCreate(body);
+    const row = pendingScanToStore(body, match, now(), defaults);
     const result = await this.pendingScans.manager.transaction(
       async (manager) => {
         const target =
@@ -113,7 +80,7 @@ export class PendingScansService {
           const pendingScan = await manager.save(storedPendingScanSchema, row);
           return { isMerged: false, pendingScan };
         }
-        const merged = mergedPendingScan(target, match, body, row.scannedAt);
+        const merged = mergedPendingScan(target, row, body);
         const pendingScan =
           merged === null
             ? target
@@ -162,7 +129,7 @@ export class PendingScansService {
       return this.setProduct(updated, productId);
     }
     if (typeof body.productId === 'number') {
-      await readActiveProduct(this.grocy, body.productId);
+      await this.defaults.readProduct(body.productId);
     }
     return this.pendingScans.save(updated);
   }

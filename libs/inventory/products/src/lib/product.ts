@@ -21,7 +21,8 @@ const productListItemSchema = z
 
 // One stock entry of a product: one amount of the product in stock, with
 // its own due date, purchase date, location, and open state. The amount is
-// in the stock unit.
+// in the stock unit. The stock id is the Grocy `stock_id` text, by which a
+// pending scan names the stock entry.
 const stockEntrySchema = z
   .strictObject({
     amount: z.number().meta({ description: 'The amount in the stock unit.' }),
@@ -39,8 +40,31 @@ const stockEntrySchema = z
       .date()
       .nullable()
       .meta({ description: 'The purchase date.' }),
+    stockId: z.string().meta({
+      description:
+        'The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text.',
+    }),
   })
   .meta({ id: 'StockEntry' });
+
+// One stock entry of a sub-product of a parent product. A Consume of the
+// parent product takes it, as the Grocy consume form does with the
+// sub-product substitution. The amount is in the stock unit of the parent
+// product, so the stock entry lines add it to the own stock.
+const subProductStockEntrySchema = stockEntrySchema
+  .extend({
+    amount: z.number().meta({
+      description: 'The amount in the stock unit of the parent product.',
+    }),
+    canBeOpened: z.boolean().meta({
+      description:
+        'Whether the open on consume can open the rest of the stock entry. It is false for a sub-product with "cannot be opened" or with tare weight handling.',
+    }),
+    productId: z
+      .int()
+      .meta({ description: 'The id of the sub-product of the stock entry.' }),
+  })
+  .meta({ id: 'SubProductStockEntry' });
 
 // One resolved conversion of a product: the factor from one quantity unit
 // to another. An amount in the from unit times the factor is the amount in
@@ -65,11 +89,23 @@ export const quantityUnitConversionSchema = z
 // also carries the facts that the scan screens and the review queue need at
 // display time. These facts are the own stock, the stock entries in the Grocy
 // consume order, the resolved conversions, the parent flag, and the tare
-// weight. The schema is strict, so a response carries these fields and nothing
-// else.
+// weight. They also include the consume facts: the open flag, the default
+// consume location, and the consume unit. The schema is strict, so a response
+// carries these fields and nothing else.
 const productSchema = z
   .strictObject({
     ...productFields,
+    canBeOpened: z.boolean().meta({
+      description:
+        'Whether the product can be opened. It is false for a product with the Grocy setting "cannot be opened".',
+    }),
+    consumeLocationId: z.int().nullable().meta({
+      description: 'The id of the default consume location, or null.',
+    }),
+    consumeUnitId: z.int().meta({
+      description:
+        'The id of the consume quantity unit. The empty unit of a Consume is this unit.',
+    }),
     conversions: z.array(quantityUnitConversionSchema).meta({
       description: 'The resolved conversions of the product.',
     }),
@@ -112,6 +148,10 @@ const productSchema = z
     stockUnitId: z
       .int()
       .meta({ description: 'The id of the stock quantity unit.' }),
+    subProductStockEntries: z.array(subProductStockEntrySchema).meta({
+      description:
+        'The stock entries of the sub-products of a parent product, in the Grocy consume order. A Consume of the parent product takes them after the sub-product substitution. The list is empty for a product that is no parent product.',
+    }),
     tareWeight: z.number().nullable().meta({
       description:
         'The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight.',
@@ -197,6 +237,7 @@ export type QuantityUnitConversion = z.infer<
   typeof quantityUnitConversionSchema
 >;
 export type StockEntry = z.infer<typeof stockEntrySchema>;
+export type SubProductStockEntry = z.infer<typeof subProductStockEntrySchema>;
 
 // The DTO classes carry the schemas into the OpenAPI document and the
 // validation pipe. The class name is the schema name in the document. The

@@ -22,6 +22,13 @@ different device or browser when they need one.
 | QA-004     | Decode in the worker at speed on the test phone        | The test phone, in Chrome |
 | QA-005     | Hear and feel the scan feedback after the permission   | The test phone, in Chrome |
 | QA-006     | See the Open Facts image in the browser on the phone   | The test phone, in Chrome |
+| QA-007     | Scan with a USB hardware scanner on a desktop browser  | A desktop browser         |
+| QA-008     | Scan with a Bluetooth hardware scanner on the phone    | The test phone, in Chrome |
+| QA-009     | Scan with a keyboard layout that is not US             | A desktop browser         |
+| QA-010     | Scan with a host layout that differs from the scanner  | A desktop browser         |
+| QA-011     | Scan while the amount field of a row has the focus     | A desktop browser         |
+| QA-012     | Scan a GS1 DataMatrix code with a group separator      | A desktop browser         |
+| QA-013     | Consume and transfer with the camera, then accept both | The test phone, in Chrome |
 
 ## QA-001 Install the app from the manifest
 
@@ -235,3 +242,249 @@ Steps:
 7. Swipe the row to the left past the middle of the screen on the Purchase
    scan screen, or reject it in the review queue.
    Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-007 Scan with a USB hardware scanner on a desktop browser
+
+Device or browser: a desktop computer with a current Chrome, Firefox, or
+Safari, and a USB hardware scanner in keyboard mode. A hardware scanner is a
+device that reads a code and sends the code to the app as key presses.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- The hardware scanner sends Enter after the code and sends no code prefix
+  (the AIM identifier). The host keyboard layout and the layout of the
+  hardware scanner are both US.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen from the sidebar. Click on the title of
+   the screen, so that no field and no button has the focus.
+   Expected: the list is empty.
+2. Scan the barcode `5449000000996` with the hardware scanner.
+   Expected: one row with the product name of the code appears at the top of
+   the list. The frame of the camera picture turns green, and the banner
+   shows the product name. The line at the bottom left of the camera picture
+   shows the word `Scanner`.
+3. Scan the same barcode again.
+   Expected: the banner shows `+1`, and the row shows the amount `2`. Each
+   scan makes one create call, so two scans count two.
+4. Click `Done`, then reject the row in the review queue.
+   Expected: the row is gone.
+5. Open the Inventory scan screen from the sidebar. Click on the title of
+   the screen. Scan the barcode `5449000000996`.
+   Expected: one row with the product name and the Grocy stock appears. The
+   line at the bottom left of the camera picture shows the word `Scanner`.
+6. Click the `Add` button of the code field, then press Enter on the
+   keyboard.
+   Expected: the focused button works as before. An Enter with no code does
+   nothing to the list.
+7. Reject the row.
+   Expected: the row is gone.
+8. Open the Consume and Transfer scan screen from the sidebar. Click on the
+   title of the screen. Scan the barcode `5449000000996`.
+   Expected: one Consume row with the product name and the fork and knife
+   icon appears. The line at the bottom left of the camera picture shows the
+   word `Scanner`.
+9. Tap `Transfer` on the switch under the camera. Click on the title of the
+   screen. Scan the barcode `5449000000996`.
+   Expected: one Transfer row with the two arrows icon appears. The list has
+   two rows.
+10. Reject the two rows. Use the `Reject` button in the row form, which
+    opens when you click the product name of the row.
+    Expected: the rows are gone. The test leaves no pending scan of the
+    code.
+
+## QA-008 Scan with a Bluetooth hardware scanner on the phone
+
+Device or browser: the test phone, in Chrome, and a Bluetooth hardware
+scanner in keyboard mode.
+
+Preconditions:
+
+- The build under test runs, and the phone reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- The hardware scanner is paired with the phone, sends Enter after the code,
+  and sends no code prefix.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen from the sidebar. Tap on the title of the
+   screen, so that no field has the focus.
+   Expected: the soft keyboard does not open.
+2. Scan the barcode `5449000000996` with the hardware scanner.
+   Expected: one row with the product name appears. The phone plays the
+   sound and vibrates as for a camera scan. The line at the bottom left of
+   the camera picture shows the word `Scanner`. The soft keyboard does not
+   open.
+3. Scan the same barcode again.
+   Expected: the row shows the amount `2`. The list still has one row.
+4. Open the Android settings, then `System`, `Keyboard`, and `Physical
+keyboard`. Turn on `Use on-screen keyboard`. The name of the path can
+   differ on the phone. On some phones the setting is `Show virtual
+keyboard`.
+   Expected: the setting is on.
+5. Go back to the app and tap the code field.
+   Expected: the soft keyboard opens while the hardware scanner is
+   connected.
+6. Reject the row.
+   Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-009 Scan with a keyboard layout that is not US
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The host keyboard layout is not US, for example German or French. The
+  hardware scanner is set to the same layout.
+- A Code 128 or QR code with letters, digits, and the symbols
+  `@ # / - .` is at hand, for example `AB-12/34@x.y#z`.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the code.
+   Expected: one row with the bare text of the code appears. The text on the
+   row is the same as the text in the code, symbol for symbol.
+3. Reject the row.
+   Expected: the row is gone.
+
+## QA-010 Scan with a host layout that differs from the scanner
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The host keyboard layout is not the layout of the hardware scanner, for
+  example a German host and a US hardware scanner.
+- The same code as in QA-009 is at hand.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the code.
+   Expected: one row appears. The symbols, and on some layouts the letters
+   `y` and `z`, can be wrong. The app does not correct them. Record in the
+   test run the text on the row and the two layouts.
+3. Reject the row.
+   Expected: the row is gone.
+
+## QA-011 Scan while the amount field of a row has the focus
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The API reaches a Grocy with the product barcode `5449000000996`, or the
+  Grocy mock of the end-to-end tests.
+- A printed EAN-13 barcode `5449000000996` is at hand.
+
+Steps:
+
+1. Open the Consume and Transfer scan screen. Type `5449000000996` into the
+   code field and click `Add`.
+   Expected: one Consume row with the product name of the code appears.
+2. Click the product name of the row.
+   Expected: the row form opens under the row, with the field `Amount`.
+3. Click into the field `Amount`, so that the field has the focus. Then
+   scan the barcode `5449000000996` with the hardware scanner.
+   Expected: the digits of the code go into the field, after the amount.
+   The Enter of the hardware scanner stores the text of the field as the
+   amount of the row. The app makes no new row. The line at the bottom left
+   of the camera picture does not show the word `Scanner`.
+4. Select the text of the field `Amount`, type `1`, and press Enter.
+   Expected: the row shows the amount `1`.
+5. Click `Reject` in the row form.
+   Expected: the row is gone. The test leaves no pending scan of the code.
+
+## QA-012 Scan a GS1 DataMatrix code with a group separator
+
+Device or browser: a desktop browser, and a USB hardware scanner in keyboard
+mode that sends the group separator as Ctrl plus `]`.
+
+Preconditions:
+
+- The build under test runs, and the computer reaches it.
+- The hardware scanner sends no code prefix.
+- A GS1 DataMatrix code with two variable-length elements is at hand, for
+  example the batch `(10)ABC123` followed by the serial `(21)XYZ`. A group
+  separator is between the two elements.
+
+Steps:
+
+1. Open the Purchase scan screen. Click on the title of the screen.
+   Expected: no field has the focus.
+2. Scan the DataMatrix code.
+   Expected: one row with the bare code appears.
+3. Read the code of the row with the API:
+   `GET /api/v2/pending-scans`.
+   Expected: the code of the row holds the group separator character
+   (0x1D, written `\u001d` in the JSON) between `ABC123` and `21XYZ`.
+4. Reject the row.
+   Expected: the row is gone.
+
+## QA-013 Consume and transfer with the camera, then accept both
+
+Device or browser: the test phone, in Chrome.
+
+This case is the exit condition of the Consume and Transfer milestone.
+
+Preconditions:
+
+- The build under test runs, and the phone reaches it over HTTPS. Chrome
+  gives the camera to a secure origin only.
+- The API reaches a Grocy with stock of two products. Each product has a
+  product barcode, and each barcode is at hand as a printed or on-screen
+  barcode. Use a Grocy for tests, because the accept changes the stock.
+- Grocy has at least two locations.
+- Note the stock and the locations of the two products in Grocy before the
+  test.
+
+Steps:
+
+1. Open the Consume and Transfer scan screen from the sidebar.
+   Expected: the camera starts with no tap. The strip under the camera
+   reads `The next scan is a Consume`.
+2. Point the camera at the barcode of the first product.
+   Expected: the frame turns green. The banner shows the product name and a
+   line that starts with `Consume ·`.
+   One Consume row with the product name and the fork and knife icon
+   appears. The detail line names the "from" location.
+3. Tap `Transfer` on the switch, then pick a "to" location in `To` that is
+   not the location of the second product.
+   Expected: the strip reads `The next scan is a Transfer to` and the name
+   of the location.
+4. Point the camera at the barcode of the second product.
+   Expected: the frame turns green. The banner shows the product name and a
+   line that starts with `Transfer ·`.
+   One Transfer row with the two arrows icon appears. The detail line shows
+   the "from" location, an arrow, and the "to" location.
+5. Tap `Done`.
+   Expected: the review queue opens. It shows the Consume row and the
+   Transfer row with the state `Ready`. Each row shows its stock entry
+   lines.
+6. Tap `Accept` on the Consume row.
+   Expected: the result panel shows the consume of the first product. When
+   the consume took a part of a sealed pack, it also shows the open of the
+   rest. The row is gone.
+7. Tap `Accept` on the Transfer row.
+   Expected: the result panel shows one `transfer_from` booking and one
+   `transfer_to` booking. The row is gone.
+8. Open Grocy and look at the stock of the two products.
+   Expected: the stock of the first product is less by the amount of the
+   Consume. The second product has the amount of the Transfer at the "to"
+   location.

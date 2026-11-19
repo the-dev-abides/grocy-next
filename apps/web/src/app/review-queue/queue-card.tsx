@@ -1,24 +1,29 @@
 import { cn } from 'cn';
 import { Check, Minus, Plus, RotateCw, Trash2 } from 'lucide-react';
+import { memo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import type { PendingScan, Product } from '../api/next-api';
-import type { ResultLine } from './result-panel';
+import type { RowProperties } from './row-properties';
 import type { RowState } from './row-state';
 import type { QueueLists } from './use-review-queue';
 import type { RowActions } from './use-row-actions';
 
+import { bookingTypeLabel } from '../booking-types';
 import { dueDateText, nameOf, priceText, timeOf } from '../scan/scan-text';
 import { nextAmount } from '../scan/swipe';
 import { SwipeRow } from '../scan/swipe-row';
+import { BookingTypeIcon } from './booking-type-icon';
 import { CountField } from './count-field';
-import { InventoryLines } from './inventory-lines';
 import { ProductButtons } from './product-buttons';
 import { ErrorLine, RowMeta, RowName, StateBadge } from './product-cell';
+import { ProductLines } from './product-lines';
 import { RowEditButton } from './row-edit-button';
-import { amountText, bookingTypeLabel } from './row-text';
+import { isSameRowProperties } from './row-properties';
+import { RowSpoiledButton } from './row-spoiled-button';
+import { amountText, locationText } from './row-text';
 import { useRowFacts } from './use-row-facts';
 
 // Every fact of the row on one line, as the card has no columns. The facts are
@@ -37,7 +42,7 @@ function CardFacts({
       {bookingTypeLabel[scan.bookingType]} ·{' '}
       <time dateTime={scan.scannedAt}>{timeOf(scan.scannedAt)}</time>
       {' · '}
-      {nameOf(lists.locations, scan.locationId, 'Product default')}
+      {locationText(scan, lists.locations)}
       {' · '}
       {dueDateText(scan.dueDate)}
       {purchase}
@@ -140,7 +145,8 @@ function AcceptButton({
   );
 }
 
-// The buttons of a card: the full form, Reject, and the accept. A card that
+// The buttons of a card: the spoiled trash can of a Consume, the full form,
+// Reject, and the accept. A card that
 // needs a product shows Pick product and New product in place of the
 // accept.
 function CardButtons({
@@ -160,6 +166,7 @@ function CardButtons({
 }>) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <RowSpoiledButton actions={actions} scan={scan} size="icon-lg" />
       <RowEditButton
         actions={actions}
         lists={lists}
@@ -196,23 +203,19 @@ function cardClass(state: RowState, isChecked: boolean, isBusy: boolean) {
   );
 }
 
-// One card of the review queue, with the facts and the actions of a table row in big controls. The checkbox feeds the same checked set as the table.
-// A swipe to the left rejects the row.
-export function QueueCard({
+// One card of the review queue. It has the facts and the actions of a table row
+// in big controls. The checkbox feeds the same checked set as the table. The
+// booking type icon comes after the checkbox. A swipe to the left rejects the
+// row.
+function QueueCardView({
+  chainRows,
   isChecked,
   lists,
   onChanged,
   onResult,
   onToggle,
   scan,
-}: Readonly<{
-  isChecked: boolean;
-  lists: QueueLists;
-  onChanged: () => void;
-  onResult: (line: Omit<ResultLine, 'key'>) => void;
-  onToggle: () => void;
-  scan: PendingScan;
-}>) {
+}: Readonly<RowProperties>) {
   const facts = useRowFacts({ lists, onChanged, onResult, scan });
   const { actions, name, product, state, unit } = facts;
   return (
@@ -226,8 +229,11 @@ export function QueueCard({
           aria-label={`Check ${name}`}
           checked={isChecked}
           className="mt-1"
-          onCheckedChange={onToggle}
+          onCheckedChange={() => {
+            onToggle(scan.id);
+          }}
         />
+        <BookingTypeIcon scan={scan} size="icon-lg" onSave={actions.save} />
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1.5 text-base">
             <RowName name={name} scan={scan} />
@@ -239,7 +245,13 @@ export function QueueCard({
           <CardFacts lists={lists} scan={scan} />
         </div>
       </div>
-      <InventoryLines lists={lists} product={product} scan={scan} unit={unit} />
+      <ProductLines
+        chainRows={chainRows}
+        lists={lists}
+        product={product}
+        scan={scan}
+        unit={unit}
+      />
       <ErrorLine error={scan.error} />
       <CardAmount
         actions={actions}
@@ -252,3 +264,6 @@ export function QueueCard({
     </SwipeRow>
   );
 }
+
+// The memoized card. The card list imports it as `QueueCard`.
+export const queueCard = memo(QueueCardView, isSameRowProperties);

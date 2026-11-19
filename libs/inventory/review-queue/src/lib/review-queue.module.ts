@@ -14,7 +14,9 @@ import { LookupWorker } from './lookup/lookup-worker.ts';
 import { OpenFactsProvider } from './lookup/open-facts-provider.ts';
 import { PendingScansController } from './pending-scans.controller.ts';
 import { PendingScansService } from './pending-scans.service.ts';
+import { ProductLink } from './product-link.ts';
 import { ProductPictures } from './product-picture.ts';
+import { ScanDefaults } from './scan-defaults.ts';
 import { storedNutritionFactsSchema } from './storage/stored-nutrition-facts.ts';
 import { storedPendingScanSchema } from './storage/stored-pending-scan.ts';
 
@@ -50,6 +52,8 @@ export class ReviewQueueModule {
         BookingsService,
         LookupWorker,
         ProductPictures,
+        ProductLink,
+        ScanDefaults,
         { provide: LOOKUP_OPTIONS, useFactory: () => readLookupOptions() },
         {
           inject: [LOOKUP_OPTIONS],

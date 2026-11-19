@@ -29,7 +29,7 @@ export const MOCK_DUE_DATE = '2027-01-01';
 // The fields of a pending scan that the spec files read.
 export interface PendingScanRow {
   amount: null | number;
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   code: null | string;
   dueDate: null | string;
   id: number;
@@ -42,7 +42,9 @@ export interface PendingScanRow {
   productId: null | number;
   quantityUnitId: null | number;
   scannedAt: string;
+  spoiled: boolean;
   storeId: null | number;
+  toLocationId: null | number;
   updatedAt: string;
   writeInName: null | string;
 }
@@ -131,6 +133,24 @@ export function sessionRows(page: Page): Locator {
   return page
     .getByRole('list', { name: 'Scans of this session' })
     .getByRole('listitem');
+}
+
+// The time between two keys of a hardware scanner. A Bluetooth scanner can need
+// 100 to 200 ms, so 50 ms is a slow scanner that stays within the one-second
+// discard of the listener.
+const SCANNER_KEY_DELAY_MS = 50;
+
+// This function sends the code as a hardware scanner does: one key press for
+// each character, then Enter. The keys go to the element that has the focus.
+export async function sendScannerCode(page: Page, code: string): Promise<void> {
+  await page.keyboard.type(code, { delay: SCANNER_KEY_DELAY_MS });
+  await page.keyboard.press('Enter');
+}
+
+// The word on the line of the decoder label after the first code from the
+// hardware scanner.
+export function scannerLabel(page: Page): Locator {
+  return page.getByText('Scanner', { exact: true });
 }
 
 export async function typeCode(page: Page, code: string): Promise<void> {

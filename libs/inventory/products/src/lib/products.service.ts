@@ -2,8 +2,13 @@ import { PROBLEM_TYPES, ProblemException } from '@grocy-next/shared-next-api';
 import { Injectable } from '@nestjs/common';
 
 import type { ProductDetails } from './product-details.ts';
-import type { CreateProduct, Product } from './product.ts';
+import type {
+  CreateProduct,
+  Product,
+  SubProductStockEntry,
+} from './product.ts';
 
+import { readConsumeProducts } from './consume-products.ts';
 import { grocyRefused } from './grocy/grocy-answers.ts';
 import { GrocyClient } from './grocy/grocy-client.ts';
 import { toGrocyProductBody } from './grocy/grocy-product-body.ts';
@@ -21,14 +26,52 @@ export class ProductsService {
     private readonly stock: GrocyStockClient,
   ) {}
 
-  // The product of the Next API: the details plus the stock entries and the
-  // resolved conversions, which Grocy answers in two reads of their own.
+  // The stock entries of the sub-products of a parent product, which a
+  // Consume of the parent product takes. The read and the factor of each
+  // sub-product are the reads of the Consume accept. The amount goes to the
+  // stock unit of the parent product, as the amount check of the accept
+  // converts it. A product that is no parent product has none.
+  private async readSubProductStock(
+    details: ProductDetails,
+  ): Promise<SubProductStockEntry[]> {
+    if (!details.isParent) {
+      return [];
+    }
+    const entries = await this.stock.readStockEntriesWithSubProducts(
+      details.id,
+    );
+    const products = await readConsumeProducts(
+      { grocy: this.grocy, stock: this.stock },
+      details,
+      entries,
+    );
+    return entries
+      .filter((entry) => entry.productId !== details.id)
+      .map((entry) => {
+        const product = products.get(entry.productId);
+        return {
+          ...entry,
+          amount: entry.amount / (product?.factor ?? 1),
+          canBeOpened: product?.canOpen ?? false,
+        };
+      });
+  }
+
+  // The product of the Next API: the details, the stock entries, the resolved
+  // conversions, and the stock entries of the sub-products. Grocy answers each
+  // of the last three in a read of its own.
   private async toProduct(details: ProductDetails): Promise<Product> {
-    const [conversions, stockEntries] = await Promise.all([
-      this.stock.readResolvedConversions(details.id),
-      this.stock.readStockEntries(details.id),
-    ]);
-    return toProduct(details, { conversions, stockEntries });
+    const [conversions, stockEntries, subProductStockEntries] =
+      await Promise.all([
+        this.stock.readResolvedConversions(details.id),
+        this.stock.readStockEntries(details.id),
+        this.readSubProductStock(details),
+      ]);
+    return toProduct(details, {
+      conversions,
+      stockEntries,
+      subProductStockEntries,
+    });
   }
 
   // Grocy does not check that the ids of a product create name a row. Thus the

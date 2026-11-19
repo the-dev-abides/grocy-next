@@ -168,6 +168,28 @@ export type StockEntry = {
   open: boolean;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text. */
+  stockId: string;
+};
+export type SubProductStockEntry = {
+  /** The amount in the stock unit of the parent product. */
+  amount: number;
+  /** The due date of the stock entry. */
+  dueDate: string | null;
+  /** The id of the stock entry. */
+  id: number;
+  /** The id of the location. */
+  locationId: number | null;
+  /** Whether the stock entry is open. */
+  open: boolean;
+  /** The purchase date. */
+  purchasedDate: string | null;
+  /** The Grocy stock_id of the stock entry. A pending scan names the stock entry by this text. */
+  stockId: string;
+  /** Whether the open on consume can open the rest of the stock entry. It is false for a sub-product with "cannot be opened" or with tare weight handling. */
+  canBeOpened: boolean;
+  /** The id of the sub-product of the stock entry. */
+  productId: number;
 };
 export type Product = {
   /** The description of the product, or null when it has none. */
@@ -176,6 +198,12 @@ export type Product = {
   id: number;
   /** The name of the product. */
   name: string;
+  /** Whether the product can be opened. It is false for a product with the Grocy setting "cannot be opened". */
+  canBeOpened: boolean;
+  /** The id of the default consume location, or null. */
+  consumeLocationId: number | null;
+  /** The id of the consume quantity unit. The empty unit of a Consume is this unit. */
+  consumeUnitId: number;
   /** The resolved conversions of the product. */
   conversions: QuantityUnitConversion[];
   /** The default due days of a new stock entry. 0 means no due date, and -1 means never overdue. */
@@ -200,6 +228,8 @@ export type Product = {
   stockEntries: StockEntry[];
   /** The id of the stock quantity unit. */
   stockUnitId: number;
+  /** The stock entries of the sub-products of a parent product, in the Grocy consume order. A Consume of the parent product takes them after the sub-product substitution. The list is empty for a product that is no parent product. */
+  subProductStockEntries: SubProductStockEntry[];
   /** The tare weight in the stock unit, or null when tare weight handling is off. The count of a tare weight product is a gross weight. */
   tareWeight: number | null;
 };
@@ -328,10 +358,10 @@ export type LookupResult = {
   sourceUrl: string;
 };
 export type PendingScan = {
-  /** The amount. Purchase: in the unit quantityUnitId, or the purchase unit of the product. Inventory: the new own stock in the stock unit. */
+  /** The amount. Purchase, Consume, and Transfer: in the unit quantityUnitId, or else the purchase unit, the consume unit, or the stock unit of the product. Inventory: the new own stock in the stock unit. */
   amount: number | null;
   /** The booking that the accept makes. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed, or null for a row from the assistant. */
   code: string | null;
   /** The time of the create, in UTC. */
@@ -344,7 +374,7 @@ export type PendingScan = {
   id: number;
   /** The time of the last lookup attempt, in UTC, or null. */
   lastLookupAt: string | null;
-  /** The id of the location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId: number | null;
   /** The lookup result, or null. */
   lookupResult: LookupResult | null;
@@ -360,12 +390,18 @@ export type PendingScan = {
   productGroupId: number | null;
   /** The id of the product, or null. */
   productId: number | null;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId: number | null;
   /** The time of the scan, in UTC. */
   scannedAt: string;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes, or null. */
+  stockEntryId: string | null;
   /** The id of the store. */
   storeId: number | null;
+  /** The id of the "to" location of a Transfer, or null. */
+  toLocationId: number | null;
   /** The time of the last change, in UTC. */
   updatedAt: string;
   /** The product name that the user typed on the scan screen. */
@@ -375,12 +411,12 @@ export type CreatePendingScan = {
   /** The amount. */
   amount?: number;
   /** The booking that the accept makes. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed. */
   code?: string;
   /** The due date. */
   dueDate?: string;
-  /** The id of the location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId?: number;
   /** The note. */
   note?: string;
@@ -392,10 +428,16 @@ export type CreatePendingScan = {
   productGroupId?: number;
   /** The id of the product. */
   productId?: number;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId?: number;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled?: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes. */
+  stockEntryId?: string;
   /** The id of the store. */
   storeId?: number;
+  /** The id of the "to" location of a Transfer. */
+  toLocationId?: number;
   /** The product name that the user typed on the scan screen. */
   writeInName?: string;
 };
@@ -406,13 +448,13 @@ export type PendingScanList = {
 export type UpdatePendingScan = {
   /** The amount. */
   amount?: number | null;
-  /** The booking that the accept makes. Set at create. */
-  bookingType?: 'inventory' | 'purchase';
+  /** The booking that the accept makes. Set at create. An update can flip it between consume and transfer only. */
+  bookingType?: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The code as scanned or typed. */
   code?: string | null;
   /** The due date. */
   dueDate?: string | null;
-  /** The id of the location. */
+  /** The id of the location. Consume and Transfer: the "from" location. */
   locationId?: number | null;
   /** The note. */
   note?: string | null;
@@ -424,10 +466,16 @@ export type UpdatePendingScan = {
   productGroupId?: number | null;
   /** The id of the product. */
   productId?: number | null;
-  /** The id of the quantity unit of the amount. Purchase only. */
+  /** The id of the quantity unit of the amount. Purchase, Consume, and Transfer only. */
   quantityUnitId?: number | null;
+  /** Whether the product was spoiled. Consume only. */
+  spoiled?: boolean;
+  /** The Grocy stock_id of the one stock entry that the accept takes. */
+  stockEntryId?: string | null;
   /** The id of the store. */
   storeId?: number | null;
+  /** The id of the "to" location of a Transfer. */
+  toLocationId?: number | null;
   /** The product name that the user typed on the scan screen. */
   writeInName?: string | null;
 };
@@ -446,6 +494,8 @@ export type StockLogRow = {
   price: number | null;
   /** The purchase date. */
   purchasedDate: string | null;
+  /** Whether the booking is a spoiled consume. False on every other booking. */
+  spoiled: boolean;
   /** The id of the stock entry, when Grocy wrote it. */
   stockEntryId: number | null;
   /** The id of the store. */
@@ -454,15 +504,15 @@ export type StockLogRow = {
   transactionType: string;
 };
 export type Booking = {
-  /** The stock log rows of the transaction. */
+  /** The stock log rows of the transaction. On a Consume, the list also holds the stock log rows of the open of the rest of each sealed stock entry that the consume took a part of, after the rows of the consume. These rows have the transaction type `product-opened` and their own Grocy transaction. On a Transfer, the list holds a `transfer_from` row and a `transfer_to` row for each stock entry that Grocy moved. */
   bookings: StockLogRow[];
   /** The booking that the accept made. */
-  bookingType: 'inventory' | 'purchase';
+  bookingType: 'consume' | 'inventory' | 'purchase' | 'transfer';
   /** The id of the accepted pending scan. */
   pendingScanId: number;
   /** The id of the product. */
   productId: number;
-  /** The id of the Grocy transaction, or null on no change. */
+  /** The id of the Grocy transaction, or null on no change. On a Consume, it is the transaction of the consume, not of the open. */
   transactionId: string | null;
 };
 export type CreateBooking = {

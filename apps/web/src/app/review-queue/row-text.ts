@@ -1,6 +1,7 @@
 import type { PendingScan, Product } from '../api/next-api';
 
-import { nameOf } from '../scan/scan-text';
+import { isSwitchBookingType, type SwitchBookingType } from '../booking-types';
+import { nameOf, transferLocationsText } from '../scan/scan-text';
 
 interface Named {
   id: number;
@@ -9,36 +10,84 @@ interface Named {
 
 type ProductUnits = Pick<
   Product,
-  'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
+  'consumeUnitId' | 'purchaseUnitId' | 'stockAmount' | 'stockUnitId'
 >;
 
-export const bookingTypeLabel: Readonly<
-  Record<PendingScan['bookingType'], string>
-> = {
-  inventory: 'Inventory',
-  purchase: 'Purchase',
+// The unit of a Consume row or a Transfer row with no unit, as ADR 0010
+// decided. It is the consume unit on a Consume and the stock unit on a
+// Transfer.
+export function emptyUnitIdOf(
+  bookingType: SwitchBookingType,
+  product: Pick<Product, 'consumeUnitId' | 'stockUnitId'>,
+): number {
+  return bookingType === 'consume'
+    ? product.consumeUnitId
+    : product.stockUnitId;
+}
+
+// The unit of a row with no scanned unit, as ADR 0010 decided. It is the
+// purchase unit on a Purchase and the stock unit on an Inventory. On a Consume
+// and a Transfer, `emptyUnitIdOf` gives it.
+function defaultUnitIdOf(
+  bookingType: PendingScan['bookingType'],
+  product: Omit<ProductUnits, 'stockAmount'>,
+): number {
+  if (isSwitchBookingType(bookingType)) {
+    return emptyUnitIdOf(bookingType, product);
+  }
+  return bookingType === 'purchase'
+    ? product.purchaseUnitId
+    : product.stockUnitId;
+}
+
+const defaultUnitWords: Readonly<Record<PendingScan['bookingType'], string>> = {
+  consume: 'Consume unit',
+  inventory: 'Stock unit',
+  purchase: 'Purchase unit',
+  transfer: 'Stock unit',
 };
 
-// The unit of the amount of a row, as ADR 0010 decided. A Purchase amount is in
-// the scanned unit. When the row has no scanned unit, the amount is in the
-// purchase unit of the product. An Inventory amount is in the stock unit of the
-// product. No words while the product read has not answered.
+// The words of the empty unit in the unit select of a row form. They name the
+// default unit of the booking type and the name of the unit of the product.
+export function defaultUnitLabel(
+  bookingType: PendingScan['bookingType'],
+  product: Omit<ProductUnits, 'stockAmount'> | undefined,
+  quantityUnits: readonly Named[] | undefined,
+): string {
+  const words = defaultUnitWords[bookingType];
+  if (product === undefined) {
+    return words;
+  }
+  const name = nameOf(quantityUnits, defaultUnitIdOf(bookingType, product), '');
+  return name === '' ? words : `${words} (${name})`;
+}
+
+// The unit of the amount of a row, as ADR 0010 decided. An Inventory amount
+// is in the stock unit of the product. Every other amount is in the scanned
+// unit. When the row has no scanned unit, the amount is in the default unit of
+// the booking type, as Grocy shows it. No words while the product read has not
+// answered.
 export function unitOf(
   scan: Pick<PendingScan, 'bookingType' | 'quantityUnitId'>,
   product: ProductUnits | undefined,
   quantityUnits: readonly Named[] | undefined,
 ): string {
-  if (scan.bookingType === 'inventory') {
-    return product === undefined
-      ? ''
-      : nameOf(quantityUnits, product.stockUnitId, '');
-  }
-  if (scan.quantityUnitId !== null) {
+  if (scan.bookingType !== 'inventory' && scan.quantityUnitId !== null) {
     return nameOf(quantityUnits, scan.quantityUnitId, '');
   }
   return product === undefined
     ? ''
-    : nameOf(quantityUnits, product.purchaseUnitId, '');
+    : nameOf(quantityUnits, defaultUnitIdOf(scan.bookingType, product), '');
+}
+
+// The location column of a row: the location, or "From → To" on a Transfer.
+export function locationText(
+  scan: Pick<PendingScan, 'bookingType' | 'locationId' | 'toLocationId'>,
+  locations: readonly Named[] | undefined,
+): string {
+  return scan.bookingType === 'transfer'
+    ? transferLocationsText(scan, locations)
+    : nameOf(locations, scan.locationId, 'Product default');
 }
 
 // The amount with its unit. An Inventory row with no count shows the Grocy

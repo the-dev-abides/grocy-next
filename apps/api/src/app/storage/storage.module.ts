@@ -1,4 +1,5 @@
 import {
+  AddConsumeTransferFields1794891600000,
   CreateNutritionFacts1794456000000,
   CreatePendingScan1794369600000,
   storedNutritionFactsSchema,
@@ -22,6 +23,7 @@ const MIGRATIONS = [
   Empty1793756181772,
   CreatePendingScan1794369600000,
   CreateNutritionFacts1794456000000,
+  AddConsumeTransferFields1794891600000,
 ];
 
 // The config module reads the `.env` file into the process environment and

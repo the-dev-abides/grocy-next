@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { ConsumeStockEntry } from '../consume.ts';
 import type { StockEntry } from '../product.ts';
 
 import { grocyNumber } from './grocy-answers.ts';
@@ -19,23 +20,62 @@ const grocyStockEntrySchema = z.looseObject({
   location_id: grocyNullableNumber,
   open: grocyNumber,
   purchased_date: z.string().nullable(),
+  stock_id: z.string(),
 });
 
 export const grocyStockEntriesSchema = z.array(grocyStockEntrySchema);
+
+// The same rows with the product id, for the accept of a Consume.
+export const grocyConsumeStockEntriesSchema = z.array(
+  grocyStockEntrySchema.extend({
+    product_id: grocyNumber,
+  }),
+);
+
+// The stock entries of a consume read in the order of the rows, which is the
+// Grocy consume order.
+export function toConsumeStockEntries(
+  rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
+): ConsumeStockEntry[] {
+  return rows.map((row) => {
+    return {
+      amount: row.amount,
+      isOpen: row.open !== 0,
+      locationId: row.location_id,
+      productId: row.product_id,
+      stockId: row.stock_id,
+    };
+  });
+}
+
+function toStockEntry(row: z.infer<typeof grocyStockEntrySchema>): StockEntry {
+  return {
+    amount: row.amount,
+    dueDate: row.best_before_date,
+    id: row.id,
+    locationId: row.location_id,
+    open: row.open !== 0,
+    purchasedDate: row.purchased_date,
+    stockId: row.stock_id,
+  };
+}
 
 // The stock entries in the order of the rows, which is the Grocy consume
 // order.
 export function toStockEntries(
   rows: z.infer<typeof grocyStockEntriesSchema>,
 ): StockEntry[] {
+  return rows.map((row) => toStockEntry(row));
+}
+
+// The stock entries of a read with the sub-products, with the product of each
+// stock entry. They come in the order of the rows, which is the Grocy consume
+// order.
+export function toStockEntriesWithProduct(
+  rows: z.infer<typeof grocyConsumeStockEntriesSchema>,
+): (StockEntry & { productId: number })[] {
   return rows.map((row) => {
-    return {
-      amount: row.amount,
-      dueDate: row.best_before_date,
-      id: row.id,
-      locationId: row.location_id,
-      open: row.open !== 0,
-      purchasedDate: row.purchased_date,
-    };
+    const entry = toStockEntry(row);
+    return { ...entry, productId: row.product_id };
   });
 }

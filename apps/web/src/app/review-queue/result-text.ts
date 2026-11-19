@@ -9,7 +9,12 @@ interface Named {
 
 type ProblemFacts = Pick<Problem, 'detail' | 'title' | 'type'>;
 
-const GROCY_REFUSED = '/problems/grocy-refused';
+// The problems whose detail the server stores as the error of the row:
+// a Grocy refusal, and the above-stock rule of the Consume accept.
+const ROW_ERRORS: ReadonlySet<string> = new Set([
+  '/problems/above-stock',
+  '/problems/grocy-refused',
+]);
 
 function rowText(
   row: StockLogRow,
@@ -67,10 +72,11 @@ export function failureText(error: unknown): string {
     : `${problem.title}. ${problem.detail}`;
 }
 
-// Grocy refused the change. The row keeps the Grocy message as its error,
-// so the row shows the message and the result line stays silent.
-export function isGrocyRefused(error: unknown): boolean {
-  return problemOf(error)?.type === GROCY_REFUSED;
+// The row keeps the detail of the problem as its error, so the row shows
+// the message and the result line stays silent.
+export function isRowError(error: unknown): boolean {
+  const type = problemOf(error)?.type;
+  return type !== undefined && ROW_ERRORS.has(type);
 }
 
 // The counts of the result panel.

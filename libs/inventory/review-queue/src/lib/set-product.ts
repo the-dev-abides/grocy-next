@@ -27,10 +27,21 @@ export function hasBarcode(product: ProductDetails, code: string): boolean {
   return product.barcodes.some((row) => forms.has(row.barcode.toLowerCase()));
 }
 
+function defaultLocationOf(
+  row: StoredPendingScan,
+  product: ProductDetails,
+): null | number {
+  return row.bookingType === 'consume'
+    ? (product.consumeLocationId ?? product.locationId)
+    : product.locationId;
+}
+
 // This function applies the rules of an update that sets a product, after the
 // Grocy writes. The write-in name goes. The unit goes, because the empty unit
-// means the purchase unit of the product. The location takes the product
-// default when the row had none. The row stores the id of the product barcode
+// means the purchase unit or the consume unit of the product. The location
+// takes the product default when the row had none. On a Consume, that is the
+// default consume location of the product, else its default location, as on
+// the create. The row stores the id of the product barcode
 // that the update added in Grocy, or null when it added none.
 export function withProduct(
   updated: StoredPendingScan,
@@ -39,7 +50,7 @@ export function withProduct(
 ): StoredPendingScan {
   return {
     ...updated,
-    locationId: updated.locationId ?? product.locationId,
+    locationId: updated.locationId ?? defaultLocationOf(updated, product),
     productBarcodeId,
     quantityUnitId: null,
     writeInName: null,

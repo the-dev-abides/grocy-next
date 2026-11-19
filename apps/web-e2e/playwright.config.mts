@@ -5,6 +5,8 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+import { shareLockFolder } from './src/lock-options.js';
+
 // The four processes of the end-to-end test environment, as ADR 0015
 // decided. Each listens on a port of its own. The ports are the development
 // ports plus 10000, so a test never touches the API on port 3000 or the web
@@ -24,11 +26,16 @@ const IMPOSTER_FLAGS = '--auto-restart=false --log-level info';
 // the API takes longer than the Playwright default of one minute.
 const START_TIMEOUT_MS = 180_000;
 
-// The test file of the camera path.
+// The test files of the camera path. Each file name ends with
+// `camera.spec.ts`.
 const CAMERA_TESTS = /camera\.spec\.ts$/u;
 
 // The API writes its SQLite file into a new temporary folder on every run.
 const databaseFolder = mkdtempSync(path.join(tmpdir(), 'grocy-next-e2e-'));
+
+// The file lock of `src/fixtures.ts` keeps its marks in a new temporary folder
+// on every run. All workers share the folder of the runner.
+shareLockFolder();
 
 function portOf(url: string): string {
   const { port } = new URL(url);
