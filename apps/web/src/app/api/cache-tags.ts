@@ -46,7 +46,7 @@ export function bookingTagsOf(booking: Booking): StockTag[] {
 // drew every row again. This merge compares each row with the cached row of
 // the same id. A row that did not change keeps its object. When no row
 // changed, the merge changes nothing, so the list keeps its object too.
-export function mergePendingScans(
+function mergePendingScans(
   cached: ListPendingScansResponse,
   response: ListPendingScansResponse,
 ): void {

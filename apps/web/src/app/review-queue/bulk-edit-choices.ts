@@ -14,7 +14,7 @@ export const KEEP_TEXT = 'Keep as is';
 export const KEEP_CHOICE = { label: KEEP_TEXT, value: KEEP };
 
 // The value of the due date select for a fixed date.
-export const DATE = 'date';
+const DATE = 'date';
 
 export const DUE_CHOICES = [
   KEEP_CHOICE,
